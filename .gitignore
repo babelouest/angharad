@@ -1,0 +1,4 @@
+*.o
+angharad
+unit-tests
+angharad.conf

@@ -1,0 +1,99 @@
+#
+#
+# Angharad system
+#
+# Copyright 2016 Nicolas Mora <mail@babelouest.org>
+# Gnu Public License V3 <http://fsf.org/>
+#
+#
+
+# port to open for remote commands
+port=2473
+
+# prefix for angharad webservices
+url_prefix_angharad="angharad"
+
+# prefix for benoic webservices
+url_prefix_benoic="benoic"
+
+# prefix for carleon webservices
+url_prefix_carleon="carleon"
+
+# prefix for gareth webservices
+url_prefix_gareth="gareth"
+
+# path to static files for /static url
+static_files_path="/path/to/static/files"
+
+# log mode (console, syslog, file)
+log_mode="console,file"
+
+# log level: NONE, ERROR, WARNING, INFO, DEBUG
+log_level="DEBUG"
+
+# output to log file (required if log_mode is file)
+log_file="/path/to/angharad.log"
+
+# path to modules folder for carleon
+services_path="/path/to/carleon/modules"
+
+# path to modules folder for benoic
+modules_path="/path/to/benoic/modules"
+
+# MariaDB/Mysql database connection
+database =
+{
+  type = "mariadb";
+  host = "localhost";
+  user = "angharad";
+  password = "angharad";
+  dbname = "angharad_dev";
+  port = 0;
+};
+
+# SQLite database connection
+# database =
+# {
+#    type = "sqlite3";
+#    path = "/tmp/angharad.db";
+# };
+
+# Realm displayed in authentication header
+authentication_realm = "angharad"
+
+# Authentications methods available
+
+# No authentication
+authentication =
+{
+  type = "none"
+}
+
+# Database authentication
+# authentication =
+# {
+#   type = "database"
+#   table = "a_users"
+#   login_column = "au_login"
+#   password_column = "au_password"
+#   Below is the method name used to filter password, it will be used to generate the query
+#     for example: "SELECT * FROM a_users WHERE au_login = 'user' AND au_password = PASSWORD('password')
+#   password_filter = "PASSWORD"
+# }
+
+# .htpassword file authentication (Apache standard)
+# authentication =
+# {
+#   type = "htpasswd"
+#   file = "path/to/file/htpasswd"
+# }
+
+# LDAP authentication
+# authentication =
+# {
+#   type = "ldap"
+#   url = "ldap://localhost/ou=users,dc=example,dc=com?uid"
+#   bind_dn = "cn=operator,ou=users,dc=example,dc=com"
+#   bind_passwd = "password"
+#   filter = "o=angharad"
+# }
