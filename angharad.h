@@ -79,7 +79,14 @@
 #define ANGHARAD_SUBMODULE_GARETH  "gareth"
 #define ANGHARAD_SUBMODULE_FERGUS  "fergus"
 
-#define ANGHARAD_TABLE_SUBMODULE "a_submodule"
+#define ANGHARAD_TABLE_SUBMODULE       "a_submodule"
+#define ANGHARAD_TABLE_SESSION         "a_session"
+#define ANGHARAD_TABLE_SCRIPT          "a_script"
+#define ANGHARAD_TABLE_SCHEDULER       "a_scheduler"
+#define ANGHARAD_TABLE_TRIGGER         "a_trigger"
+#define ANGHARAD_TABLE_EVENT           "a_event"
+#define ANGHARAD_TABLE_EVENT_SCHEDULER "a_event_scheduler"
+#define ANGHARAD_TABLE_EVENT_TRIGGER   "a_event_trigger"
 
 struct config_elements {
   char *                   config_file;
@@ -117,13 +124,21 @@ int angharad_run_thread(struct config_elements * config);
 
 void * thread_event_run(void * args);
 
+json_t * script_get(struct config_elements * config, const char * script_id);
+int script_add(struct config_elements * config, json_t * j_script);
+int script_modify(struct config_elements * config, const char * script_id, json_t * j_script);
+int script_delete(struct config_elements * config, const char * script_id);
+json_t * is_script_valid(struct config_elements * config, json_t * j_script);
+json_t * script_run(struct config_elements * config, const char * script_id);
+json_t * is_actions_valid(struct config_elements * config, json_t * j_action_list);
+json_t * is_action_valid(struct config_elements * config, json_t * j_action);
+
 // Callback functions for webservices
 int callback_angharad_alert (const struct _u_request * request, struct _u_response * response, void * user_data);
 
 int callback_angharad_submodule_list (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_submodule_get (const struct _u_request * request, struct _u_response * response, void * user_data);
-int callback_angharad_submodule_command_list (const struct _u_request * request, struct _u_response * response, void * user_data);
-int callback_angharad_submodule_element_list (const struct _u_request * request, struct _u_response * response, void * user_data);
+int callback_angharad_submodule_enable (const struct _u_request * request, struct _u_response * response, void * user_data);
 
 int callback_angharad_script_list (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_script_get (const struct _u_request * request, struct _u_response * response, void * user_data);
@@ -131,12 +146,16 @@ int callback_angharad_script_execute (const struct _u_request * request, struct 
 int callback_angharad_script_add (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_script_modify (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_script_remove (const struct _u_request * request, struct _u_response * response, void * user_data);
+int callback_angharad_script_add_tag (const struct _u_request * request, struct _u_response * response, void * user_data);
+int callback_angharad_script_remove_tag (const struct _u_request * request, struct _u_response * response, void * user_data);
 
 int callback_angharad_event_list (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_event_get (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_event_add (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_event_modify (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_event_remove (const struct _u_request * request, struct _u_response * response, void * user_data);
+int callback_angharad_event_add_tag (const struct _u_request * request, struct _u_response * response, void * user_data);
+int callback_angharad_event_remove_tag (const struct _u_request * request, struct _u_response * response, void * user_data);
 
 int callback_angharad_static_file (const struct _u_request * request, struct _u_response * response, void * user_data);
 

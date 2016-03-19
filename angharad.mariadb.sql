@@ -21,6 +21,13 @@ DROP TABLE IF EXISTS `g_alert_smtp`;
 DROP TABLE IF EXISTS `g_alert_http_header`;
 DROP TABLE IF EXISTS `g_alert_http`;
 
+DROP TABLE IF EXISTS `a_event_trigger`;
+DROP TABLE IF EXISTS `a_event_scheduler`;
+DROP TABLE IF EXISTS `a_event`;
+DROP TABLE IF EXISTS `a_trigger`;
+DROP TABLE IF EXISTS `a_scheduler`;
+DROP TABLE IF EXISTS `a_script`;
+DROP TABLE IF EXISTS `a_session`;
 DROP TABLE IF EXISTS `a_submodule`;
 
 CREATE TABLE `b_device_type` (
@@ -65,10 +72,6 @@ CREATE TABLE `b_monitor` (
   `bm_date` timestamp DEFAULT CURRENT_TIMESTAMP,
   `bm_value` varchar(16)
 );
-
-DROP TABLE IF EXISTS `c_profile`;
-DROP TABLE IF EXISTS `c_element`;
-DROP TABLE IF EXISTS `c_service`;
 
 CREATE TABLE `c_service` (
   `cs_uid` varchar(64) PRIMARY KEY NOT NULL,
@@ -176,5 +179,61 @@ CREATE TABLE `a_session` (
   `ass_session_token` varchar(128) NOT NULL UNIQUE,
   `ass_login` varchar(64) NOT NULL,
   `ass_validity` timestamp,
-  `ass_security` tinyint(1) default 0, -- 0 public, 1 private
+  `ass_security` tinyint(1) default 0 -- 0 public, 1 private
+);
+
+CREATE TABLE `a_script` (
+  `asc_id` int(11) NOT NULL AUTO_INCREMENT,
+  `asc_name` varchar(64) NOT NULL,
+  `asc_description` varchar(128),
+  `asc_actions` BLOB,
+  `asc_options` BLOB,
+  PRIMARY KEY (`asc_id`)
+);
+
+CREATE TABLE `a_scheduler` (
+  `ash_id` int(11) NOT NULL AUTO_INCREMENT,
+  `ash_name` varchar(64) NOT NULL,
+  `ash_description` varchar(128),
+  `ash_options` BLOB,
+  `ash_next_time` timestamp,
+  `ash_duration` INT(11),
+  `ash_repeat_schedule` INT(11), -- -1: None, 0: minute, 1: hours, 2: days, 3: day of week, 4: month, 5: year
+  `ash_repeat_schedule_value` INT(11),
+  `ash_remove_after_done` INT(11),
+  PRIMARY KEY (`ash_id`)
+);
+
+CREATE TABLE `a_trigger` (
+  `at_id` int(11) NOT NULL AUTO_INCREMENT,
+  `at_name` varchar(64) NOT NULL,
+  `at_description` varchar(128),
+  `at_submodule` varchar(64) NOT NULL,
+  `at_source` varchar(64) NOT NULL,
+  `at_element` varchar(64) NOT NULL,
+  `at_message` varchar(128),
+  PRIMARY KEY (`at_id`)
+);
+
+CREATE TABLE `a_event` (
+  `ae_id` int(11) NOT NULL AUTO_INCREMENT,
+  `ae_name` varchar(64) NOT NULL,
+  `ae_description` varchar(128),
+  `ae_enabled` tinyint(1) DEFAULT 1,
+  `ae_options` BLOB,
+  PRIMARY KEY (`ae_id`)
+);
+
+CREATE TABLE `a_event_scheduler` (
+  `ae_id` int(11),
+  `ash_id` int(11),
+  CONSTRAINT `event_id_ibfk_1` FOREIGN KEY (`ae_id`) REFERENCES `a_event` (`ae_id`),
+  CONSTRAINT `scheduler_id_ibfk_1` FOREIGN KEY (`ash_id`) REFERENCES `a_scheduler` (`ash_id`)
+);
+
+CREATE TABLE `a_event_trigger` (
+  `ae_id` int(11),
+  `at_id` int(11),
+  CONSTRAINT `event_id_ibfk_2` FOREIGN KEY (`ae_id`) REFERENCES `a_event` (`ae_id`),
+  CONSTRAINT `trigger_id_ibfk_1` FOREIGN KEY (`at_id`) REFERENCES `a_trigger` (`at_id`)
 );

@@ -37,14 +37,17 @@ BENOIC_LIBS=$(BENOIC_LOCATION)/benoic.o $(BENOIC_LOCATION)/device.o $(BENOIC_LOC
 CARLEON_LOCATION=../carleon
 CARLEON_LIBS=$(CARLEON_LOCATION)/carleon.o $(CARLEON_LOCATION)/service.o $(CARLEON_LOCATION)/profile.o
 
-angharad: angharad.o event.o webservice.o gareth.o benoic.o carleon.o angharad.h
-	$(CC) -o angharad angharad.o event.o webservice.o $(GARETH_LIBS) $(BENOIC_LIBS) $(CARLEON_LIBS) $(LIBS) -lconfig
+angharad: gareth.o benoic.o carleon.o angharad.h angharad.o event.o script.o webservice.o
+	$(CC) -o angharad angharad.o event.o script.o webservice.o $(GARETH_LIBS) $(BENOIC_LIBS) $(CARLEON_LIBS) $(LIBS) -lconfig
 
 angharad.o: angharad.c angharad.h
 	$(CC) $(CFLAGS) angharad.c
 
 event.o: event.c angharad.h
 	$(CC) $(CFLAGS) event.c
+
+script.o: script.c angharad.h
+	$(CC) $(CFLAGS) script.c
 
 webservice.o: webservice.c angharad.h
 	$(CC) $(CFLAGS) webservice.c

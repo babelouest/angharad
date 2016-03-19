@@ -7,7 +7,7 @@
  * - Gareth
  * - Carleon
  * 
- * subsystem functions for ulfius endpoints declarations, schedules and events management
+ * Events (schedulers and alerts) management functions
  *
  * Copyright 2016 Nicolas Mora <mail@babelouest.org>
  *

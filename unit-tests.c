@@ -109,106 +109,101 @@ int test_request_status(struct _u_request * req, long int expected_status, json_
   return to_return;
 }
 
-void run_device_tests() {
-  json_t * device_valid1 = json_loads("{\
-    \"name\":\"dev1\",\
-    \"description\":\"first test\",\
-    \"type_uid\":\"00-00-00\",\
-    \"enabled\":true,\
-    \"options\":{\
-      \"uri\":\"dev1\",\
-      \"baud\":6900,\
-      \"do_not_check_certificate\":false,\
-      \"device_specified\":\"TBD\"\
+void run_submodule_tests() {
+  json_t * submodule_list = json_loads("[\
+    {\
+        \"name\": \"benoic\",\
+        \"description\": \"House automation devices management\",\
+        \"enabled\": true\
+    },\
+    {\
+        \"name\": \"carleon\",\
+        \"description\": \"House automation side services management\",\
+        \"enabled\": true\
+    },\
+    {\
+        \"name\": \"gareth\",\
+        \"description\": \"Messenger service\",\
+        \"enabled\": true\
     }\
-  }", JSON_DECODE_ANY, NULL);
-  json_t * device_valid2 = json_loads("{\
-    \"description\":\"second test\",\
-    \"type_uid\":\"00-00-00\",\
-    \"enabled\":true,\
-    \"options\":{\
-      \"uri\":\"dev1\",\
-      \"baud\":6900,\
-      \"do_not_check_certificate\":false,\
-      \"device_specified\":\"TBD\"\
-    }\
-  }", JSON_DECODE_ANY, NULL);
-  json_t * device_invalid1 = json_loads("{\
-    \"name\":\"dev2\",\
-    \"description\":\"first test\",\
-    \"type_uid\":\"00-00-01\",\
-    \"options\":{\
-      \"uri\":\"dev1\",\
-      \"baud\":6900,\
-      \"do_not_check_certificate\":false\
-    }\
-  }", JSON_DECODE_ANY, NULL);
-  json_t * device_invalid2 = json_loads("{\
-    \"name\":\"dev2\",\
-    \"description\":\"first test\",\
-    \"type_uid\":\"00-00-00\",\
-    \"options\":{\
-      \"baud\":6900,\
-      \"do_not_check_certificate\":false\
-    }\
-  }", JSON_DECODE_ANY, NULL);
-  json_t * device_invalid3 = json_loads("{\
-    \"name\":\"dev2\",\
-    \"description\":\"first test\",\
-    \"type_uid\":\"00-00-00\"\
-    \"options\":{\
-      \"baud\":6900,\
-      \"do_not_check_certificate\":false\
-    }\
-  }", JSON_DECODE_ANY, NULL);
+]", JSON_DECODE_ANY, NULL);
+  json_t * submodule_benoic_disabled = json_loads("{\
+        \"name\": \"benoic\",\
+        \"description\": \"House automation devices management\",\
+        \"enabled\": false\
+    }", JSON_DECODE_ANY, NULL);
+  json_t * submodule_benoic_enabled = json_loads("{\
+        \"name\": \"benoic\",\
+        \"description\": \"House automation devices management\",\
+        \"enabled\": true\
+    }", JSON_DECODE_ANY, NULL);
+  json_t * submodule_carleon_disabled = json_loads("{\
+        \"name\": \"carleon\",\
+        \"description\": \"House automation side services management\",\
+        \"enabled\": false\
+    }", JSON_DECODE_ANY, NULL);
+  json_t * submodule_carleon_enabled = json_loads("{\
+        \"name\": \"carleon\",\
+        \"description\": \"House automation side services management\",\
+        \"enabled\": true\
+    }", JSON_DECODE_ANY, NULL);
+  json_t * submodule_gareth_disabled = json_loads("{\
+        \"name\": \"gareth\",\
+        \"description\": \"Messenger service\",\
+        \"enabled\": false\
+    }", JSON_DECODE_ANY, NULL);
+  json_t * submodule_gareth_enabled = json_loads("{\
+        \"name\": \"gareth\",\
+        \"description\": \"Messenger service\",\
+        \"enabled\": true\
+    }", JSON_DECODE_ANY, NULL);
   
   struct _u_request req_list[] = {
-    {"GET", SERVER_URL_PREFIX "/device/", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"POST", SERVER_URL_PREFIX "/device/", NULL, NULL, NULL, NULL, NULL, NULL, NULL, device_valid1, NULL, 0, NULL, 0}, // 200
-    {"POST", SERVER_URL_PREFIX "/device/", NULL, NULL, NULL, NULL, NULL, NULL, NULL, device_invalid1, NULL, 0, NULL, 0}, // 400
-    {"POST", SERVER_URL_PREFIX "/device/", NULL, NULL, NULL, NULL, NULL, NULL, NULL, device_invalid2, NULL, 0, NULL, 0}, // 400
-    {"POST", SERVER_URL_PREFIX "/device/", NULL, NULL, NULL, NULL, NULL, NULL, NULL, device_invalid3, NULL, 0, NULL, 0}, // 400
-    {"POST", SERVER_URL_PREFIX "/device/", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 400
-    {"GET", SERVER_URL_PREFIX "/device/", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"GET", SERVER_URL_PREFIX "/device/dev1", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"PUT", SERVER_URL_PREFIX "/device/dev1", NULL, NULL, NULL, NULL, NULL, NULL, NULL, device_valid2, NULL, 0, NULL, 0}, // 200
-    {"PUT", SERVER_URL_PREFIX "/device/dev2", NULL, NULL, NULL, NULL, NULL, NULL, NULL, device_valid2, NULL, 0, NULL, 0}, // 404
-    {"PUT", SERVER_URL_PREFIX "/device/dev1", NULL, NULL, NULL, NULL, NULL, NULL, NULL, device_invalid1, NULL, 0, NULL, 0}, // 400
-    {"GET", SERVER_URL_PREFIX "/device/dev1", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"GET", SERVER_URL_PREFIX "/device/dev1/connect", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"GET", SERVER_URL_PREFIX "/device/dev1/ping", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"GET", SERVER_URL_PREFIX "/device/dev1/disconnect", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"DELETE", SERVER_URL_PREFIX "/device/dev2", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 404
-    {"DELETE", SERVER_URL_PREFIX "/device/dev1", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"GET", SERVER_URL_PREFIX "/submodule/", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"GET", SERVER_URL_PREFIX "/submodule/benoic", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"GET", SERVER_URL_PREFIX "/submodule/notInvented", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 404
+    {"GET", SERVER_URL_PREFIX "/submodule/benoic/enable/0", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"GET", SERVER_URL_PREFIX "/submodule/benoic", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"GET", SERVER_URL_PREFIX "/submodule/benoic/enable/1", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"GET", SERVER_URL_PREFIX "/submodule/benoic", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"GET", SERVER_URL_PREFIX "/submodule/carleon/enable/0", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"GET", SERVER_URL_PREFIX "/submodule/carleon", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"GET", SERVER_URL_PREFIX "/submodule/carleon/enable/1", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"GET", SERVER_URL_PREFIX "/submodule/carleon", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"GET", SERVER_URL_PREFIX "/submodule/gareth/enable/0", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"GET", SERVER_URL_PREFIX "/submodule/gareth", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"GET", SERVER_URL_PREFIX "/submodule/gareth/enable/1", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"GET", SERVER_URL_PREFIX "/submodule/gareth", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
   };
 
-  test_request_status(&req_list[0], 200, NULL);
+  test_request_status(&req_list[0], 200, submodule_list);
   test_request_status(&req_list[1], 200, NULL);
-  test_request_status(&req_list[2], 400, NULL);
-  test_request_status(&req_list[3], 400, NULL);
-  test_request_status(&req_list[4], 400, NULL);
-  test_request_status(&req_list[5], 400, NULL);
-  test_request_status(&req_list[6], 200, device_valid1);
-  test_request_status(&req_list[7], 200, device_valid1);
-  test_request_status(&req_list[8], 200, NULL);
-  test_request_status(&req_list[9], 404, NULL);
-  test_request_status(&req_list[10], 400, NULL);
-  test_request_status(&req_list[11], 200, device_valid2);
-  test_request_status(&req_list[12], 200, NULL);
+  test_request_status(&req_list[2], 404, NULL);
+  test_request_status(&req_list[3], 200, NULL);
+  test_request_status(&req_list[4], 200, submodule_benoic_disabled);
+  test_request_status(&req_list[5], 200, NULL);
+  test_request_status(&req_list[6], 200, submodule_benoic_enabled);
+  test_request_status(&req_list[7], 200, NULL);
+  test_request_status(&req_list[8], 200, submodule_carleon_disabled);
+  test_request_status(&req_list[9], 200, NULL);
+  test_request_status(&req_list[10], 200, submodule_carleon_enabled);
+  test_request_status(&req_list[11], 200, NULL);
+  test_request_status(&req_list[12], 200, submodule_gareth_disabled);
   test_request_status(&req_list[13], 200, NULL);
-  test_request_status(&req_list[14], 200, NULL);
-  test_request_status(&req_list[15], 404, NULL);
-  test_request_status(&req_list[16], 200, NULL);
+  test_request_status(&req_list[14], 200, submodule_gareth_enabled);
   
-  json_decref(device_valid1);
-  json_decref(device_valid2);
-  json_decref(device_invalid1);
-  json_decref(device_invalid2);
+  json_decref(submodule_list);
+  json_decref(submodule_benoic_disabled);
+  json_decref(submodule_benoic_enabled);
+  json_decref(submodule_carleon_disabled);
+  json_decref(submodule_carleon_enabled);
+  json_decref(submodule_gareth_disabled);
+  json_decref(submodule_gareth_enabled);
 }
 
 int main(void) {
-  printf("Press <enter> to run device tests\n");
+  printf("Press <enter> to run submodule tests\n");
   getchar();
-  run_device_tests();
+  run_submodule_tests();
   return 0;
 }

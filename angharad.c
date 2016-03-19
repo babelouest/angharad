@@ -659,6 +659,7 @@ int main(int argc, char ** argv) {
       exit_server(&config, ANGHARAD_ERROR);
     }
   }
+  json_decref(submodule);
   
   // Initialize benoic webservice if enabled
   submodule = submodule_get(config, ANGHARAD_SUBMODULE_CARLEON);
@@ -669,6 +670,7 @@ int main(int argc, char ** argv) {
       exit_server(&config, ANGHARAD_ERROR);
     }
   }
+  json_decref(submodule);
 
   // Initialize benoic webservice if enabled
   submodule = submodule_get(config, ANGHARAD_SUBMODULE_GARETH);
@@ -679,6 +681,7 @@ int main(int argc, char ** argv) {
       exit_server(&config, ANGHARAD_ERROR);
     }
   }
+  json_decref(submodule);
   
   // Initialize angharad webservice
   res = init_angharad(config);
@@ -714,7 +717,7 @@ json_t * submodule_get(struct config_elements * config, const char * submodule) 
     return NULL;
   }
   
-  j_query = json_pack("{sss[sss]}", "table" ANGHARAD_TABLE_SUBMODULE, "columns", "as_name AS name", "as_description AS description", "as_enabled AS enabled");
+  j_query = json_pack("{sss[sss]}", "table", ANGHARAD_TABLE_SUBMODULE, "columns", "as_name AS name", "as_description AS description", "as_enabled AS enabled");
   
   if (j_query == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "submodule_get - Error allocating resources for j_query");
@@ -731,7 +734,7 @@ json_t * submodule_get(struct config_elements * config, const char * submodule) 
     if (submodule != NULL) {
       if (json_array_size(j_result) == 0) {
         json_decref(j_result);
-        return json_pack("{si}", "result", A_ERROR_NOT_FOUND);
+        return json_pack("{si}", "result", WEBSERVICE_RESULT_NOT_FOUND);
       } else {
         j_submodule = json_copy(json_array_get(j_result, 0));
         if (json_integer_value(json_object_get(j_submodule, "enabled")) == 1) {
@@ -742,7 +745,7 @@ json_t * submodule_get(struct config_elements * config, const char * submodule) 
           json_object_set_new(j_submodule, "enabled", json_false());
         }
         json_decref(j_result);
-        return json_pack("{siso}", "result", A_OK, "submodule", j_submodule);
+        return json_pack("{siso}", "result", WEBSERVICE_RESULT_OK, "submodule", j_submodule);
       }
     } else {
       json_array_foreach(j_result, index, j_submodule) {
@@ -754,7 +757,7 @@ json_t * submodule_get(struct config_elements * config, const char * submodule) 
           json_object_set_new(j_submodule, "enabled", json_false());
         }
       }
-      return json_pack("{siso}", "result", A_OK, "submodules", j_result);
+      return json_pack("{siso}", "result", WEBSERVICE_RESULT_OK, "submodules", j_result);
     }
   } else {
     y_log_message(Y_LOG_LEVEL_ERROR, "submodule_get - Error executing db query");
@@ -769,6 +772,7 @@ int submodule_enable(struct config_elements * config, const char * submodule, in
   
   if (j_submodule != NULL && json_integer_value(json_object_get(j_submodule, "result")) == WEBSERVICE_RESULT_OK) {
     if (enabled && json_object_get(json_object_get(j_submodule, "submodule"), "enabled") == json_false()) {
+      json_decref(j_submodule);
       // Enable disabled module
       j_query = json_pack("{sss{si}s{ss}}", "table", ANGHARAD_TABLE_SUBMODULE, "set", "as_enabled", 1, "where" ,"as_name", submodule);
       res = h_update(config->conn, j_query, NULL);
@@ -787,7 +791,7 @@ int submodule_enable(struct config_elements * config, const char * submodule, in
           }
           return A_OK;
         } else if (0 == strcmp(submodule, ANGHARAD_SUBMODULE_GARETH)) {
-          if (init_gareth(config->instance, config->url_prefix_gareth, config->conn)) {
+          if (!init_gareth(config->instance, config->url_prefix_gareth, config->conn)) {
             y_log_message(Y_LOG_LEVEL_ERROR, "submodule_enable - Error init gareth");
             return A_ERROR;
           }
@@ -801,6 +805,7 @@ int submodule_enable(struct config_elements * config, const char * submodule, in
         return A_ERROR_DB;
       }
     } else if (!enabled && json_object_get(json_object_get(j_submodule, "submodule"), "enabled") == json_true()) {
+      json_decref(j_submodule);
       // Disable enabled module
       j_query = json_pack("{sss{si}s{ss}}", "table", ANGHARAD_TABLE_SUBMODULE, "set", "as_enabled", 0, "where" ,"as_name", submodule);
       res = h_update(config->conn, j_query, NULL);
@@ -808,19 +813,19 @@ int submodule_enable(struct config_elements * config, const char * submodule, in
       if (res == H_OK) {
         if (0 == strcmp(submodule, ANGHARAD_SUBMODULE_BENOIC)) {
           if (close_benoic(config->instance, config->url_prefix_benoic, config->b_config) != B_OK) {
-            y_log_message(Y_LOG_LEVEL_ERROR, "submodule_enable - Error init benoic");
+            y_log_message(Y_LOG_LEVEL_ERROR, "submodule_enable - Error closing benoic");
             return A_ERROR;
           }
           return A_OK;
         } else if (0 == strcmp(submodule, ANGHARAD_SUBMODULE_CARLEON)) {
           if (close_carleon(config->instance, config->url_prefix_carleon, config->c_config) != C_OK) {
-            y_log_message(Y_LOG_LEVEL_ERROR, "submodule_enable - Error init carleon");
+            y_log_message(Y_LOG_LEVEL_ERROR, "submodule_enable - Error closing carleon");
             return A_ERROR;
           }
           return A_OK;
         } else if (0 == strcmp(submodule, ANGHARAD_SUBMODULE_GARETH)) {
-          if (close_gareth(config->instance, config->url_prefix_gareth)) {
-            y_log_message(Y_LOG_LEVEL_ERROR, "submodule_enable - Error init gareth");
+          if (!close_gareth(config->instance, config->url_prefix_gareth)) {
+            y_log_message(Y_LOG_LEVEL_ERROR, "submodule_enable - Error closing gareth");
             return A_ERROR;
           }
           return A_OK;
@@ -847,32 +852,35 @@ int init_angharad(struct config_elements * config) {
   int thread_ret_event = 0, thread_detach_event = 0;
 
   if (config != NULL && config->instance != NULL && config->url_prefix_angharad) {
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/alert/@source/@element/@message/", NULL, NULL, NULL, &callback_angharad_alert, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/alert/@submodule_name/@source/@element/@message/", NULL, NULL, NULL, &callback_angharad_alert, (void*)config);
     
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/", NULL, NULL, NULL, &callback_angharad_submodule_list, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/@submodule_name", NULL, NULL, NULL, &callback_angharad_submodule_get, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/@submodule_name/command", NULL, NULL, NULL, &callback_angharad_submodule_command_list, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/@submodule_name/element", NULL, NULL, NULL, &callback_angharad_submodule_element_list, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/@submodule_name/enable/@enabled", NULL, NULL, NULL, &callback_angharad_submodule_enable, (void*)config);
 
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/", NULL, NULL, NULL, &callback_angharad_script_list, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/@script_id", NULL, NULL, NULL, &callback_angharad_script_get, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/@script_id/execute", NULL, NULL, NULL, &callback_angharad_script_execute, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/@script_id/run", NULL, NULL, NULL, &callback_angharad_script_execute, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/script/", NULL, NULL, NULL, &callback_angharad_script_add, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/script/@script_id", NULL, NULL, NULL, &callback_angharad_script_modify, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/script/@script_id", NULL, NULL, NULL, &callback_angharad_script_remove, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/script/@script_id/add_tag/@tag", NULL, NULL, NULL, &callback_angharad_script_add_tag, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/script/@script_id/remove_tag/@tag", NULL, NULL, NULL, &callback_angharad_script_remove_tag, (void*)config);
 
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/event/", NULL, NULL, NULL, &callback_angharad_event_list, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/event/@event_id", NULL, NULL, NULL, &callback_angharad_event_get, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/event/", NULL, NULL, NULL, &callback_angharad_event_add, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/event/@event_id", NULL, NULL, NULL, &callback_angharad_event_modify, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/event/@event_id", NULL, NULL, NULL, &callback_angharad_event_remove, (void*)config);
-
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/static/*", &callback_angharad_no_auth_function, NULL, config->angharad_realm, &callback_angharad_static_file, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/event/@event_id/add_tag/@tag", NULL, NULL, NULL, &callback_angharad_event_add_tag, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/event/@event_id/remove_tag/@tag", NULL, NULL, NULL, &callback_angharad_event_remove_tag, (void*)config);
 
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/auth", &callback_angharad_no_auth_function, NULL, config->angharad_realm, &callback_angharad_auth_get, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/auth", &callback_angharad_no_auth_function, NULL, config->angharad_realm, &callback_angharad_auth_check, (void*)config);
 
-    ulfius_add_endpoint_by_val(config->instance, "GET", NULL, "/", &callback_angharad_no_auth_function, NULL, config->angharad_realm, &callback_angharad_root_url, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/static/*", &callback_angharad_no_auth_function, NULL, config->angharad_realm, &callback_angharad_static_file, (void*)config);
+
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/", &callback_angharad_no_auth_function, NULL, config->angharad_realm, &callback_angharad_root_url, (void*)config);
 
     ulfius_set_default_auth_function(config->instance, &callback_angharad_auth_function, (void*)config, config->angharad_realm);
     
@@ -897,32 +905,34 @@ int init_angharad(struct config_elements * config) {
 
 int close_angharad(struct config_elements * config) {
   if (config != NULL && config->instance != NULL && config->url_prefix_angharad) {
-    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/alert/@source/@element/@message/");
+    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/alert/@submodule_name/@source/@element/@message/");
     
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/");
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/@submodule_name");
-    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/@submodule_name/command");
-    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/@submodule_name/element");
 
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/");
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/@script_id");
-    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/@script_id/execute");
+    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/@script_id/run");
     ulfius_remove_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/script/");
     ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/script/@script_id");
     ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/script/@script_id");
+    ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/script/@script_id/add_tag/@tag");
+    ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/script/@script_id/remove_tag/@tag");
 
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/event/");
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/event/@event_id");
     ulfius_remove_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/event/");
     ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/event/@event_id");
     ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/event/@event_id");
+    ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/event/@event_id/add_tag/@tag");
+    ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/event/@event_id/remove_tag/@tag");
 
-    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/static/*");
-    
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/auth/");
     ulfius_remove_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/auth/");
 
-    ulfius_remove_endpoint_by_val(config->instance, "GET", NULL, "/");
+    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/static/*");
+    
+    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/");
 
     config->angharad_status = ANGHARAD_STATUS_STOPPING;
     while (config->angharad_status != ANGHARAD_STATUS_STOP) {
