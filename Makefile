@@ -31,9 +31,9 @@ CFLAGS=-c -Wall -D_REENTRANT -I$(PREFIX)/include $(ADDITIONALFLAGS)
 LIBS=-L$(PREFIX)/lib -lc -lpthread -ldl -ljansson -lulfius -lhoel -lyder -lorcania
 
 # subprojects locations
-GARETH_LOCATION=../gareth
-BENOIC_LOCATION=../benoic
-CARLEON_LOCATION=../carleon
+GARETH_LOCATION=gareth
+BENOIC_LOCATION=benoic
+CARLEON_LOCATION=carleon
 
 GARETH_LIBS=$(GARETH_LOCATION)/gareth.o $(GARETH_LOCATION)/alert.o $(GARETH_LOCATION)/filter.o $(GARETH_LOCATION)/message.o
 BENOIC_LIBS=$(BENOIC_LOCATION)/benoic.o $(BENOIC_LOCATION)/device.o $(BENOIC_LOCATION)/device-element.o
