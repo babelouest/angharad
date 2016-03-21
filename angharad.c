@@ -261,6 +261,7 @@ void exit_server(struct config_elements ** config, int exit_value) {
 
     close_benoic((*config)->instance, (*config)->url_prefix_benoic, (*config)->b_config);
     close_carleon((*config)->instance, (*config)->url_prefix_carleon, (*config)->c_config);
+    close_angharad((*config));
     h_close_db((*config)->conn);
     h_clean_connection((*config)->conn);
     ulfius_stop_framework((*config)->instance);
@@ -273,9 +274,11 @@ void exit_server(struct config_elements ** config, int exit_value) {
     free((*config)->url_prefix_benoic);
     free((*config)->url_prefix_carleon);
     free((*config)->url_prefix_gareth);
+    free((*config)->static_files_path);
+    free((*config)->angharad_realm);
     free((*config)->log_file);
     y_close_logs();
-    
+
     free(*config);
     (*config) = NULL;
   }
@@ -859,21 +862,21 @@ int init_angharad(struct config_elements * config) {
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/@submodule_name/enable/@enabled", NULL, NULL, NULL, &callback_angharad_submodule_enable, (void*)config);
 
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/", NULL, NULL, NULL, &callback_angharad_script_list, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/@script_id", NULL, NULL, NULL, &callback_angharad_script_get, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/@script_id/run", NULL, NULL, NULL, &callback_angharad_script_execute, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/@script_name", NULL, NULL, NULL, &callback_angharad_script_get, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/script/", NULL, NULL, NULL, &callback_angharad_script_add, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/script/@script_id", NULL, NULL, NULL, &callback_angharad_script_modify, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/script/@script_id", NULL, NULL, NULL, &callback_angharad_script_remove, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/script/@script_id/add_tag/@tag", NULL, NULL, NULL, &callback_angharad_script_add_tag, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/script/@script_id/remove_tag/@tag", NULL, NULL, NULL, &callback_angharad_script_remove_tag, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/script/@script_name", NULL, NULL, NULL, &callback_angharad_script_modify, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/script/@script_name", NULL, NULL, NULL, &callback_angharad_script_remove, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/script/@script_name/@tag", NULL, NULL, NULL, &callback_angharad_script_add_tag, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/script/@script_name/@tag", NULL, NULL, NULL, &callback_angharad_script_remove_tag, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/@script_name/run", NULL, NULL, NULL, &callback_angharad_script_execute, (void*)config);
 
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/event/", NULL, NULL, NULL, &callback_angharad_event_list, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/event/@event_id", NULL, NULL, NULL, &callback_angharad_event_get, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/event/@event_name", NULL, NULL, NULL, &callback_angharad_event_get, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/event/", NULL, NULL, NULL, &callback_angharad_event_add, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/event/@event_id", NULL, NULL, NULL, &callback_angharad_event_modify, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/event/@event_id", NULL, NULL, NULL, &callback_angharad_event_remove, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/event/@event_id/add_tag/@tag", NULL, NULL, NULL, &callback_angharad_event_add_tag, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/event/@event_id/remove_tag/@tag", NULL, NULL, NULL, &callback_angharad_event_remove_tag, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/event/@event_name", NULL, NULL, NULL, &callback_angharad_event_modify, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/event/@event_name", NULL, NULL, NULL, &callback_angharad_event_remove, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/event/@event_name/@tag", NULL, NULL, NULL, &callback_angharad_event_add_tag, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/event/@event_name/@tag", NULL, NULL, NULL, &callback_angharad_event_remove_tag, (void*)config);
 
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/auth", &callback_angharad_no_auth_function, NULL, config->angharad_realm, &callback_angharad_auth_get, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/auth", &callback_angharad_no_auth_function, NULL, config->angharad_realm, &callback_angharad_auth_check, (void*)config);
@@ -911,21 +914,21 @@ int close_angharad(struct config_elements * config) {
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/@submodule_name");
 
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/");
-    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/@script_id");
-    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/@script_id/run");
+    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/@script_name");
     ulfius_remove_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/script/");
-    ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/script/@script_id");
-    ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/script/@script_id");
-    ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/script/@script_id/add_tag/@tag");
-    ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/script/@script_id/remove_tag/@tag");
+    ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/script/@script_name");
+    ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/script/@script_name");
+    ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/script/@script_name/@tag");
+    ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/script/@script_name/@tag");
+    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/@script_name/run");
 
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/event/");
-    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/event/@event_id");
+    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/event/@event_name");
     ulfius_remove_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/event/");
-    ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/event/@event_id");
-    ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/event/@event_id");
-    ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/event/@event_id/add_tag/@tag");
-    ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/event/@event_id/remove_tag/@tag");
+    ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/event/@event_name");
+    ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/event/@event_name");
+    ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/event/@event_name/@tag");
+    ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/event/@event_name/@tag");
 
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/auth/");
     ulfius_remove_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/auth/");

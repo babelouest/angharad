@@ -28,7 +28,7 @@
 
 #include "angharad.h"
 
-json_t * script_get(struct config_elements * config, const char * script_id) {
+json_t * script_get(struct config_elements * config, const char * script_name) {
   json_t * j_query, * j_result, * j_script, * j_actions, * j_options, * to_return;
   int res;
   size_t index;
@@ -40,25 +40,25 @@ json_t * script_get(struct config_elements * config, const char * script_id) {
     return json_pack("{si}", "result", WEBSERVICE_RESULT_ERROR);
   }
   
-  if (script_id != NULL) {
-    json_object_set_new(j_query, "where", json_pack("{ss}", "asc_id", script_id));
+  if (script_name != NULL) {
+    json_object_set_new(j_query, "where", json_pack("{ss}", "asc_name", script_name));
   }
   
   res = h_select(config->conn, j_query, &j_result, NULL);
   json_decref(j_query);
   if (res == H_OK) {
-    to_return = json_array();
-    if (to_return == NULL) {
-      y_log_message(Y_LOG_LEVEL_ERROR, "script_get - Error allocating resources for to_return");
-      return json_pack("{si}", "result", WEBSERVICE_RESULT_ERROR);
-    }
-    if (script_id == NULL) {
+    if (script_name == NULL) {
+      to_return = json_array();
+      if (to_return == NULL) {
+        y_log_message(Y_LOG_LEVEL_ERROR, "script_get - Error allocating resources for to_return");
+        return json_pack("{si}", "result", WEBSERVICE_RESULT_ERROR);
+      }
       json_array_foreach(j_result, index, j_script) {
         j_actions = json_loads(json_string_value(json_object_get(j_script, "asc_actions")), JSON_DECODE_ANY, NULL);
         json_object_del(j_script, "asc_actions");
         json_object_set_new(j_script, "actions", j_actions);
-        j_options = json_loads(json_string_value(json_object_get(j_script, "asc_optons")), JSON_DECODE_ANY, NULL);
-        json_object_del(j_script, "asc_optons");
+        j_options = json_loads(json_string_value(json_object_get(j_script, "asc_options")), JSON_DECODE_ANY, NULL);
+        json_object_del(j_script, "asc_options");
         json_object_set_new(j_script, "options", j_options);
         json_array_append_new(to_return, json_copy(j_script));
       }
@@ -66,6 +66,7 @@ json_t * script_get(struct config_elements * config, const char * script_id) {
       return json_pack("{siso}", "result", WEBSERVICE_RESULT_OK, "scripts", to_return);
     } else {
       if (json_array_size(j_result) == 0) {
+        json_decref(j_result);
         return json_pack("{si}", "result", WEBSERVICE_RESULT_NOT_FOUND);
       } else {
         j_script = json_copy(json_array_get(j_result, 0));
@@ -77,9 +78,9 @@ json_t * script_get(struct config_elements * config, const char * script_id) {
         j_actions = json_loads(json_string_value(json_object_get(j_script, "asc_actions")), JSON_DECODE_ANY, NULL);
         json_object_del(j_script, "asc_actions");
         json_object_set_new(j_script, "actions", j_actions);
-        j_options = json_loads(json_string_value(json_object_get(j_script, "asc_optons")), JSON_DECODE_ANY, NULL);
-        json_object_del(j_script, "asc_optons");
-        json_object_set_new(j_script, "options", j_actions);
+        j_options = json_loads(json_string_value(json_object_get(j_script, "asc_options")), JSON_DECODE_ANY, NULL);
+        json_object_del(j_script, "asc_options");
+        json_object_set_new(j_script, "options", j_options);
         return json_pack("{siso}", "result", WEBSERVICE_RESULT_OK, "script", j_script);
       }
     }
@@ -101,14 +102,16 @@ int script_add(struct config_elements * config, json_t * j_script) {
   
   str_actions = json_dumps(json_object_get(j_script, "actions"), JSON_COMPACT);
   str_options = json_dumps(json_object_get(j_script, "options"), JSON_COMPACT);
-  j_query = json_pack("{sss[{ss}{ss}{ss}{ss}]}",
+  j_query = json_pack("{sss[{ssssssss}]}",
                       "table", ANGHARAD_TABLE_SCRIPT,
                       "values",
                         "asc_name", json_string_value(json_object_get(j_script, "name")),
                         "asc_description", json_string_value(json_object_get(j_script, "description")),
                         "asc_actions", str_actions,
                         "asc_options", str_options);
-
+  free(str_actions);
+  free(str_options);
+  
   if (j_query == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "script_add - Error Allocating resources for j_query");
     return WEBSERVICE_RESULT_ERROR;
@@ -124,35 +127,36 @@ int script_add(struct config_elements * config, json_t * j_script) {
   }
 }
 
-int script_modify(struct config_elements * config, const char * script_id, json_t * j_script) {
+int script_modify(struct config_elements * config, const char * script_name, json_t * j_script) {
   json_t * j_query, * cur_script;
   int res, res_cur_script;
   char * str_actions, * str_options;
   
-  if (j_script == NULL || script_id == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "script_modify - Error j_script or script_id is NULL");
+  if (j_script == NULL || script_name == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "script_modify - Error j_script or script_name is NULL");
     return WEBSERVICE_RESULT_ERROR;
   }
   
-  cur_script = script_get(config, script_id);
+  cur_script = script_get(config, script_name);
   res_cur_script = (cur_script != NULL?json_integer_value(json_object_get(cur_script, "result")):WEBSERVICE_RESULT_ERROR);
   json_decref(cur_script);
   if (res_cur_script == WEBSERVICE_RESULT_OK) {
-    
     str_actions = json_dumps(json_object_get(j_script, "actions"), JSON_COMPACT);
     str_options = json_dumps(json_object_get(j_script, "options"), JSON_COMPACT);
-    j_query = json_pack("{sss[{ss}{ss}{ss}{ss}]s{ss}}",
+    j_query = json_pack("{sss{ssssssss}s{ss}}",
                         "table", ANGHARAD_TABLE_SCRIPT,
                         "set",
-                          "asc_name", json_string_value(json_object_get(j_script, "name")),
+                          "asc_name", script_name,
                           "asc_description", json_string_value(json_object_get(j_script, "description")),
                           "asc_actions", str_actions,
                           "asc_options", str_options,
                         "where",
-                          "asc_id", script_id);
-
+                          "asc_name", script_name);
+    free(str_actions);
+    free(str_options);
+    
     if (j_query == NULL) {
-      y_log_message(Y_LOG_LEVEL_ERROR, "script_add - Error Allocating resources for j_query");
+      y_log_message(Y_LOG_LEVEL_ERROR, "script_modify - Error Allocating resources for j_query");
       return WEBSERVICE_RESULT_ERROR;
     }
     
@@ -171,26 +175,26 @@ int script_modify(struct config_elements * config, const char * script_id, json_
   }
 }
 
-int script_delete(struct config_elements * config, const char * script_id) {
+int script_delete(struct config_elements * config, const char * script_name) {
   json_t * j_query, * cur_script;
   int res, res_cur_script;
   
-  if (script_id == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "script_modify - Error script_id is NULL");
+  if (script_name == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "script_modify - Error script_name is NULL");
     return WEBSERVICE_RESULT_ERROR;
   }
   
-  cur_script = script_get(config, script_id);
+  cur_script = script_get(config, script_name);
   res_cur_script = (cur_script != NULL?json_integer_value(json_object_get(cur_script, "result")):WEBSERVICE_RESULT_ERROR);
   json_decref(cur_script);
   if (res_cur_script == WEBSERVICE_RESULT_OK) {
     j_query = json_pack("{sss{ss}}",
                         "table", ANGHARAD_TABLE_SCRIPT,
                         "where",
-                          "asc_id", script_id);
-                        
+                          "asc_name", script_name);
+    
     if (j_query == NULL) {
-      y_log_message(Y_LOG_LEVEL_ERROR, "script_add - Error Allocating resources for j_query");
+      y_log_message(Y_LOG_LEVEL_ERROR, "script_delete - Error Allocating resources for j_query");
       return WEBSERVICE_RESULT_ERROR;
     }
     
@@ -199,7 +203,7 @@ int script_delete(struct config_elements * config, const char * script_id) {
     if (res == H_OK) {
       return WEBSERVICE_RESULT_OK;
     } else {
-      y_log_message(Y_LOG_LEVEL_ERROR, "script_add - Error executing db query");
+      y_log_message(Y_LOG_LEVEL_ERROR, "script_delete - Error executing db query");
       return WEBSERVICE_RESULT_ERROR;
     }
   } else if (res_cur_script == WEBSERVICE_RESULT_NOT_FOUND) {
@@ -209,6 +213,16 @@ int script_delete(struct config_elements * config, const char * script_id) {
   }
 }
 
+/**
+ * 
+ * script format must be:
+ * {
+ *   "name": string max 64 chars
+ *   "description": string max 128 chars
+ *   "options": object with a tag object in it
+ *   "actions": array with valid actions in it
+ * }
+ */
 json_t * is_script_valid(struct config_elements * config, json_t * j_script) {
   json_t * j_result = json_array(), * j_element, * j_actions_valid, * j_options_valid;
   size_t index;
@@ -259,7 +273,7 @@ json_t * is_script_valid(struct config_elements * config, json_t * j_script) {
       return NULL;
     }
   }
-  return j_script;
+  return j_result;
 }
 
 json_t * is_actions_valid(struct config_elements * config, json_t * j_action_list) {
@@ -271,7 +285,7 @@ json_t * is_actions_valid(struct config_elements * config, json_t * j_action_lis
     return NULL;
   }
   
-  if (json_is_array(j_action_list)) {
+  if (json_is_array(j_action_list) && json_array_size(j_action_list) > 0) {
     json_array_foreach(j_action_list, index, j_action) {
       is_valid = is_action_valid(config, j_action);
       if (is_valid != NULL) {
@@ -279,7 +293,7 @@ json_t * is_actions_valid(struct config_elements * config, json_t * j_action_lis
       }
     }
   } else {
-    json_array_append_new(j_result, json_pack("{ss}", "actions", "actions is mandatory and must be an array of valid actions"));
+    json_array_append_new(j_result, json_pack("{ss}", "actions", "actions is mandatory and must be a non empty array of valid actions"));
   }
   
   return j_result;
@@ -296,22 +310,22 @@ json_t * is_actions_valid(struct config_elements * config, json_t * j_action_lis
  *   "parameters": {                  // Required for submodule benoic, depends on the element for submodule carleon
  *     "device": "device_name"        // Required for submodule benoic
  *     "element_type": "element_type" // Required for submodule benoic
- *     "service": "service_name"      // Required for carleon
- *     "param1": "value1",
- *     "param2": 2,
- *     "param3", 3.3
+ *     "service": "service_uid"       // Required for carleon
+ *     "param1": "value1",            // for a string value
+ *     "param2": 2,                   // for an integer value
+ *     "param3", 3.3                  // for a real value
  *   }
  * 
  */
 json_t * is_action_valid(struct config_elements * config, json_t * j_action) {
   json_t * j_result = json_array(), * j_submodule, * j_parameters, * j_command, * j_element,     // Common parameters
           * j_device, * j_element_type, * j_mode,                                                // Benoic parameters
-          * j_service, * j_carleon_service, * j_command_list, * j_cur_command, * j_element_list, // Carleon parameters
-          * j_cur_element, * j_command_param_list, * j_command_param, * j_cur_param; 
-  int i_element_type = BENOIC_ELEMENT_TYPE_NONE, found, command_found;
+          * j_service, * j_command_list, * j_cur_command, * j_element_list, // Carleon parameters
+          * j_command_param, * j_cur_param, * j_cur_element;
+  int i_element_type = BENOIC_ELEMENT_TYPE_NONE, found_element;
   struct _carleon_service * cur_service;
+  char * str_param;
   size_t index;
-  char * str_command, * str_param;
 
   if (j_result == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "is_action_valid - Error allocating resources for j_result");
@@ -346,12 +360,11 @@ json_t * is_action_valid(struct config_elements * config, json_t * j_action) {
             if (i_element_type == BENOIC_ELEMENT_TYPE_NONE) {
               json_array_append_new(j_result, json_pack("{ss}", "action", "element_type invalid"));
             } else {
-              j_element = get_element_data(config->b_config, j_device, i_element_type, json_string_value(json_object_get(j_action, "element")), 0);
-              if (j_element == NULL) {
+              if (!has_element(config->b_config, j_device, i_element_type, json_string_value(json_object_get(j_action, "element")))) {
                 json_array_append_new(j_result, json_pack("{ss}", "action", "element invalid"));
               } else {
                 j_command = json_object_get(j_action, "command");
-                if (j_command == NULL || !json_is_string(j_command)) {
+                if (j_command == NULL) {
                   json_array_append_new(j_result, json_pack("{ss}", "action", "command is mandatory"));
                 } else {
                   if (i_element_type == BENOIC_ELEMENT_TYPE_SWITCH) {
@@ -374,91 +387,72 @@ json_t * is_action_valid(struct config_elements * config, json_t * j_action) {
                   }
                 }
               }
-              json_decref(j_element);
             }
           }
         }
         json_decref(j_device);
       }
     } else if (0 == strcmp("carleon", json_string_value(j_submodule))) {
+      j_command = json_object_get(j_action, "command");
+      j_element = json_object_get(j_action, "element");
       j_parameters = json_object_get(j_action, "parameters");
-      if (j_parameters == NULL || !json_is_object(j_parameters)) {
-        json_array_append_new(j_result, json_pack("{ss}", "action", "parameters is missing or not a json object"));
+      
+      if (j_command == NULL || !json_is_string(j_command)) {
+        json_array_append_new(j_result, json_pack("{ss}", "action", "command is invalid"));
+      } else if (j_element == NULL || !json_is_string(j_element)) {
+        json_array_append_new(j_result, json_pack("{ss}", "action", "element is invalid"));
+      } else if (j_parameters == NULL || !json_is_object(j_parameters)) {
+        json_array_append_new(j_result, json_pack("{ss}", "action", "parameters is invalid"));
       } else {
         j_service = json_object_get(j_parameters, "service");
         if (j_service == NULL || !json_is_string(j_service)) {
-          json_array_append_new(j_result, json_pack("{ss}", "action", "service is mandatory and must ba a string"));
+          json_array_append_new(j_result, json_pack("{ss}", "action", "service parameter is invalid"));
         } else {
-          j_carleon_service = service_get(config->c_config, json_string_value(j_service));
-          if (j_carleon_service == NULL) {
-            json_array_append_new(j_result, json_pack("{ss}", "action", "service unknown"));
+          cur_service = get_service_from_uid(config->c_config, json_string_value(j_service));
+          if (cur_service == NULL) {
+            json_array_append_new(j_result, json_pack("{ss}", "action", "service parameter is invalid"));
           } else {
-            cur_service = get_service_from_uid(config->c_config, json_string_value(json_object_get(j_carleon_service, "uid")));
-            if (cur_service == NULL) {
-              json_array_append_new(j_result, json_pack("{ss}", "action", "service error"));
+            j_command_list = cur_service->c_service_command_get_list(config->c_config);
+            j_element_list = cur_service->c_service_element_get_list(config->c_config);
+            
+            if (j_command_list == NULL || json_integer_value(json_object_get(j_command_list, "result")) != WEBSERVICE_RESULT_OK) {
+              json_array_append_new(j_result, json_pack("{ss}", "action", "service command list is invalid"));
+            } else if (j_element_list == NULL || json_integer_value(json_object_get(j_element_list, "result")) != WEBSERVICE_RESULT_OK) {
+              json_array_append_new(j_result, json_pack("{ss}", "action", "service element list is invalid"));
             } else {
-              j_command_list = cur_service->c_service_command_get_list(config->c_config);
-              j_element_list = cur_service->c_service_element_get_list(config->c_config);
-              
-              if (j_command_list == NULL || !json_is_object(j_command_list) || json_integer_value(json_object_get(j_command_list, "result")) != WEBSERVICE_RESULT_OK || 
-                  j_element_list == NULL || !json_is_object(j_element_list) || json_integer_value(json_object_get(j_element_list, "result")) != WEBSERVICE_RESULT_OK) {
-                json_array_append_new(j_result, json_pack("{ss}", "action", "error getting command or element list"));
+              j_cur_command = json_object_get(json_object_get(j_command_list, "commands"), json_string_value(j_command));
+              if (j_cur_command == NULL) {
+                json_array_append_new(j_result, json_pack("{ss}", "action", "command is invalid"));
               } else {
-                found = 0;
-                json_array_foreach(json_object_get(j_command_list, "elements"), index, j_cur_element) {
-                  if (json_is_string(j_cur_element)) {
-                    // FIXME, j_command is no good
-                    if (0 == strcmp(json_string_value(j_command), json_string_value(j_cur_element))) {
-                      found = 1;
-                    }
+                found_element = 0;
+                json_array_foreach(json_object_get(j_element_list, "element"), index, j_cur_element) {
+                  if (0 == strcmp(json_string_value(json_object_get(j_cur_element, "name")), json_string_value(j_element))) {
+                    found_element = 1;
                   }
                 }
-                if (!found) {
+                if (!found_element) {
                   json_array_append_new(j_result, json_pack("{ss}", "action", "element not found"));
-                } else {
-                  j_command = json_object_get(j_action, "command");
-                  if (j_command == NULL || !json_is_string(j_command)) {
-                    json_array_append_new(j_result, json_pack("{ss}", "action", "command is mandatory"));
-                  } else {
-                    command_found = 0;
-                    json_object_foreach(json_object_get(j_command_list, "commands"), str_command, j_cur_command) {
-                      if (0 == strcmp(str_command, json_string_value(j_command))) {
-                        command_found = 1;
-                        j_command_param_list = json_object_get(j_cur_command, "parameters");
-                        if (j_command_param_list == NULL || !json_is_object(j_command_param_list)) {
-                          json_array_append_new(j_result, json_pack("{ss}", "action", "error in command pattern"));
-                        } else {
-                          json_object_foreach(j_command_param_list, str_param, j_command_param) {
-                            j_cur_param = json_object_get(json_object_get(j_action, "parameters"), str_param);
-                            if (j_cur_param == NULL && json_object_get(j_command_param, "required") == json_true()) {
-                              json_array_append_new(j_result, json_pack("{ss}", "action", "parameter is required"));
-                            } else if (j_cur_param != NULL) {
-                              if (0 == strcmp("string", json_string_value(json_object_get(j_command_param, "type")))) {
-                                if (!json_is_string(j_cur_param)) {
-                                  json_array_append_new(j_result, json_pack("{ss}", "action", "parameter must be a string"));
-                                }
-                              } else if (0 == strcmp("integer", json_string_value(json_object_get(j_command_param, "type")))) {
-                                if (!json_is_integer(j_cur_param)) {
-                                  json_array_append_new(j_result, json_pack("{ss}", "action", "parameter must be an integer"));
-                                }
-                              } else if (0 == strcmp("real", json_string_value(json_object_get(j_command_param, "type")))) {
-                                if (!json_is_real(j_cur_param)) {
-                                  json_array_append_new(j_result, json_pack("{ss}", "action", "parameter must be a real"));
-                                }
-                              } else {
-                                json_array_append_new(j_result, json_pack("{ss}", "action", "unknown parameter type"));
-                              }
-                            }
-                          }
-                        }
-                      }
+                }
+                
+                json_object_foreach(json_object_get(j_cur_command, "parameters"), str_param, j_cur_param) {
+                  j_command_param = json_object_get(j_parameters, str_param);
+                  if (j_command_param == NULL && json_object_get(j_cur_param, "required") == json_true()) {
+                    json_array_append_new(j_result, json_pack("{ss}", "action", "parameter is required"));
+                  }
+                  if (j_command_param != NULL) {
+                    if (0 == strcmp("string", json_string_value(json_object_get(j_cur_param, "type"))) && !json_is_string(j_command_param)) {
+                      json_array_append_new(j_result, json_pack("{ss}", "action", "parameter must be a string"));
+                    } else if (0 == strcmp("integer", json_string_value(json_object_get(j_cur_param, "type"))) && !json_is_integer(j_command_param)) {
+                      json_array_append_new(j_result, json_pack("{ss}", "action", "parameter must be an integer"));
+                    } else if (0 == strcmp("real", json_string_value(json_object_get(j_cur_param, "type"))) && !json_is_real(j_command_param)) {
+                      json_array_append_new(j_result, json_pack("{ss}", "action", "parameter must be an real"));
                     }
                   }
                 }
               }
-              json_decref(j_command_list);
-              json_decref(j_element_list);
             }
+            json_decref(j_command_list);
+            json_decref(j_element_list);
           }
         }
       }
@@ -472,5 +466,72 @@ json_t * is_action_valid(struct config_elements * config, json_t * j_action) {
     return NULL;
   } else {
     return j_result;
+  }
+}
+
+int script_add_tag(struct config_elements * config, const char * script_name, const char * tag) {
+  json_t * j_result = script_get(config, script_name), * j_script, * j_tags;
+  int res;
+  
+  if (j_result == NULL) {
+    return WEBSERVICE_RESULT_ERROR;
+  } else {
+    if (json_integer_value(json_object_get(j_result, "result")) == WEBSERVICE_RESULT_NOT_FOUND) {
+      json_decref(j_result);
+      return WEBSERVICE_RESULT_NOT_FOUND;
+    } else if (json_integer_value(json_object_get(j_result, "result")) == WEBSERVICE_RESULT_OK) {
+      j_script = json_object_get(j_result, "script");
+      j_tags = json_object_get(json_object_get(j_script, "options"), "tags");
+      if (j_tags == NULL) {
+        json_object_set_new(json_object_get(j_script, "options"), "tags", json_pack("[s]", tag));
+      } else if (json_is_array(j_tags)) {
+        json_array_append_new(json_object_get(json_object_get(j_script, "options"), "tags"), json_string(tag));
+      } else {
+        json_decref(j_result);
+        return WEBSERVICE_RESULT_ERROR;
+      }
+      res = script_modify(config, script_name, j_script);
+      json_decref(j_result);
+      return res;
+    } else {
+      json_decref(j_result);
+      return WEBSERVICE_RESULT_ERROR;
+    }
+  }
+}
+
+int script_remove_tag(struct config_elements * config, const char * script_name, const char * tag) {
+  json_t * j_result = script_get(config, script_name), * j_script, * j_tags;
+  int i, res;
+  
+  if (j_result == NULL) {
+    return WEBSERVICE_RESULT_ERROR;
+  } else {
+    if (json_integer_value(json_object_get(j_result, "result")) == WEBSERVICE_RESULT_NOT_FOUND) {
+      json_decref(j_result);
+      return WEBSERVICE_RESULT_NOT_FOUND;
+    } else if (json_integer_value(json_object_get(j_result, "result")) == WEBSERVICE_RESULT_OK) {
+      j_script = json_object_get(j_result, "script");
+      j_tags = json_object_get(json_object_get(j_script, "options"), "tags");
+      if (j_tags == NULL) {
+        json_decref(j_result);
+        return WEBSERVICE_RESULT_OK;
+      } else if (json_is_array(j_tags)) {
+        for (i = json_array_size(json_object_get(json_object_get(j_script, "options"), "tags"))-1; i >= 0; i--) {
+          if (0 == strcmp(json_string_value(json_array_get(json_object_get(json_object_get(j_script, "options"), "tags"), i)), tag)) {
+            json_array_remove(json_object_get(json_object_get(j_script, "options"), "tags"), i);
+          }
+        }
+        res = script_modify(config, script_name, j_script);
+        json_decref(j_result);
+        return res;
+      } else {
+        json_decref(j_result);
+        return WEBSERVICE_RESULT_ERROR;
+      }
+    } else {
+      json_decref(j_result);
+      return WEBSERVICE_RESULT_ERROR;
+    }
   }
 }

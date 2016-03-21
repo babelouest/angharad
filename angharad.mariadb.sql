@@ -184,7 +184,7 @@ CREATE TABLE `a_session` (
 
 CREATE TABLE `a_script` (
   `asc_id` int(11) NOT NULL AUTO_INCREMENT,
-  `asc_name` varchar(64) NOT NULL,
+  `asc_name` varchar(64) NOT NULL UNIQUE,
   `asc_description` varchar(128),
   `asc_actions` BLOB,
   `asc_options` BLOB,

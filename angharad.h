@@ -124,14 +124,16 @@ int angharad_run_thread(struct config_elements * config);
 
 void * thread_event_run(void * args);
 
-json_t * script_get(struct config_elements * config, const char * script_id);
+json_t * script_get(struct config_elements * config, const char * script_name);
 int script_add(struct config_elements * config, json_t * j_script);
-int script_modify(struct config_elements * config, const char * script_id, json_t * j_script);
-int script_delete(struct config_elements * config, const char * script_id);
+int script_modify(struct config_elements * config, const char * script_name, json_t * j_script);
+int script_delete(struct config_elements * config, const char * script_name);
 json_t * is_script_valid(struct config_elements * config, json_t * j_script);
-json_t * script_run(struct config_elements * config, const char * script_id);
+json_t * script_run(struct config_elements * config, const char * script_name);
 json_t * is_actions_valid(struct config_elements * config, json_t * j_action_list);
 json_t * is_action_valid(struct config_elements * config, json_t * j_action);
+int script_add_tag(struct config_elements * config, const char * script_name, const char * tag);
+int script_remove_tag(struct config_elements * config, const char * script_name, const char * tag);
 
 // Callback functions for webservices
 int callback_angharad_alert (const struct _u_request * request, struct _u_response * response, void * user_data);

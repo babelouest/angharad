@@ -30,11 +30,13 @@ CC=gcc
 CFLAGS=-c -Wall -D_REENTRANT -I$(PREFIX)/include $(ADDITIONALFLAGS)
 LIBS=-L$(PREFIX)/lib -lc -lpthread -ldl -ljansson -lulfius -lhoel -lyder -lorcania
 
+# subprojects locations
 GARETH_LOCATION=../gareth
-GARETH_LIBS=$(GARETH_LOCATION)/gareth.o $(GARETH_LOCATION)/alert.o $(GARETH_LOCATION)/filter.o $(GARETH_LOCATION)/message.o
 BENOIC_LOCATION=../benoic
-BENOIC_LIBS=$(BENOIC_LOCATION)/benoic.o $(BENOIC_LOCATION)/device.o $(BENOIC_LOCATION)/device-element.o
 CARLEON_LOCATION=../carleon
+
+GARETH_LIBS=$(GARETH_LOCATION)/gareth.o $(GARETH_LOCATION)/alert.o $(GARETH_LOCATION)/filter.o $(GARETH_LOCATION)/message.o
+BENOIC_LIBS=$(BENOIC_LOCATION)/benoic.o $(BENOIC_LOCATION)/device.o $(BENOIC_LOCATION)/device-element.o
 CARLEON_LIBS=$(CARLEON_LOCATION)/carleon.o $(CARLEON_LOCATION)/service.o $(CARLEON_LOCATION)/profile.o
 
 angharad: gareth.o benoic.o carleon.o angharad.h angharad.o event.o script.o webservice.o
@@ -53,17 +55,19 @@ webservice.o: webservice.c angharad.h
 	$(CC) $(CFLAGS) webservice.c
 
 gareth.o:
-	cd $(GARETH_LOCATION) && $(MAKE)
+	cd $(GARETH_LOCATION) && $(MAKE) $(DEBUGFLAG)
 
 benoic.o:
-	cd $(BENOIC_LOCATION) && $(MAKE)
+	cd $(BENOIC_LOCATION) && $(MAKE) $(DEBUGFLAG)
 
 carleon.o:
-	cd $(CARLEON_LOCATION) && $(MAKE)
+	cd $(CARLEON_LOCATION) && $(MAKE) $(DEBUGFLAG)
 
 all: release
 
 debug: ADDITIONALFLAGS=-DDEBUG -g -O0
+
+debug: DEBUGFLAG=debug
 
 debug: angharad unit-tests
 
