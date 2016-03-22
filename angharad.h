@@ -43,18 +43,18 @@
 #include <yder.h>
 
 // Angharad submodules
-#include "../benoic/benoic.h"
-#include "../carleon/carleon.h"
-#include "../gareth/gareth.h"
+#include "benoic/benoic.h"
+#include "carleon/carleon.h"
+#include "gareth/gareth.h"
 
 #define ANGHARAD_RUNNING  0
 #define ANGHARAD_STOP     1
 #define ANGHARAD_ERROR    2
 
-#define ANGHARAD_LOG_NAME "Carleon"
+#define ANGHARAD_LOG_NAME "Angharad"
 
 // Configuration management
-#define ANGHARAD_DEFAULT_PREFIX "carleon"
+#define ANGHARAD_DEFAULT_PREFIX "angharad"
 #define ANGHARAD_DEFAULT_PORT   2473
 #define ANGHARAD_DEFAULT_REALM  "angharad"
 
@@ -73,6 +73,10 @@
 #define ANGHARAD_STATUS_RUN      0
 #define ANGHARAD_STATUS_STOPPING 1
 #define ANGHARAD_STATUS_STOP     2
+
+#define ANGHARAD_RESULT_ERROR     0
+#define ANGHARAD_RESULT_OK        1
+#define ANGHARAD_RESULT_NOT_FOUND 2
 
 #define ANGHARAD_SUBMODULE_BENOIC  "benoic"
 #define ANGHARAD_SUBMODULE_CARLEON "carleon"
@@ -129,11 +133,12 @@ int script_add(struct config_elements * config, json_t * j_script);
 int script_modify(struct config_elements * config, const char * script_name, json_t * j_script);
 int script_delete(struct config_elements * config, const char * script_name);
 json_t * is_script_valid(struct config_elements * config, json_t * j_script);
-json_t * script_run(struct config_elements * config, const char * script_name);
+int script_run(struct config_elements * config, const char * script_name);
 json_t * is_actions_valid(struct config_elements * config, json_t * j_action_list);
 json_t * is_action_valid(struct config_elements * config, json_t * j_action);
 int script_add_tag(struct config_elements * config, const char * script_name, const char * tag);
 int script_remove_tag(struct config_elements * config, const char * script_name, const char * tag);
+int action_run(struct config_elements * config, json_t * j_action);
 
 // Callback functions for webservices
 int callback_angharad_alert (const struct _u_request * request, struct _u_response * response, void * user_data);
@@ -144,12 +149,12 @@ int callback_angharad_submodule_enable (const struct _u_request * request, struc
 
 int callback_angharad_script_list (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_script_get (const struct _u_request * request, struct _u_response * response, void * user_data);
-int callback_angharad_script_execute (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_script_add (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_script_modify (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_script_remove (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_script_add_tag (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_script_remove_tag (const struct _u_request * request, struct _u_response * response, void * user_data);
+int callback_angharad_script_run (const struct _u_request * request, struct _u_response * response, void * user_data);
 
 int callback_angharad_event_list (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_event_get (const struct _u_request * request, struct _u_response * response, void * user_data);

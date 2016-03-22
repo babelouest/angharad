@@ -26,6 +26,10 @@
  *
  */
 
+/**
+ * In fact, I should make a library or something like that to facilitate the tests
+ */
+
 #include <string.h>
 #include <jansson.h>
 #include <ulfius.h>
@@ -82,7 +86,6 @@ void print_response(struct _u_response * response) {
   }
 }
 
-
 int test_request_status(struct _u_request * req, long int expected_status, json_t * expected_contains) {
   int res, to_return = 0;
   struct _u_response response;
@@ -110,6 +113,18 @@ int test_request_status(struct _u_request * req, long int expected_status, json_
   }
   ulfius_clean_response(&response);
   return to_return;
+}
+
+void run_simple_test(const char * method, const char * url, json_t * request_body, int expected_status, json_t * expected_body) {
+  struct _u_request request;
+  ulfius_init_request(&request);
+  request.http_verb = strdup(method);
+  request.http_url = strdup(url);
+  request.json_body = json_copy(request_body);
+  
+  test_request_status(&request, expected_status, expected_body);
+  
+  ulfius_clean_request(&request);
 }
 
 void run_submodule_tests() {
@@ -161,40 +176,22 @@ void run_submodule_tests() {
         \"enabled\": true\
     }", JSON_DECODE_ANY, NULL);
   
-  struct _u_request req_list[] = {
-    {"GET", SERVER_URL PREFIX_ANGHARAD "/submodule/", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"GET", SERVER_URL PREFIX_ANGHARAD "/submodule/benoic", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"GET", SERVER_URL PREFIX_ANGHARAD "/submodule/notInvented", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 404
-    {"GET", SERVER_URL PREFIX_ANGHARAD "/submodule/benoic/enable/0", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"GET", SERVER_URL PREFIX_ANGHARAD "/submodule/benoic", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"GET", SERVER_URL PREFIX_ANGHARAD "/submodule/benoic/enable/1", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"GET", SERVER_URL PREFIX_ANGHARAD "/submodule/benoic", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"GET", SERVER_URL PREFIX_ANGHARAD "/submodule/carleon/enable/0", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"GET", SERVER_URL PREFIX_ANGHARAD "/submodule/carleon", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"GET", SERVER_URL PREFIX_ANGHARAD "/submodule/carleon/enable/1", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"GET", SERVER_URL PREFIX_ANGHARAD "/submodule/carleon", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"GET", SERVER_URL PREFIX_ANGHARAD "/submodule/gareth/enable/0", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"GET", SERVER_URL PREFIX_ANGHARAD "/submodule/gareth", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"GET", SERVER_URL PREFIX_ANGHARAD "/submodule/gareth/enable/1", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"GET", SERVER_URL PREFIX_ANGHARAD "/submodule/gareth", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-  };
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/submodule/", NULL, 200, submodule_list);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/submodule/benoic", NULL, 200, NULL);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/submodule/notInvented", NULL, 404, NULL);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/submodule/benoic/enable/0", NULL, 200, NULL);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/submodule/benoic", NULL, 200, submodule_benoic_disabled);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/submodule/benoic/enable/1", NULL, 200, NULL);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/submodule/benoic", NULL, 200L, submodule_benoic_enabled);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/submodule/carleon/enable/0", NULL, 200, NULL);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/submodule/carleon", NULL, 200, submodule_carleon_disabled);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/submodule/carleon/enable/1", NULL, 200, NULL);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/submodule/carleon", NULL, 200, submodule_carleon_enabled);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/submodule/gareth/enable/0", NULL, 200, NULL);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/submodule/gareth", NULL, 200, submodule_gareth_disabled);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/submodule/gareth/enable/1", NULL, 200, NULL);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/submodule/gareth", NULL, 200, submodule_gareth_enabled);
 
-  test_request_status(&req_list[0], 200, submodule_list);
-  test_request_status(&req_list[1], 200, NULL);
-  test_request_status(&req_list[2], 404, NULL);
-  test_request_status(&req_list[3], 200, NULL);
-  test_request_status(&req_list[4], 200, submodule_benoic_disabled);
-  test_request_status(&req_list[5], 200, NULL);
-  test_request_status(&req_list[6], 200, submodule_benoic_enabled);
-  test_request_status(&req_list[7], 200, NULL);
-  test_request_status(&req_list[8], 200, submodule_carleon_disabled);
-  test_request_status(&req_list[9], 200, NULL);
-  test_request_status(&req_list[10], 200, submodule_carleon_enabled);
-  test_request_status(&req_list[11], 200, NULL);
-  test_request_status(&req_list[12], 200, submodule_gareth_disabled);
-  test_request_status(&req_list[13], 200, NULL);
-  test_request_status(&req_list[14], 200, submodule_gareth_enabled);
-  
   json_decref(submodule_list);
   json_decref(submodule_benoic_disabled);
   json_decref(submodule_benoic_enabled);
@@ -275,6 +272,92 @@ void run_script_tests() {
           \"param1\": \"plop\",\
           \"param2\": 3,\
           \"param3\": 4.4\
+        }\
+      }\
+    ]\
+  }", JSON_DECODE_ANY, NULL);
+  json_t * script_full = json_loads("{\
+    \"name\": \"script2\",\
+    \"description\": \"Script with all actions available\",\
+    \"options\": {\
+      \"tags\": [\"tag2\", \"tag5\"]\
+    },\
+    \"actions\": [\
+      {\
+        \"submodule\": \"benoic\",\
+        \"element\": \"sw1\",\
+        \"command\": 1,\
+        \"parameters\": {\
+          \"device\": \"dev1\",\
+          \"element_type\": \"switch\"\
+        }\
+      },\
+      {\
+        \"submodule\": \"benoic\",\
+        \"element\": \"sw2\",\
+        \"command\": 0,\
+        \"parameters\": {\
+          \"device\": \"dev1\",\
+          \"element_type\": \"switch\"\
+        }\
+      },\
+      {\
+        \"submodule\": \"benoic\",\
+        \"element\": \"di1\",\
+        \"command\": 50,\
+        \"parameters\": {\
+          \"device\": \"dev1\",\
+          \"element_type\": \"dimmer\"\
+        }\
+      },\
+      {\
+        \"submodule\": \"benoic\",\
+        \"element\": \"di2\",\
+        \"command\": 75,\
+        \"parameters\": {\
+          \"device\": \"dev1\",\
+          \"element_type\": \"dimmer\"\
+        }\
+      },\
+      {\
+        \"submodule\": \"benoic\",\
+        \"element\": \"he1\",\
+        \"command\": 20.0,\
+        \"parameters\": {\
+          \"device\": \"dev1\",\
+          \"element_type\": \"heater\",\
+          \"mode\": \"auto\"\
+        }\
+      },\
+      {\
+        \"submodule\": \"benoic\",\
+        \"element\": \"he2\",\
+        \"command\": 10.0,\
+        \"parameters\": {\
+          \"device\": \"dev1\",\
+          \"element_type\": \"heater\",\
+          \"mode\": \"manual\"\
+        }\
+      },\
+      {\
+        \"submodule\": \"carleon\",\
+        \"element\": \"mock1\",\
+        \"command\": \"exec\",\
+        \"parameters\": {\
+          \"service\": \"00-00-00\",\
+          \"param1\": \"plop\",\
+          \"param2\": 3,\
+          \"param3\": 4.4\
+        }\
+      },\
+      {\
+        \"submodule\": \"carleon\",\
+        \"element\": \"mock1\",\
+        \"command\": \"exec\",\
+        \"parameters\": {\
+          \"service\": \"00-00-00\",\
+          \"param1\": \"go\",\
+          \"param2\": 1\
         }\
       }\
     ]\
@@ -366,46 +449,31 @@ void run_script_tests() {
       }\
     ]\
   }", JSON_DECODE_ANY, NULL);
-
-  struct _u_request req_list[] = {
-    {"POST", SERVER_URL PREFIX_BENOIC "/device/", NULL, NULL, NULL, NULL, NULL, NULL, NULL, device_valid, NULL, 0, NULL, 0}, // 200
-    {"GET", SERVER_URL PREFIX_BENOIC "/device/dev1/connect", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"POST", SERVER_URL PREFIX_CARLEON "/mock-service/", NULL, NULL, NULL, NULL, NULL, NULL, NULL, mock_valid, NULL, 0, NULL, 0}, // 200
-    {"POST", SERVER_URL PREFIX_ANGHARAD "/script/", NULL, NULL, NULL, NULL, NULL, NULL, NULL, script_valid, NULL, 0, NULL, 0}, // 200
-    {"GET", SERVER_URL PREFIX_ANGHARAD "/script/", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"POST", SERVER_URL PREFIX_ANGHARAD "/script/", NULL, NULL, NULL, NULL, NULL, NULL, NULL, script_invalid1, NULL, 0, NULL, 0}, // 400
-    {"POST", SERVER_URL PREFIX_ANGHARAD "/script/", NULL, NULL, NULL, NULL, NULL, NULL, NULL, script_invalid2, NULL, 0, NULL, 0}, // 400
-    {"POST", SERVER_URL PREFIX_ANGHARAD "/script/", NULL, NULL, NULL, NULL, NULL, NULL, NULL, script_invalid3, NULL, 0, NULL, 0}, // 400
-    {"GET", SERVER_URL PREFIX_ANGHARAD "/script/script1", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"PUT", SERVER_URL PREFIX_ANGHARAD "/script/script1/new_tag1", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"PUT", SERVER_URL PREFIX_ANGHARAD "/script/script1/new_tag2", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"GET", SERVER_URL PREFIX_ANGHARAD "/script/script1", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"DELETE", SERVER_URL PREFIX_ANGHARAD "/script/script1/new_tag1", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"DELETE", SERVER_URL PREFIX_ANGHARAD "/script/script1", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"DELETE", SERVER_URL PREFIX_BENOIC "/device/dev1", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"DELETE", SERVER_URL PREFIX_CARLEON "/mock-service/mock1", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-  };
-
-  test_request_status(&req_list[0], 200, NULL);
-  test_request_status(&req_list[1], 200, NULL);
-  test_request_status(&req_list[2], 200, NULL);
-  test_request_status(&req_list[3], 200, NULL);
-  test_request_status(&req_list[4], 200, NULL);
-  test_request_status(&req_list[5], 400, NULL);
-  test_request_status(&req_list[6], 400, NULL);
-  test_request_status(&req_list[7], 400, NULL);
-  test_request_status(&req_list[8], 200, script_valid);
-  test_request_status(&req_list[9], 200, NULL);
-  test_request_status(&req_list[10], 200, NULL);
-  test_request_status(&req_list[11], 200, script_valid_with_tags);
-  test_request_status(&req_list[12], 200, NULL);
-  test_request_status(&req_list[13], 200, NULL);
-  test_request_status(&req_list[14], 200, NULL);
-  test_request_status(&req_list[15], 200, NULL);
-
+  
+  run_simple_test("POST", SERVER_URL PREFIX_BENOIC "/device/", device_valid, 200, NULL);
+  run_simple_test("GET", SERVER_URL PREFIX_BENOIC "/device/dev1/connect", NULL, 200, NULL);
+  run_simple_test("POST", SERVER_URL PREFIX_CARLEON "/mock-service/", mock_valid, 200, NULL);
+  run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/script/", script_valid, 200, NULL);
+  run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/script/", script_full, 200, NULL);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/script/", NULL, 200, NULL);
+  run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/script/", script_invalid1, 400, NULL);
+  run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/script/", script_invalid2, 400, NULL);
+  run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/script/", script_invalid3, 400, NULL);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/script/script1", NULL, 200, script_valid);
+  run_simple_test("PUT", SERVER_URL PREFIX_ANGHARAD "/script/script1/new_tag1", NULL, 200, NULL);
+  run_simple_test("PUT", SERVER_URL PREFIX_ANGHARAD "/script/script1/new_tag2", NULL, 200, NULL);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/script/script1", NULL, 200, script_valid_with_tags);
+  run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/script/script1/new_tag1", NULL, 200, NULL);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/script/script2/run", NULL, 200, NULL);
+  run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/script/script1", NULL, 200, NULL);
+  run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/script/script2", NULL, 200, NULL);
+  run_simple_test("DELETE", SERVER_URL PREFIX_BENOIC "/device/dev1", NULL, 200, NULL);
+  run_simple_test("DELETE", SERVER_URL PREFIX_CARLEON "/mock-service/mock1", NULL, 200, NULL);
+  
   json_decref(device_valid);
   json_decref(mock_valid);
   json_decref(script_valid);
+  json_decref(script_full);
   json_decref(script_valid_with_tags);
   json_decref(script_invalid1);
   json_decref(script_invalid2);

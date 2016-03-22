@@ -255,7 +255,6 @@ void print_help(FILE * output) {
  * Exit properly the server by closing opened connections, databases and files
  */
 void exit_server(struct config_elements ** config, int exit_value) {
-  y_log_message(Y_LOG_LEVEL_DEBUG, "exit server");
   if (config != NULL && *config != NULL) {
     // Cleaning data
 
@@ -612,6 +611,7 @@ int main(int argc, char ** argv) {
   config->log_mode = Y_LOG_MODE_NONE;
   config->log_level = Y_LOG_LEVEL_NONE;
   config->log_file = NULL;
+  config->angharad_status = ANGHARAD_STATUS_STOP;
   config->instance = malloc(sizeof(struct _u_instance));
   config->c_config = malloc(sizeof(struct _carleon_config));
   config->b_config = malloc(sizeof(struct _benoic_config));
@@ -655,10 +655,11 @@ int main(int argc, char ** argv) {
   
   // Initialize benoic webservice if enabled
   submodule = submodule_get(config, ANGHARAD_SUBMODULE_BENOIC);
-  if (submodule != NULL && json_integer_value(json_object_get(submodule, "result")) == WEBSERVICE_RESULT_OK && json_object_get(json_object_get(submodule, "submodule"), "enabled") == json_true()) {
+  if (submodule != NULL && json_integer_value(json_object_get(submodule, "result")) == ANGHARAD_RESULT_OK && json_object_get(json_object_get(submodule, "submodule"), "enabled") == json_true()) {
     res = init_benoic(config->instance, config->url_prefix_benoic, config->b_config);
     if (res != B_OK) {
       y_log_message(Y_LOG_LEVEL_ERROR, "Error initializing benoic webservice: %d", res);
+      json_decref(submodule);
       exit_server(&config, ANGHARAD_ERROR);
     }
   }
@@ -666,10 +667,11 @@ int main(int argc, char ** argv) {
   
   // Initialize benoic webservice if enabled
   submodule = submodule_get(config, ANGHARAD_SUBMODULE_CARLEON);
-  if (submodule != NULL && json_integer_value(json_object_get(submodule, "result")) == WEBSERVICE_RESULT_OK && json_object_get(json_object_get(submodule, "submodule"), "enabled") == json_true()) {
+  if (submodule != NULL && json_integer_value(json_object_get(submodule, "result")) == ANGHARAD_RESULT_OK && json_object_get(json_object_get(submodule, "submodule"), "enabled") == json_true()) {
     res = init_carleon(config->instance, config->url_prefix_carleon, config->c_config);
     if (res != C_OK) {
       y_log_message(Y_LOG_LEVEL_ERROR, "Error initializing carleon webservice: %d", res);
+      json_decref(submodule);
       exit_server(&config, ANGHARAD_ERROR);
     }
   }
@@ -677,10 +679,11 @@ int main(int argc, char ** argv) {
 
   // Initialize benoic webservice if enabled
   submodule = submodule_get(config, ANGHARAD_SUBMODULE_GARETH);
-  if (submodule != NULL && json_integer_value(json_object_get(submodule, "result")) == WEBSERVICE_RESULT_OK && json_object_get(json_object_get(submodule, "submodule"), "enabled") == json_true()) {
+  if (submodule != NULL && json_integer_value(json_object_get(submodule, "result")) == ANGHARAD_RESULT_OK && json_object_get(json_object_get(submodule, "submodule"), "enabled") == json_true()) {
     res = init_gareth(config->instance, config->url_prefix_gareth, config->conn);
     if (!res) {
       y_log_message(Y_LOG_LEVEL_ERROR, "Error initializing gareth webservice: %d", res);
+      json_decref(submodule);
       exit_server(&config, ANGHARAD_ERROR);
     }
   }
@@ -737,7 +740,7 @@ json_t * submodule_get(struct config_elements * config, const char * submodule) 
     if (submodule != NULL) {
       if (json_array_size(j_result) == 0) {
         json_decref(j_result);
-        return json_pack("{si}", "result", WEBSERVICE_RESULT_NOT_FOUND);
+        return json_pack("{si}", "result", ANGHARAD_RESULT_NOT_FOUND);
       } else {
         j_submodule = json_copy(json_array_get(j_result, 0));
         if (json_integer_value(json_object_get(j_submodule, "enabled")) == 1) {
@@ -748,7 +751,7 @@ json_t * submodule_get(struct config_elements * config, const char * submodule) 
           json_object_set_new(j_submodule, "enabled", json_false());
         }
         json_decref(j_result);
-        return json_pack("{siso}", "result", WEBSERVICE_RESULT_OK, "submodule", j_submodule);
+        return json_pack("{siso}", "result", ANGHARAD_RESULT_OK, "submodule", j_submodule);
       }
     } else {
       json_array_foreach(j_result, index, j_submodule) {
@@ -760,7 +763,7 @@ json_t * submodule_get(struct config_elements * config, const char * submodule) 
           json_object_set_new(j_submodule, "enabled", json_false());
         }
       }
-      return json_pack("{siso}", "result", WEBSERVICE_RESULT_OK, "submodules", j_result);
+      return json_pack("{siso}", "result", ANGHARAD_RESULT_OK, "submodules", j_result);
     }
   } else {
     y_log_message(Y_LOG_LEVEL_ERROR, "submodule_get - Error executing db query");
@@ -773,7 +776,7 @@ int submodule_enable(struct config_elements * config, const char * submodule, in
   json_t * j_submodule = submodule_get(config, submodule), * j_query;
   int res;
   
-  if (j_submodule != NULL && json_integer_value(json_object_get(j_submodule, "result")) == WEBSERVICE_RESULT_OK) {
+  if (j_submodule != NULL && json_integer_value(json_object_get(j_submodule, "result")) == ANGHARAD_RESULT_OK) {
     if (enabled && json_object_get(json_object_get(j_submodule, "submodule"), "enabled") == json_false()) {
       json_decref(j_submodule);
       // Enable disabled module
@@ -868,7 +871,7 @@ int init_angharad(struct config_elements * config) {
     ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/script/@script_name", NULL, NULL, NULL, &callback_angharad_script_remove, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/script/@script_name/@tag", NULL, NULL, NULL, &callback_angharad_script_add_tag, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/script/@script_name/@tag", NULL, NULL, NULL, &callback_angharad_script_remove_tag, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/@script_name/run", NULL, NULL, NULL, &callback_angharad_script_execute, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/@script_name/run", NULL, NULL, NULL, &callback_angharad_script_run, (void*)config);
 
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/event/", NULL, NULL, NULL, &callback_angharad_event_list, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/event/@event_name", NULL, NULL, NULL, &callback_angharad_event_get, (void*)config);
@@ -937,9 +940,11 @@ int close_angharad(struct config_elements * config) {
     
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/");
 
-    config->angharad_status = ANGHARAD_STATUS_STOPPING;
-    while (config->angharad_status != ANGHARAD_STATUS_STOP) {
-      sleep(1);
+    if (config->angharad_status == ANGHARAD_STATUS_RUN) {
+      config->angharad_status = ANGHARAD_STATUS_STOPPING;
+      while (config->angharad_status != ANGHARAD_STATUS_STOP) {
+        sleep(1);
+      }
     }
     
     return A_OK;
