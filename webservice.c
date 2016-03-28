@@ -315,7 +315,81 @@ int callback_angharad_event_remove_tag (const struct _u_request * request, struc
   return U_OK;
 }
 
+int callback_angharad_scheduler_list (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  return U_OK;
+}
+
+int callback_angharad_scheduler_get (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  return U_OK;
+}
+
+int callback_angharad_scheduler_add (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  return U_OK;
+}
+
+int callback_angharad_scheduler_modify (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  return U_OK;
+}
+
+int callback_angharad_scheduler_remove (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  return U_OK;
+}
+
+int callback_angharad_scheduler_add_tag (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  return U_OK;
+}
+
+int callback_angharad_scheduler_remove_tag (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  return U_OK;
+}
+
 int callback_angharad_static_file (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  void * buffer = NULL;
+  long length;
+  FILE * f;
+  char * file_requested = request->http_url + strlen(((struct config_elements *)user_data)->static_files_prefix) + 1;
+  char * file_path;
+  const char * content_type;
+
+  if (file_requested == NULL || strlen(file_requested) == 0 || 0 == strcmp("/", file_requested)) {
+    file_requested = "/index.html";
+  }
+  
+  file_path = msprintf("%s%s", ((struct config_elements *)user_data)->static_files_path, file_requested);
+
+  if (access(file_path, F_OK) != -1) {
+    f = fopen (file_path, "rb");
+    if (f) {
+      fseek (f, 0, SEEK_END);
+      length = ftell (f);
+      fseek (f, 0, SEEK_SET);
+      buffer = malloc(length*sizeof(void));
+      if (buffer) {
+        fread (buffer, 1, length, f);
+      }
+      fclose (f);
+    }
+
+    if (buffer) {
+      content_type = u_map_get_case(((struct config_elements *)user_data)->mime_types, get_filename_ext(file_requested));
+      if (content_type == NULL) {
+        content_type = u_map_get(((struct config_elements *)user_data)->mime_types, "*");
+        y_log_message(Y_LOG_LEVEL_WARNING, "Unknown mime type for extension %s", get_filename_ext(file_requested));
+      }
+      response->binary_body = buffer;
+      response->binary_body_length = length;
+      u_map_put(response->map_header, "Content-Type", content_type);
+    } else {
+      y_log_message(Y_LOG_LEVEL_ERROR, "error in %s", request->http_url);
+      response->json_body = json_pack("{ss}", "error", request->http_url);
+      response->status = 500;
+    }
+  } else {
+    y_log_message(Y_LOG_LEVEL_ERROR, "%s not found", request->http_url);
+    response->json_body = json_pack("{ss}", "not found", request->http_url);
+    response->status = 404;
+  }
+  free(file_path);
   return U_OK;
 }
 

@@ -25,6 +25,9 @@ url_prefix_gareth="gareth"
 # path to static files for /static url
 static_files_path="/path/to/static/files"
 
+# access-control-allow-origin value
+allow_origin="*"
+
 # log mode (console, syslog, file)
 log_mode="console,file"
 

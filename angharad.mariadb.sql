@@ -21,8 +21,11 @@ DROP TABLE IF EXISTS `g_alert_smtp`;
 DROP TABLE IF EXISTS `g_alert_http_header`;
 DROP TABLE IF EXISTS `g_alert_http`;
 
+DROP TABLE IF EXISTS `a_event_condition`;
+DROP TABLE IF EXISTS `a_event_script`;
 DROP TABLE IF EXISTS `a_event_trigger`;
 DROP TABLE IF EXISTS `a_event_scheduler`;
+DROP TABLE IF EXISTS `a_condition`;
 DROP TABLE IF EXISTS `a_event`;
 DROP TABLE IF EXISTS `a_trigger`;
 DROP TABLE IF EXISTS `a_scheduler`;
@@ -175,11 +178,13 @@ INSERT INTO `a_submodule` (`as_name`, `as_description`, `as_enabled`) VALUES ('b
 INSERT INTO `a_submodule` (`as_name`, `as_description`, `as_enabled`) VALUES ('carleon', 'House automation side services management', 1);
 INSERT INTO `a_submodule` (`as_name`, `as_description`, `as_enabled`) VALUES ('gareth', 'Messenger service', 1);
 
-CREATE TABLE `a_session` (
-  `ass_session_token` varchar(128) NOT NULL UNIQUE,
-  `ass_login` varchar(64) NOT NULL,
-  `ass_validity` timestamp,
-  `ass_security` tinyint(1) default 0 -- 0 public, 1 private
+CREATE TABLE `a_event` (
+  `ae_id` int(11) NOT NULL AUTO_INCREMENT,
+  `ae_name` varchar(64) NOT NULL,
+  `ae_description` varchar(128),
+  `ae_enabled` tinyint(1) DEFAULT 1,
+  `ae_options` BLOB,
+  PRIMARY KEY (`ae_id`)
 );
 
 CREATE TABLE `a_script` (
@@ -197,7 +202,6 @@ CREATE TABLE `a_scheduler` (
   `ash_description` varchar(128),
   `ash_options` BLOB,
   `ash_next_time` timestamp,
-  `ash_duration` INT(11),
   `ash_repeat_schedule` INT(11), -- -1: None, 0: minute, 1: hours, 2: days, 3: day of week, 4: month, 5: year
   `ash_repeat_schedule_value` INT(11),
   `ash_remove_after_done` INT(11),
@@ -215,13 +219,20 @@ CREATE TABLE `a_trigger` (
   PRIMARY KEY (`at_id`)
 );
 
-CREATE TABLE `a_event` (
-  `ae_id` int(11) NOT NULL AUTO_INCREMENT,
-  `ae_name` varchar(64) NOT NULL,
-  `ae_description` varchar(128),
-  `ae_enabled` tinyint(1) DEFAULT 1,
-  `ae_options` BLOB,
-  PRIMARY KEY (`ae_id`)
+CREATE TABLE `a_condition` (
+  `ac_id` int(11) NOT NULL AUTO_INCREMENT,
+  `ac_name` varchar(64) NOT NULL,
+  `ac_description` varchar(128),
+  `ac_enabled` tinyint(1) DEFAULT 1,
+  `ac_assertions` BLOB,
+  PRIMARY KEY (`ac_id`)
+);
+
+CREATE TABLE `a_event_script` (
+  `ae_id` int(11),
+  `asc_id` int(11),
+  CONSTRAINT `event_id_ibfk_4` FOREIGN KEY (`ae_id`) REFERENCES `a_event` (`ae_id`),
+  CONSTRAINT `script_id_ibfk_1` FOREIGN KEY (`asc_id`) REFERENCES `a_script` (`asc_id`)
 );
 
 CREATE TABLE `a_event_scheduler` (
@@ -236,4 +247,18 @@ CREATE TABLE `a_event_trigger` (
   `at_id` int(11),
   CONSTRAINT `event_id_ibfk_2` FOREIGN KEY (`ae_id`) REFERENCES `a_event` (`ae_id`),
   CONSTRAINT `trigger_id_ibfk_1` FOREIGN KEY (`at_id`) REFERENCES `a_trigger` (`at_id`)
+);
+
+CREATE TABLE `a_event_condition` (
+  `ae_id` int(11),
+  `ac_id` int(11),
+  CONSTRAINT `event_id_ibfk_3` FOREIGN KEY (`ae_id`) REFERENCES `a_event` (`ae_id`),
+  CONSTRAINT `condition_id_ibfk_1` FOREIGN KEY (`ac_id`) REFERENCES `a_condition` (`ac_id`)
+);
+
+CREATE TABLE `a_session` (
+  `ass_session_token` varchar(128) NOT NULL UNIQUE,
+  `ass_login` varchar(64) NOT NULL,
+  `ass_validity` timestamp,
+  `ass_security` tinyint(1) default 0 -- 0 public, 1 private
 );

@@ -274,7 +274,10 @@ void exit_server(struct config_elements ** config, int exit_value) {
     free((*config)->url_prefix_carleon);
     free((*config)->url_prefix_gareth);
     free((*config)->static_files_path);
+    free((*config)->static_files_prefix);
+    u_map_clean_full((*config)->mime_types);
     free((*config)->angharad_realm);
+    free((*config)->allow_origin);
     free((*config)->log_file);
     y_close_logs();
 
@@ -300,7 +303,7 @@ int build_config_from_file(struct config_elements * config) {
   
   config_t cfg;
   config_setting_t * root, * database;
-  const char * cur_prefix_angharad, * cur_prefix_benoic, * cur_prefix_carleon, * cur_prefix_gareth, * cur_log_mode, * cur_log_level, * cur_log_file = NULL, * one_log_mode, * carleon_services_path, * benoic_modules_path,
+  const char * cur_prefix_angharad, * cur_prefix_benoic, * cur_prefix_carleon, * cur_prefix_gareth, * cur_log_mode, * cur_log_level, * cur_log_file = NULL, * one_log_mode, * carleon_services_path, * benoic_modules_path, * cur_allow_origin, * cur_static_files_prefix,
              * db_type, * db_sqlite_path, * db_mariadb_host = NULL, * db_mariadb_user = NULL, * db_mariadb_password = NULL, * db_mariadb_dbname = NULL, * cur_angharad_realm = NULL, * cur_static_files_path = NULL;
   int db_mariadb_port = 0;
   
@@ -359,6 +362,18 @@ int build_config_from_file(struct config_elements * config) {
       config->url_prefix_gareth = nstrdup(cur_prefix_gareth);
       if (config->url_prefix_gareth == NULL) {
         fprintf(stderr, "Error allocating config->url_prefix_gareth, exiting\n");
+        config_destroy(&cfg);
+        return 0;
+      }
+    }
+  }
+
+  if (config->allow_origin == NULL) {
+    // Get prefix url
+    if (config_lookup_string(&cfg, "allow_origin", &cur_allow_origin)) {
+      config->allow_origin = nstrdup(cur_allow_origin);
+      if (config->allow_origin == NULL) {
+        fprintf(stderr, "Error allocating config->allow_origin, exiting\n");
         config_destroy(&cfg);
         return 0;
       }
@@ -507,7 +522,19 @@ int build_config_from_file(struct config_elements * config) {
       }
     }
   }
-  
+
+  if (config->static_files_prefix == NULL) {
+    // Get prefix url
+    if (config_lookup_string(&cfg, "static_files_prefix", &cur_static_files_prefix)) {
+      config->static_files_prefix = nstrdup(cur_static_files_prefix);
+      if (config->static_files_prefix == NULL) {
+        fprintf(stderr, "Error allocating config->static_files_prefix, exiting\n");
+        config_destroy(&cfg);
+        return 0;
+      }
+    }
+  }
+    
   config_destroy(&cfg);
   return 1;
 }
@@ -568,6 +595,14 @@ int check_config(struct config_elements * config) {
     return 0;
   }
   
+  if (config->allow_origin == NULL) {
+    config->allow_origin = nstrdup(ALLOW_ORIGIN_DEFAULT);
+  }
+
+  if (config->static_files_prefix == NULL) {
+    config->static_files_prefix = nstrdup(STATIC_FILES_PREFIX_DEFAULT);
+  }
+    
   return 1;
 }
 
@@ -608,6 +643,8 @@ int main(int argc, char ** argv) {
   config->url_prefix_gareth = NULL;
   config->angharad_realm = NULL;
   config->static_files_path = NULL;
+  config->static_files_prefix = NULL;
+  config->allow_origin = NULL;
   config->log_mode = Y_LOG_MODE_NONE;
   config->log_level = Y_LOG_LEVEL_NONE;
   config->log_file = NULL;
@@ -881,21 +918,49 @@ int init_angharad(struct config_elements * config) {
     ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/event/@event_name/@tag", NULL, NULL, NULL, &callback_angharad_event_add_tag, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/event/@event_name/@tag", NULL, NULL, NULL, &callback_angharad_event_remove_tag, (void*)config);
 
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/scheduler/", NULL, NULL, NULL, &callback_angharad_scheduler_list, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/scheduler/@scheduler_name", NULL, NULL, NULL, &callback_angharad_scheduler_get, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/scheduler/", NULL, NULL, NULL, &callback_angharad_scheduler_add, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/scheduler/@scheduler_name", NULL, NULL, NULL, &callback_angharad_scheduler_modify, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/scheduler/@scheduler_name", NULL, NULL, NULL, &callback_angharad_scheduler_remove, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/scheduler/@scheduler_name/@tag", NULL, NULL, NULL, &callback_angharad_scheduler_add_tag, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/scheduler/@scheduler_name/@tag", NULL, NULL, NULL, &callback_angharad_scheduler_remove_tag, (void*)config);
+
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/auth", &callback_angharad_no_auth_function, NULL, config->angharad_realm, &callback_angharad_auth_get, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/auth", &callback_angharad_no_auth_function, NULL, config->angharad_realm, &callback_angharad_auth_check, (void*)config);
 
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/static/*", &callback_angharad_no_auth_function, NULL, config->angharad_realm, &callback_angharad_static_file, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->static_files_prefix, "*", &callback_angharad_no_auth_function, NULL, config->angharad_realm, &callback_angharad_static_file, (void*)config);
 
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/", &callback_angharad_no_auth_function, NULL, config->angharad_realm, &callback_angharad_root_url, (void*)config);
 
     ulfius_set_default_auth_function(config->instance, &callback_angharad_auth_function, (void*)config, config->angharad_realm);
+    
+    u_map_put(config->instance->default_headers, "access-control-allow-origin", config->allow_origin);
+    
+    config->mime_types = malloc(sizeof(struct _u_map));
+    if (config->mime_types == NULL) {
+      y_log_message(Y_LOG_LEVEL_ERROR, "init_angharad - Error allocating resources for config->mime_types, aborting");
+      return A_ERROR_MEMORY;
+    }
+    u_map_init(config->mime_types);
+    // TODO put this in the config file
+    u_map_put(config->mime_types, ".html", "text/html");
+    u_map_put(config->mime_types, ".css", "text/css");
+    u_map_put(config->mime_types, ".js", "application/javascript");
+    u_map_put(config->mime_types, ".png", "image/png");
+    u_map_put(config->mime_types, ".jpeg", "image/jpeg");
+    u_map_put(config->mime_types, ".jpg", "image/jpeg");
+    u_map_put(config->mime_types, ".ttf", "font/ttf");
+    u_map_put(config->mime_types, ".woff", "font/woff");
+    u_map_put(config->mime_types, ".woff2", "font/woff2");
+    u_map_put(config->mime_types, "*", "application/octet-stream");
     
     // Start event thread
     config->angharad_status = ANGHARAD_STATUS_RUN;
     thread_ret_event = pthread_create(&thread_event, NULL, thread_event_run, (void *)config);
     thread_detach_event = pthread_detach(thread_event);
     if (thread_ret_event || thread_detach_event) {
-      y_log_message(Y_LOG_LEVEL_ERROR, "Error creating or detaching event thread, return code: %d, detach code: %d",
+      y_log_message(Y_LOG_LEVEL_ERROR, "init_angharad - Error creating or detaching event thread, return code: %d, detach code: %d",
                   thread_ret_event, thread_detach_event);
       return A_ERROR_IO;
     }
@@ -933,10 +998,18 @@ int close_angharad(struct config_elements * config) {
     ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/event/@event_name/@tag");
     ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/event/@event_name/@tag");
 
+    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/scheduler/");
+    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/scheduler/@scheduler_name");
+    ulfius_remove_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/scheduler/");
+    ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/scheduler/@scheduler_name");
+    ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/scheduler/@scheduler_name");
+    ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/scheduler/@scheduler_name/@tag");
+    ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/scheduler/@scheduler_name/@tag");
+
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/auth/");
     ulfius_remove_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/auth/");
 
-    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/static/*");
+    ulfius_remove_endpoint_by_val(config->instance, "GET", config->static_files_prefix, "*");
     
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/");
 
@@ -952,4 +1025,13 @@ int close_angharad(struct config_elements * config) {
     y_log_message(Y_LOG_LEVEL_ERROR, "close_agharad - Error closing angharad webservices, error input parameters");
     return A_ERROR_PARAM;
   }
+}
+
+/**
+ * return the filename extension
+ */
+const char * get_filename_ext(const char *path) {
+    const char *dot = strrchr(path, '.');
+    if(!dot || dot == path) return "*";
+    return dot;
 }

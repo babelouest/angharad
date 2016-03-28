@@ -58,9 +58,11 @@
 #define ANGHARAD_DEFAULT_PORT   2473
 #define ANGHARAD_DEFAULT_REALM  "angharad"
 
-#define BENOIC_DEFAULT_PREFIX  "benoic"
-#define CARLEON_DEFAULT_PREFIX "carleon"
-#define GARETH_DEFAULT_PREFIX  "gareth"
+#define BENOIC_DEFAULT_PREFIX       "benoic"
+#define CARLEON_DEFAULT_PREFIX      "carleon"
+#define GARETH_DEFAULT_PREFIX       "gareth"
+#define ALLOW_ORIGIN_DEFAULT        "*"
+#define STATIC_FILES_PREFIX_DEFAULT "sagremor"
 
 #define A_OK              0
 #define A_ERROR           1
@@ -99,7 +101,10 @@ struct config_elements {
   char *                   url_prefix_carleon;
   char *                   url_prefix_gareth;
   char *                   angharad_realm;
+  char *                   static_files_prefix;
   char *                   static_files_path;
+  struct _u_map          * mime_types;
+  char *                   allow_origin;
   unsigned long            log_mode;
   unsigned long            log_level;
   char *                   log_file;
@@ -140,6 +145,8 @@ int script_add_tag(struct config_elements * config, const char * script_name, co
 int script_remove_tag(struct config_elements * config, const char * script_name, const char * tag);
 int action_run(struct config_elements * config, json_t * j_action);
 
+const char * get_filename_ext(const char *path);
+
 // Callback functions for webservices
 int callback_angharad_alert (const struct _u_request * request, struct _u_response * response, void * user_data);
 
@@ -163,6 +170,14 @@ int callback_angharad_event_modify (const struct _u_request * request, struct _u
 int callback_angharad_event_remove (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_event_add_tag (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_event_remove_tag (const struct _u_request * request, struct _u_response * response, void * user_data);
+
+int callback_angharad_scheduler_list (const struct _u_request * request, struct _u_response * response, void * user_data);
+int callback_angharad_scheduler_get (const struct _u_request * request, struct _u_response * response, void * user_data);
+int callback_angharad_scheduler_add (const struct _u_request * request, struct _u_response * response, void * user_data);
+int callback_angharad_scheduler_modify (const struct _u_request * request, struct _u_response * response, void * user_data);
+int callback_angharad_scheduler_remove (const struct _u_request * request, struct _u_response * response, void * user_data);
+int callback_angharad_scheduler_add_tag (const struct _u_request * request, struct _u_response * response, void * user_data);
+int callback_angharad_scheduler_remove_tag (const struct _u_request * request, struct _u_response * response, void * user_data);
 
 int callback_angharad_static_file (const struct _u_request * request, struct _u_response * response, void * user_data);
 
