@@ -38,15 +38,22 @@ CARLEON_LOCATION=carleon
 GARETH_LIBS=$(GARETH_LOCATION)/gareth.o $(GARETH_LOCATION)/alert.o $(GARETH_LOCATION)/filter.o $(GARETH_LOCATION)/message.o
 BENOIC_LIBS=$(BENOIC_LOCATION)/benoic.o $(BENOIC_LOCATION)/device.o $(BENOIC_LOCATION)/device-element.o
 CARLEON_LIBS=$(CARLEON_LOCATION)/carleon.o $(CARLEON_LOCATION)/service.o $(CARLEON_LOCATION)/profile.o
+ANGHARAD_LIBS=angharad.h angharad.o event.o scheduler.o trigger.o script.o webservice.o
 
-angharad: gareth.o benoic.o carleon.o angharad.h angharad.o event.o script.o webservice.o
-	$(CC) -o angharad angharad.o event.o script.o webservice.o $(GARETH_LIBS) $(BENOIC_LIBS) $(CARLEON_LIBS) $(LIBS) -lconfig
+angharad: $(ANGHARAD_LIBS) gareth.o benoic.o carleon.o
+	$(CC) -o angharad $(ANGHARAD_LIBS) $(GARETH_LIBS) $(BENOIC_LIBS) $(CARLEON_LIBS) $(LIBS) -lconfig
 
 angharad.o: angharad.c angharad.h
 	$(CC) $(CFLAGS) angharad.c
 
 event.o: event.c angharad.h
 	$(CC) $(CFLAGS) event.c
+
+scheduler.o: scheduler.c angharad.h
+	$(CC) $(CFLAGS) scheduler.c
+
+trigger.o: trigger.c angharad.h
+	$(CC) $(CFLAGS) trigger.c
 
 script.o: script.c angharad.h
 	$(CC) $(CFLAGS) script.c

@@ -178,15 +178,6 @@ INSERT INTO `a_submodule` (`as_name`, `as_description`, `as_enabled`) VALUES ('b
 INSERT INTO `a_submodule` (`as_name`, `as_description`, `as_enabled`) VALUES ('carleon', 'House automation side services management', 1);
 INSERT INTO `a_submodule` (`as_name`, `as_description`, `as_enabled`) VALUES ('gareth', 'Messenger service', 1);
 
-CREATE TABLE `a_event` (
-  `ae_id` int(11) NOT NULL AUTO_INCREMENT,
-  `ae_name` varchar(64) NOT NULL,
-  `ae_description` varchar(128),
-  `ae_enabled` tinyint(1) DEFAULT 1,
-  `ae_options` BLOB,
-  PRIMARY KEY (`ae_id`)
-);
-
 CREATE TABLE `a_script` (
   `asc_id` int(11) NOT NULL AUTO_INCREMENT,
   `asc_name` varchar(64) NOT NULL UNIQUE,
@@ -198,62 +189,51 @@ CREATE TABLE `a_script` (
 
 CREATE TABLE `a_scheduler` (
   `ash_id` int(11) NOT NULL AUTO_INCREMENT,
-  `ash_name` varchar(64) NOT NULL,
+  `ash_name` varchar(64) NOT NULL UNIQUE,
   `ash_description` varchar(128),
+  `ash_enabled` tinyint(1) DEFAULT 1,
   `ash_options` BLOB,
   `ash_next_time` timestamp,
-  `ash_repeat_schedule` INT(11), -- -1: None, 0: minute, 1: hours, 2: days, 3: day of week, 4: month, 5: year
-  `ash_repeat_schedule_value` INT(11),
-  `ash_remove_after_done` INT(11),
+  `ash_repeat` tinyint(1) DEFAULT -1, -- -1: None, 0: minute, 1: hours, 2: days, 3: day of week, 4: month, 5: year
+  `ash_repeat_value` INT(11),
+  `ash_remove_after` INT(11) DEFAULT 0,
   PRIMARY KEY (`ash_id`)
 );
 
 CREATE TABLE `a_trigger` (
   `at_id` int(11) NOT NULL AUTO_INCREMENT,
-  `at_name` varchar(64) NOT NULL,
+  `at_name` varchar(64) NOT NULL UNIQUE,
   `at_description` varchar(128),
+  `at_enabled` tinyint(1) DEFAULT 1,
+  `at_options` BLOB,
   `at_submodule` varchar(64) NOT NULL,
   `at_source` varchar(64) NOT NULL,
   `at_element` varchar(64) NOT NULL,
   `at_message` varchar(128),
+  `at_message_match` tinyint(1) DEFAULT 0, -- 0 none, 1 equal, 2 different, 3 contains, 4 empty, 5 not empty
   PRIMARY KEY (`at_id`)
 );
 
-CREATE TABLE `a_condition` (
-  `ac_id` int(11) NOT NULL AUTO_INCREMENT,
-  `ac_name` varchar(64) NOT NULL,
-  `ac_description` varchar(128),
-  `ac_enabled` tinyint(1) DEFAULT 1,
-  `ac_assertions` BLOB,
-  PRIMARY KEY (`ac_id`)
+CREATE TABLE `a_event` (
+  `ae_id` int(11) NOT NULL AUTO_INCREMENT,
+  `ash_id` int(11),
+  `at_id` int(11),
+  `ae_name` varchar(64) NOT NULL UNIQUE,
+  `ae_description` varchar(128),
+  `ae_enabled` tinyint(1) DEFAULT 1,
+  `ae_options` BLOB,
+  `ae_conditions` BLOB,
+  PRIMARY KEY (`ae_id`),
+  CONSTRAINT `scheduler_id_ibfk_1` FOREIGN KEY (`ash_id`) REFERENCES `a_scheduler` (`ash_id`),
+  CONSTRAINT `trigger_id_ibfk_1` FOREIGN KEY (`at_id`) REFERENCES `a_trigger` (`at_id`)
 );
 
 CREATE TABLE `a_event_script` (
   `ae_id` int(11),
   `asc_id` int(11),
-  CONSTRAINT `event_id_ibfk_4` FOREIGN KEY (`ae_id`) REFERENCES `a_event` (`ae_id`),
-  CONSTRAINT `script_id_ibfk_1` FOREIGN KEY (`asc_id`) REFERENCES `a_script` (`asc_id`)
-);
-
-CREATE TABLE `a_event_scheduler` (
-  `ae_id` int(11),
-  `ash_id` int(11),
-  CONSTRAINT `event_id_ibfk_1` FOREIGN KEY (`ae_id`) REFERENCES `a_event` (`ae_id`),
-  CONSTRAINT `scheduler_id_ibfk_1` FOREIGN KEY (`ash_id`) REFERENCES `a_scheduler` (`ash_id`)
-);
-
-CREATE TABLE `a_event_trigger` (
-  `ae_id` int(11),
-  `at_id` int(11),
-  CONSTRAINT `event_id_ibfk_2` FOREIGN KEY (`ae_id`) REFERENCES `a_event` (`ae_id`),
-  CONSTRAINT `trigger_id_ibfk_1` FOREIGN KEY (`at_id`) REFERENCES `a_trigger` (`at_id`)
-);
-
-CREATE TABLE `a_event_condition` (
-  `ae_id` int(11),
-  `ac_id` int(11),
-  CONSTRAINT `event_id_ibfk_3` FOREIGN KEY (`ae_id`) REFERENCES `a_event` (`ae_id`),
-  CONSTRAINT `condition_id_ibfk_1` FOREIGN KEY (`ac_id`) REFERENCES `a_condition` (`ac_id`)
+  `aes_enabled` tinyint(1) DEFAULT 1,
+  CONSTRAINT `event_id_ibfk_4` FOREIGN KEY (`ae_id`) REFERENCES `a_event` (`ae_id`) ON DELETE CASCADE,
+  CONSTRAINT `script_id_ibfk_1` FOREIGN KEY (`asc_id`) REFERENCES `a_script` (`asc_id`) ON DELETE CASCADE
 );
 
 CREATE TABLE `a_session` (

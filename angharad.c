@@ -891,8 +891,8 @@ int submodule_enable(struct config_elements * config, const char * submodule, in
 }
 
 int init_angharad(struct config_elements * config) {
-  pthread_t thread_event;
-  int thread_ret_event = 0, thread_detach_event = 0;
+  pthread_t thread_scheduler;
+  int thread_scheduler_ret = 0, thread_scheduler_detach = 0;
 
   if (config != NULL && config->instance != NULL && config->url_prefix_angharad) {
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/alert/@submodule_name/@source/@element/@message/", NULL, NULL, NULL, &callback_angharad_alert, (void*)config);
@@ -926,6 +926,14 @@ int init_angharad(struct config_elements * config) {
     ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/scheduler/@scheduler_name/@tag", NULL, NULL, NULL, &callback_angharad_scheduler_add_tag, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/scheduler/@scheduler_name/@tag", NULL, NULL, NULL, &callback_angharad_scheduler_remove_tag, (void*)config);
 
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/trigger/", NULL, NULL, NULL, &callback_angharad_trigger_list, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/trigger/@trigger_name", NULL, NULL, NULL, &callback_angharad_trigger_get, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/trigger/", NULL, NULL, NULL, &callback_angharad_trigger_add, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/trigger/@trigger_name", NULL, NULL, NULL, &callback_angharad_trigger_modify, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/trigger/@trigger_name", NULL, NULL, NULL, &callback_angharad_trigger_remove, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/trigger/@trigger_name/@tag", NULL, NULL, NULL, &callback_angharad_trigger_add_tag, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/trigger/@trigger_name/@tag", NULL, NULL, NULL, &callback_angharad_trigger_remove_tag, (void*)config);
+
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/auth", &callback_angharad_no_auth_function, NULL, config->angharad_realm, &callback_angharad_auth_get, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/auth", &callback_angharad_no_auth_function, NULL, config->angharad_realm, &callback_angharad_auth_check, (void*)config);
 
@@ -957,11 +965,11 @@ int init_angharad(struct config_elements * config) {
     
     // Start event thread
     config->angharad_status = ANGHARAD_STATUS_RUN;
-    thread_ret_event = pthread_create(&thread_event, NULL, thread_event_run, (void *)config);
-    thread_detach_event = pthread_detach(thread_event);
-    if (thread_ret_event || thread_detach_event) {
+    thread_scheduler_ret = pthread_create(&thread_scheduler, NULL, thread_scheduler_run, (void *)config);
+    thread_scheduler_detach = pthread_detach(thread_scheduler);
+    if (thread_scheduler_ret || thread_scheduler_detach) {
       y_log_message(Y_LOG_LEVEL_ERROR, "init_angharad - Error creating or detaching event thread, return code: %d, detach code: %d",
-                  thread_ret_event, thread_detach_event);
+                  thread_scheduler_ret, thread_scheduler_detach);
       return A_ERROR_IO;
     }
     
@@ -1005,6 +1013,14 @@ int close_angharad(struct config_elements * config) {
     ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/scheduler/@scheduler_name");
     ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/scheduler/@scheduler_name/@tag");
     ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/scheduler/@scheduler_name/@tag");
+
+    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/trigger/");
+    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/trigger/@trigger_name");
+    ulfius_remove_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/trigger/");
+    ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/trigger/@trigger_name");
+    ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/trigger/@trigger_name");
+    ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/trigger/@trigger_name/@tag");
+    ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/trigger/@trigger_name/@tag");
 
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/auth/");
     ulfius_remove_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/auth/");

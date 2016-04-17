@@ -223,7 +223,7 @@ int script_delete(struct config_elements * config, const char * script_name) {
  *   "actions": array with valid actions in it
  * }
  */
-json_t * is_script_valid(struct config_elements * config, json_t * j_script) {
+json_t * is_script_valid(struct config_elements * config, json_t * j_script, const int update) {
   json_t * j_result = json_array(), * j_element, * j_actions_valid, * j_options_valid;
   size_t index;
   
@@ -235,9 +235,11 @@ json_t * is_script_valid(struct config_elements * config, json_t * j_script) {
   if (j_script == NULL || !json_is_object(j_script)) {
     json_array_append_new(j_result, json_pack("{ss}", "script", "script object is mandatory"));
   } else {
-    j_element = json_object_get(j_script, "name");
-    if (j_element == NULL || !json_is_string(j_element) || json_string_length(j_element) > 64) {
-      json_array_append_new(j_result, json_pack("{ss}", "name", "name parameter is mandatory must ba a string, maximum 64 characters"));
+    if (!update) {
+      j_element = json_object_get(j_script, "name");
+      if (j_element == NULL || !json_is_string(j_element) || json_string_length(j_element) > 64) {
+        json_array_append_new(j_result, json_pack("{ss}", "name", "name parameter is mandatory must ba a string, maximum 64 characters"));
+      }
     }
 
     j_element = json_object_get(j_script, "description");
