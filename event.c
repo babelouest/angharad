@@ -62,7 +62,7 @@ json_t * event_get(struct config_elements * config, const char * event_name) {
       }
       json_array_foreach(j_result, index, j_event) {
         j_scheduler_or_trigger = event_get_scheduler_or_trigger(config, json_string_value(json_object_get(j_event, "name")));
-        if (j_scheduler_or_trigger != NULL && json_integer_value(json_object_get(j_scheduler_or_trigger, "result")) == ANGHARAD_RESULT_OK) {
+        if (j_scheduler_or_trigger != NULL && json_integer_value(json_object_get(j_scheduler_or_trigger, "result")) != ANGHARAD_RESULT_ERROR) {
           if (json_object_get(j_scheduler_or_trigger, "scheduler") != NULL) {
             json_object_set_new(j_event, "scheduler", json_copy(json_object_get(j_scheduler_or_trigger, "scheduler")));
           } else if (json_object_get(j_scheduler_or_trigger, "trigger") != NULL) {
@@ -97,7 +97,7 @@ json_t * event_get(struct config_elements * config, const char * event_name) {
         }
         
         j_scheduler_or_trigger = event_get_scheduler_or_trigger(config, json_string_value(json_object_get(j_event, "name")));
-        if (j_scheduler_or_trigger != NULL && json_integer_value(json_object_get(j_scheduler_or_trigger, "result")) == ANGHARAD_RESULT_OK) {
+        if (j_scheduler_or_trigger != NULL && json_integer_value(json_object_get(j_scheduler_or_trigger, "result")) != ANGHARAD_RESULT_ERROR) {
           if (json_object_get(j_scheduler_or_trigger, "scheduler") != NULL) {
             json_object_set_new(j_event, "scheduler", json_copy(json_object_get(j_scheduler_or_trigger, "scheduler")));
           } else if (json_object_get(j_scheduler_or_trigger, "trigger") != NULL) {
@@ -107,6 +107,7 @@ json_t * event_get(struct config_elements * config, const char * event_name) {
           y_log_message(Y_LOG_LEVEL_ERROR, "event_get - Error getting scheduler or trigger");
           return json_pack("{si}", "result", ANGHARAD_RESULT_ERROR);
         }
+        json_decref(j_scheduler_or_trigger);
         
         j_enabled = json_object_get(j_event, "ae_enabled");
         json_object_set_new(j_event, "enabled", json_integer_value(j_enabled)?json_true():json_false());
@@ -151,13 +152,13 @@ int event_add(struct config_elements * config, json_t * j_event) {
   if (json_object_get(j_event, "scheduler") != NULL) {
     escaped = h_escape_string(config->conn, json_string_value(json_object_get(j_event, "scheduler")));
     str_options = msprintf("(SELECT ash_id FROM %s WHERE ash_name='%s')", ANGHARAD_TABLE_SCHEDULER, escaped);
-    json_object_set_new(json_object_get(j_query, "values"), "ash_id", json_pack("{ss}", "raw", str_options));
+    json_object_set_new(json_array_get(json_object_get(j_query, "values"), 0), "ash_id", json_pack("{ss}", "raw", str_options));
     free(escaped);
     free(str_options);
   } else if (json_object_get(j_event, "trigger") != NULL) {
-    escaped = h_escape_string(config->conn, json_string_value(json_object_get(j_event, "scheduler")));
+    escaped = h_escape_string(config->conn, json_string_value(json_object_get(j_event, "trigger")));
     str_options = msprintf("(SELECT at_id FROM %s WHERE at_name='%s')", ANGHARAD_TABLE_TRIGGER, escaped);
-    json_object_set_new(json_object_get(j_query, "values"), "ash_id", json_pack("{ss}", "raw", str_options));
+    json_object_set_new(json_array_get(json_object_get(j_query, "values"), 0), "at_id", json_pack("{ss}", "raw", str_options));
     free(escaped);
     free(str_options);
   }
@@ -222,6 +223,7 @@ json_t * is_event_valid(struct config_elements * config, json_t * j_event, const
         if (j_tmp == NULL || json_integer_value(json_object_get(j_tmp, "result")) == ANGHARAD_RESULT_NOT_FOUND) {
           json_array_append_new(j_result, json_pack("{ss}", "scheduler", "scheduler does not exist"));
         }
+        json_decref(j_tmp);
       }
     } else if (json_object_get(j_event, "trigger") != NULL) {
       j_element = json_object_get(j_event, "trigger");
@@ -232,6 +234,7 @@ json_t * is_event_valid(struct config_elements * config, json_t * j_event, const
         if (j_tmp == NULL || json_integer_value(json_object_get(j_tmp, "result")) == ANGHARAD_RESULT_NOT_FOUND) {
           json_array_append_new(j_result, json_pack("{ss}", "trigger", "trigger does not exist"));
         }
+        json_decref(j_tmp);
       }
     }
     
@@ -286,12 +289,14 @@ int event_modify(struct config_elements * config, const char * event_name, json_
     escaped = h_escape_string(config->conn, json_string_value(json_object_get(j_event, "scheduler")));
     str_options = msprintf("(SELECT ash_id FROM %s WHERE ash_name='%s')", ANGHARAD_TABLE_SCHEDULER, escaped);
     json_object_set_new(json_object_get(j_query, "set"), "ash_id", json_pack("{ss}", "raw", str_options));
+    json_object_set_new(json_object_get(j_query, "set"), "at_id", json_null());
     free(escaped);
     free(str_options);
   } else if (json_object_get(j_event, "trigger") != NULL) {
-    escaped = h_escape_string(config->conn, json_string_value(json_object_get(j_event, "scheduler")));
+    escaped = h_escape_string(config->conn, json_string_value(json_object_get(j_event, "trigger")));
     str_options = msprintf("(SELECT at_id FROM %s WHERE at_name='%s')", ANGHARAD_TABLE_TRIGGER, escaped);
-    json_object_set_new(json_object_get(j_query, "set"), "ash_id", json_pack("{ss}", "raw", str_options));
+    json_object_set_new(json_object_get(j_query, "set"), "at_id", json_pack("{ss}", "raw", str_options));
+    json_object_set_new(json_object_get(j_query, "set"), "ash_id", json_null());
     free(escaped);
     free(str_options);
   }
@@ -442,14 +447,14 @@ json_t * event_get_scheduler_or_trigger(struct config_elements * config, const c
   if (res == H_OK) {
     if (json_array_size(j_result) > 0) {
       if (json_object_get(json_array_get(j_result, 0), "ash_id") != json_null()) {
-        j_query = json_pack("{sss[s]s{ss}}",
+        j_query = json_pack("{sss[s]s{si}}",
                             "table",
                               ANGHARAD_TABLE_SCHEDULER,
                             "columns",
                               "ash_name",
                             "where",
                               "ash_id",
-                              json_string_value(json_object_get(json_array_get(j_result, 0), "ash_id")));
+                              json_integer_value(json_object_get(json_array_get(j_result, 0), "ash_id")));
         json_decref(j_result);
         
         if (j_query == NULL) {
@@ -459,21 +464,21 @@ json_t * event_get_scheduler_or_trigger(struct config_elements * config, const c
         res = h_select(config->conn, j_query, &j_result, NULL);
         json_decref(j_query);
         if (res == H_OK && json_array_size(j_result) > 0) {
-          j_return = json_pack("{ssss}", "result", ANGHARAD_RESULT_OK, "scheduler", json_string_value(json_object_get(json_array_get(j_result, 0), "ash_name")));
+          j_return = json_pack("{siss}", "result", ANGHARAD_RESULT_OK, "scheduler", json_string_value(json_object_get(json_array_get(j_result, 0), "ash_name")));
         } else {
           y_log_message(Y_LOG_LEVEL_ERROR, "event_get_scheduler_or_trigger - Error getting scheduler name");
           j_return = json_pack("{si}", "result", ANGHARAD_RESULT_ERROR);
         }
         json_decref(j_result);
       } else if (json_object_get(json_array_get(j_result, 0), "at_id") != json_null()) {
-        j_query = json_pack("{sss[s]s{ss}}",
+        j_query = json_pack("{sss[s]s{si}}",
                             "table",
                               ANGHARAD_TABLE_TRIGGER,
                             "columns",
                               "at_name",
                             "where",
                               "at_id",
-                              json_string_value(json_object_get(json_array_get(j_result, 0), "at_id")));
+                              json_integer_value(json_object_get(json_array_get(j_result, 0), "at_id")));
         json_decref(j_result);
         
         if (j_query == NULL) {
@@ -483,7 +488,7 @@ json_t * event_get_scheduler_or_trigger(struct config_elements * config, const c
         res = h_select(config->conn, j_query, &j_result, NULL);
         json_decref(j_query);
         if (res == H_OK && json_array_size(j_result) > 0) {
-          j_return = json_pack("{ssss}", "result", ANGHARAD_RESULT_OK, "trigger", json_string_value(json_object_get(json_array_get(j_result, 0), "at_name")));
+          j_return = json_pack("{siss}", "result", ANGHARAD_RESULT_OK, "trigger", json_string_value(json_object_get(json_array_get(j_result, 0), "at_name")));
         } else {
           y_log_message(Y_LOG_LEVEL_ERROR, "event_get_scheduler_or_trigger - Error getting trigger name");
           j_return = json_pack("{si}", "result", ANGHARAD_RESULT_ERROR);

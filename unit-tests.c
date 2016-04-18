@@ -730,6 +730,8 @@ void run_event_tests() {
   run_simple_test("PUT", SERVER_URL PREFIX_ANGHARAD "/event/evt1/tag8", NULL, 200, NULL);
   run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/event/evt1/tag1", NULL, 200, NULL);
   run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/event/evt1", NULL, 200, NULL);
+  run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/scheduler/sch1", NULL, 200, NULL);
+  run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/trigger/tri1", NULL, 200, NULL);
   
   json_decref(event_valid);
   json_decref(event_valid2);

@@ -83,10 +83,13 @@ release: ADDITIONALFLAGS=-O3
 release: angharad unit-tests
 
 clean:
-	rm -f *.o angharad unit-tests
+	rm -f *.o angharad unit-tests valgrind.txt
 	cd $(GARETH_LOCATION) && $(MAKE) clean
 	cd $(BENOIC_LOCATION) && $(MAKE) clean
 	cd $(CARLEON_LOCATION) && $(MAKE) clean
 
 unit-tests: unit-tests.c
 	$(CC) -o unit-tests unit-tests.c -lc -lulfius -lorcania -ljansson -L$(PREFIX)/lib
+
+memcheck: debug
+	valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all ./angharad --config-file=angharad.conf 2>valgrind.txt
