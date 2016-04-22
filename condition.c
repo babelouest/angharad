@@ -185,6 +185,7 @@ int condition_check(struct config_elements * config, json_t * j_condition) {
         y_log_message(Y_LOG_LEVEL_DEBUG, "error in getting benoic element value");
         res = ANGHARAD_RESULT_ERROR;
       }
+      json_decref(j_result);
     } else {
       res = ANGHARAD_RESULT_ERROR;
     }

@@ -34,7 +34,6 @@ void * thread_scheduler_run(void * args) {
   struct tm ts;
   json_t * scheduler_list, * scheduler, * script;
   size_t index, index_sc;
-  json_t * j_next_time;
   
   if (config != NULL) {
     while (config->angharad_status == ANGHARAD_STATUS_RUN) {
@@ -54,7 +53,7 @@ void * thread_scheduler_run(void * args) {
             
             y_log_message(Y_LOG_LEVEL_DEBUG, "thread_scheduler_run - Scheduler %s to check", json_string_value(json_object_get(scheduler, "name")));
             if (json_integer_value(json_object_get(scheduler, "next_time")) >= (now - 60) && condition_list_check(config, json_object_get(scheduler, "conditions"))) {
-              y_log_message(Y_LOG_LEVEL_DEBUG, "thread_scheduler_run - Scheduler %s checked, running each script %s", json_string_value(json_object_get(scheduler, "name")), json_dumps(scheduler, JSON_ENCODE_ANY));
+              y_log_message(Y_LOG_LEVEL_DEBUG, "thread_scheduler_run - Scheduler %s checked, running each script", json_string_value(json_object_get(scheduler, "name")));
               json_array_foreach(json_object_get(scheduler, "scripts"), index_sc, script) {
                 if (json_object_get(script, "enabled") == json_true() && json_is_string(json_object_get(script, "name"))) {
                   y_log_message(Y_LOG_LEVEL_DEBUG, "thread_scheduler_run - run script %s", json_string_value(json_object_get(script, "name")));
@@ -78,9 +77,7 @@ void * thread_scheduler_run(void * args) {
               
               if (next_time > 0) {
                 y_log_message(Y_LOG_LEVEL_DEBUG, "thread_scheduler_run - next_time for scheduler %s is %ld which is %ld seconds", json_string_value(json_object_get(scheduler, "name")), next_time, (next_time - now));
-                j_next_time = json_object_get(scheduler, "next_time");
                 json_object_set_new(scheduler, "next_time", json_integer(next_time));
-                json_decref(j_next_time);
                 if (scheduler_modify(config, json_string_value(json_object_get(scheduler, "name")), scheduler) != A_OK) {
                   y_log_message(Y_LOG_LEVEL_ERROR, "Error updating scheduler %s", json_string_value(json_object_get(scheduler, "name")));
                 }
