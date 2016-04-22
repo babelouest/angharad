@@ -137,11 +137,11 @@ int build_config_from_args(int argc, char ** argv, struct config_elements * conf
             }
             one_log_mode = strtok(tmp, ",");
             while (one_log_mode != NULL) {
-              if (0 == strncmp("console", one_log_mode, strlen("console"))) {
+              if (0 == nstrncmp("console", one_log_mode, strlen("console"))) {
                 config->log_mode |= Y_LOG_MODE_CONSOLE;
-              } else if (0 == strncmp("syslog", one_log_mode, strlen("syslog"))) {
+              } else if (0 == nstrncmp("syslog", one_log_mode, strlen("syslog"))) {
                 config->log_mode |= Y_LOG_MODE_SYSLOG;
-              } else if (0 == strncmp("file", one_log_mode, strlen("file"))) {
+              } else if (0 == nstrncmp("file", one_log_mode, strlen("file"))) {
                 config->log_mode |= Y_LOG_MODE_FILE;
               }
               one_log_mode = strtok(NULL, ",");
@@ -154,15 +154,15 @@ int build_config_from_args(int argc, char ** argv, struct config_elements * conf
           break;
         case 'l':
           if (optarg != NULL) {
-            if (0 == strncmp("NONE", optarg, strlen("NONE"))) {
+            if (0 == nstrncmp("NONE", optarg, strlen("NONE"))) {
               config->log_level = Y_LOG_LEVEL_NONE;
-            } else if (0 == strncmp("ERROR", optarg, strlen("ERROR"))) {
+            } else if (0 == nstrncmp("ERROR", optarg, strlen("ERROR"))) {
               config->log_level = Y_LOG_LEVEL_ERROR;
-            } else if (0 == strncmp("WARNING", optarg, strlen("WARNING"))) {
+            } else if (0 == nstrncmp("WARNING", optarg, strlen("WARNING"))) {
               config->log_level = Y_LOG_LEVEL_WARNING;
-            } else if (0 == strncmp("INFO", optarg, strlen("INFO"))) {
+            } else if (0 == nstrncmp("INFO", optarg, strlen("INFO"))) {
               config->log_level = Y_LOG_LEVEL_INFO;
-            } else if (0 == strncmp("DEBUG", optarg, strlen("DEBUG"))) {
+            } else if (0 == nstrncmp("DEBUG", optarg, strlen("DEBUG"))) {
               config->log_level = Y_LOG_LEVEL_DEBUG;
             }
           } else {
@@ -409,11 +409,11 @@ int build_config_from_file(struct config_elements * config) {
     if (config_lookup_string(&cfg, "log_mode", &cur_log_mode)) {
       one_log_mode = strtok((char *)cur_log_mode, ",");
       while (one_log_mode != NULL) {
-        if (0 == strncmp("console", one_log_mode, strlen("console"))) {
+        if (0 == nstrncmp("console", one_log_mode, strlen("console"))) {
           config->log_mode |= Y_LOG_MODE_CONSOLE;
-        } else if (0 == strncmp("syslog", one_log_mode, strlen("syslog"))) {
+        } else if (0 == nstrncmp("syslog", one_log_mode, strlen("syslog"))) {
           config->log_mode |= Y_LOG_MODE_SYSLOG;
-        } else if (0 == strncmp("file", one_log_mode, strlen("file"))) {
+        } else if (0 == nstrncmp("file", one_log_mode, strlen("file"))) {
           config->log_mode |= Y_LOG_MODE_FILE;
           // Get log file path
           if (config->log_file == NULL) {
@@ -435,15 +435,15 @@ int build_config_from_file(struct config_elements * config) {
   if (config->log_level == Y_LOG_LEVEL_NONE) {
     // Get log level
     if (config_lookup_string(&cfg, "log_level", &cur_log_level)) {
-      if (0 == strncmp("NONE", cur_log_level, strlen("NONE"))) {
+      if (0 == nstrncmp("NONE", cur_log_level, strlen("NONE"))) {
         config->log_level = Y_LOG_LEVEL_NONE;
-      } else if (0 == strncmp("ERROR", cur_log_level, strlen("ERROR"))) {
+      } else if (0 == nstrncmp("ERROR", cur_log_level, strlen("ERROR"))) {
         config->log_level = Y_LOG_LEVEL_ERROR;
-      } else if (0 == strncmp("WARNING", cur_log_level, strlen("WARNING"))) {
+      } else if (0 == nstrncmp("WARNING", cur_log_level, strlen("WARNING"))) {
         config->log_level = Y_LOG_LEVEL_WARNING;
-      } else if (0 == strncmp("INFO", cur_log_level, strlen("INFO"))) {
+      } else if (0 == nstrncmp("INFO", cur_log_level, strlen("INFO"))) {
         config->log_level = Y_LOG_LEVEL_INFO;
-      } else if (0 == strncmp("DEBUG", cur_log_level, strlen("DEBUG"))) {
+      } else if (0 == nstrncmp("DEBUG", cur_log_level, strlen("DEBUG"))) {
         config->log_level = Y_LOG_LEVEL_DEBUG;
       }
     }
@@ -458,7 +458,7 @@ int build_config_from_file(struct config_elements * config) {
   database = config_setting_get_member(root, "database");
   if (database != NULL) {
     if (config_setting_lookup_string(database, "type", &db_type) == CONFIG_TRUE) {
-      if (0 == strncmp(db_type, "sqlite3", strlen("sqlite3"))) {
+      if (0 == nstrncmp(db_type, "sqlite3", strlen("sqlite3"))) {
         if (config_setting_lookup_string(database, "path", &db_sqlite_path) == CONFIG_TRUE) {
           config->c_config->conn = h_connect_sqlite(db_sqlite_path);
           if (config->c_config->conn == NULL) {
@@ -471,7 +471,7 @@ int build_config_from_file(struct config_elements * config) {
           fprintf(stderr, "Error, no sqlite database specified\n");
           return 0;
         }
-      } else if (0 == strncmp(db_type, "mariadb", strlen("mariadb"))) {
+      } else if (0 == nstrncmp(db_type, "mariadb", strlen("mariadb"))) {
         config_setting_lookup_string(database, "host", &db_mariadb_host);
         config_setting_lookup_string(database, "user", &db_mariadb_user);
         config_setting_lookup_string(database, "password", &db_mariadb_password);
@@ -821,19 +821,19 @@ int submodule_enable(struct config_elements * config, const char * submodule, in
       res = h_update(config->conn, j_query, NULL);
       json_decref(j_query);
       if (res == H_OK) {
-        if (0 == strcmp(submodule, ANGHARAD_SUBMODULE_BENOIC)) {
+        if (0 == nstrcmp(submodule, ANGHARAD_SUBMODULE_BENOIC)) {
           if (init_benoic(config->instance, config->url_prefix_benoic, config->b_config) != B_OK) {
             y_log_message(Y_LOG_LEVEL_ERROR, "submodule_enable - Error init benoic");
             return A_ERROR;
           }
           return A_OK;
-        } else if (0 == strcmp(submodule, ANGHARAD_SUBMODULE_CARLEON)) {
+        } else if (0 == nstrcmp(submodule, ANGHARAD_SUBMODULE_CARLEON)) {
           if (init_carleon(config->instance, config->url_prefix_carleon, config->c_config) != C_OK) {
             y_log_message(Y_LOG_LEVEL_ERROR, "submodule_enable - Error init carleon");
             return A_ERROR;
           }
           return A_OK;
-        } else if (0 == strcmp(submodule, ANGHARAD_SUBMODULE_GARETH)) {
+        } else if (0 == nstrcmp(submodule, ANGHARAD_SUBMODULE_GARETH)) {
           if (!init_gareth(config->instance, config->url_prefix_gareth, config->conn)) {
             y_log_message(Y_LOG_LEVEL_ERROR, "submodule_enable - Error init gareth");
             return A_ERROR;
@@ -854,19 +854,19 @@ int submodule_enable(struct config_elements * config, const char * submodule, in
       res = h_update(config->conn, j_query, NULL);
       json_decref(j_query);
       if (res == H_OK) {
-        if (0 == strcmp(submodule, ANGHARAD_SUBMODULE_BENOIC)) {
+        if (0 == nstrcmp(submodule, ANGHARAD_SUBMODULE_BENOIC)) {
           if (close_benoic(config->instance, config->url_prefix_benoic, config->b_config) != B_OK) {
             y_log_message(Y_LOG_LEVEL_ERROR, "submodule_enable - Error closing benoic");
             return A_ERROR;
           }
           return A_OK;
-        } else if (0 == strcmp(submodule, ANGHARAD_SUBMODULE_CARLEON)) {
+        } else if (0 == nstrcmp(submodule, ANGHARAD_SUBMODULE_CARLEON)) {
           if (close_carleon(config->instance, config->url_prefix_carleon, config->c_config) != C_OK) {
             y_log_message(Y_LOG_LEVEL_ERROR, "submodule_enable - Error closing carleon");
             return A_ERROR;
           }
           return A_OK;
-        } else if (0 == strcmp(submodule, ANGHARAD_SUBMODULE_GARETH)) {
+        } else if (0 == nstrcmp(submodule, ANGHARAD_SUBMODULE_GARETH)) {
           if (!close_gareth(config->instance, config->url_prefix_gareth)) {
             y_log_message(Y_LOG_LEVEL_ERROR, "submodule_enable - Error closing gareth");
             return A_ERROR;
@@ -909,14 +909,6 @@ int init_angharad(struct config_elements * config) {
     ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/script/@script_name/@tag", NULL, NULL, NULL, &callback_angharad_script_add_tag, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/script/@script_name/@tag", NULL, NULL, NULL, &callback_angharad_script_remove_tag, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/@script_name/run", NULL, NULL, NULL, &callback_angharad_script_run, (void*)config);
-
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/event/", NULL, NULL, NULL, &callback_angharad_event_list, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/event/@event_name", NULL, NULL, NULL, &callback_angharad_event_get, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/event/", NULL, NULL, NULL, &callback_angharad_event_add, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/event/@event_name", NULL, NULL, NULL, &callback_angharad_event_modify, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/event/@event_name", NULL, NULL, NULL, &callback_angharad_event_remove, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/event/@event_name/@tag", NULL, NULL, NULL, &callback_angharad_event_add_tag, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/event/@event_name/@tag", NULL, NULL, NULL, &callback_angharad_event_remove_tag, (void*)config);
 
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/scheduler/", NULL, NULL, NULL, &callback_angharad_scheduler_list, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/scheduler/@scheduler_name", NULL, NULL, NULL, &callback_angharad_scheduler_get, (void*)config);
@@ -997,14 +989,6 @@ int close_angharad(struct config_elements * config) {
     ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/script/@script_name/@tag");
     ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/script/@script_name/@tag");
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/@script_name/run");
-
-    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/event/");
-    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/event/@event_name");
-    ulfius_remove_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/event/");
-    ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/event/@event_name");
-    ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/event/@event_name");
-    ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/event/@event_name/@tag");
-    ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/event/@event_name/@tag");
 
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/scheduler/");
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/scheduler/@scheduler_name");

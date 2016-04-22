@@ -33,6 +33,7 @@
 #include <getopt.h>
 #include <signal.h>
 #include <jansson.h>
+#include <math.h>
 
 // Angharad libraries
 #include <ulfius.h>
@@ -79,19 +80,29 @@
 #define ANGHARAD_RESULT_ERROR     0
 #define ANGHARAD_RESULT_OK        1
 #define ANGHARAD_RESULT_NOT_FOUND 2
+#define ANGHARAD_RESULT_TRUE      3
+#define ANGHARAD_RESULT_FALSE     4
 
 #define ANGHARAD_SUBMODULE_BENOIC  "benoic"
 #define ANGHARAD_SUBMODULE_CARLEON "carleon"
 #define ANGHARAD_SUBMODULE_GARETH  "gareth"
 #define ANGHARAD_SUBMODULE_FERGUS  "fergus"
 
-#define ANGHARAD_TABLE_SUBMODULE       "a_submodule"
-#define ANGHARAD_TABLE_SESSION         "a_session"
-#define ANGHARAD_TABLE_SCRIPT          "a_script"
-#define ANGHARAD_TABLE_SCHEDULER       "a_scheduler"
-#define ANGHARAD_TABLE_TRIGGER         "a_trigger"
-#define ANGHARAD_TABLE_EVENT           "a_event"
-#define ANGHARAD_TABLE_EVENT_SCRIPT    "a_event_script"
+#define ANGHARAD_TABLE_SUBMODULE        "a_submodule"
+#define ANGHARAD_TABLE_SESSION          "a_session"
+#define ANGHARAD_TABLE_SCRIPT           "a_script"
+#define ANGHARAD_TABLE_SCHEDULER        "a_scheduler"
+#define ANGHARAD_TABLE_TRIGGER          "a_trigger"
+#define ANGHARAD_TABLE_SCHEDULER_SCRIPT "a_scheduler_script"
+#define ANGHARAD_TABLE_TRIGGER_SCRIPT   "a_trigger_script"
+
+#define SCHEDULER_REPEAT_NONE         -1
+#define SCHEDULER_REPEAT_MINUTE       0
+#define SCHEDULER_REPEAT_HOUR         1
+#define SCHEDULER_REPEAT_DAY          2
+#define SCHEDULER_REPEAT_DAY_OF_WEEK  3
+#define SCHEDULER_REPEAT_MONTH        4
+#define SCHEDULER_REPEAT_YEAR         5
 
 struct config_elements {
   char *                   config_file;
@@ -144,25 +155,29 @@ int script_add_tag(struct config_elements * config, const char * script_name, co
 int script_remove_tag(struct config_elements * config, const char * script_name, const char * tag);
 int action_run(struct config_elements * config, json_t * j_action);
 
-json_t * event_get(struct config_elements * config, const char * event_name);
-int event_add(struct config_elements * config, json_t * j_event);
-json_t * is_event_valid(struct config_elements * config, json_t * j_event, const int update);
-int event_modify(struct config_elements * config, const char * event_name, json_t * j_event);
-int event_delete(struct config_elements * config, const char * event_name);
-int event_add_tag(struct config_elements * config, const char * event_name, const char * tag);
-int event_remove_tag(struct config_elements * config, const char * event_name, const char * tag);
-json_t * event_get_scheduler_or_trigger(struct config_elements * config, const char * event_name);
+json_t * is_condition_list_valid(struct config_elements * config, json_t * condition_list);
+json_t * is_condition_valid(struct config_elements * config, json_t * condition);
+int condition_list_check(struct config_elements * config, json_t * condition_list);
+int condition_check(struct config_elements * config, json_t * condition);
+int compare_values(json_t * value1, json_t * value2, const char * operator);
 
-json_t * scheduler_get(struct config_elements * config, const char * scheduler_name);
+json_t * is_script_list_valid(struct config_elements * config, json_t * script_list);
+
+json_t * scheduler_get(struct config_elements * config, const char * scheduler_name, const int runnable);
+json_t * scheduler_get_script_list(struct config_elements * config, const char * scheduler_name);
 int scheduler_add(struct config_elements * config, json_t * j_scheduler);
+int scheduler_set_script_list(struct config_elements * config, const char * scheduler_name, json_t * script_list);
 json_t * is_scheduler_valid(struct config_elements * config, json_t * j_scheduler, const int update);
 int scheduler_modify(struct config_elements * config, const char * scheduler_name, json_t * j_scheduler);
 int scheduler_delete(struct config_elements * config, const char * scheduler_name);
 int scheduler_add_tag(struct config_elements * config, const char * scheduler_name, const char * tag);
 int scheduler_remove_tag(struct config_elements * config, const char * scheduler_name, const char * tag);
+time_t scheduler_calculate_next_time(time_t from, int schedule_type, unsigned int schedule_value);
 
 json_t * trigger_get(struct config_elements * config, const char * trigger_name);
+json_t * trigger_get_script_list(struct config_elements * config, const char * trigger_name);
 int trigger_add(struct config_elements * config, json_t * j_trigger);
+int trigger_set_script_list(struct config_elements * config, const char * trigger_name, json_t * script_list);
 json_t * is_trigger_valid(struct config_elements * config, json_t * j_trigger, const int update);
 int trigger_modify(struct config_elements * config, const char * trigger_name, json_t * j_trigger);
 int trigger_delete(struct config_elements * config, const char * trigger_name);

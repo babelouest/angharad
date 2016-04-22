@@ -338,7 +338,7 @@ json_t * is_action_valid(struct config_elements * config, json_t * j_action) {
   if (j_submodule == NULL || !json_is_string(j_submodule)) {
     json_array_append_new(j_result, json_pack("{ss}", "action", "a valid submodule is mandatory"));
   } else {
-    if (0 == strcmp("benoic", json_string_value(j_submodule))) {
+    if (0 == nstrcmp("benoic", json_string_value(j_submodule))) {
       j_parameters = json_object_get(j_action, "parameters");
       if (j_parameters == NULL || !json_is_object(j_parameters)) {
         json_array_append_new(j_result, json_pack("{ss}", "action", "parameters is missing or not a json object"));
@@ -351,11 +351,11 @@ json_t * is_action_valid(struct config_elements * config, json_t * j_action) {
           if (j_element_type == NULL || !json_is_string(j_element_type)) {
             json_array_append_new(j_result, json_pack("{ss}", "action", "element_type is mandatory and must be a string"));
           } else {
-            if (0 == strcmp("switch", json_string_value(j_element_type))) {
+            if (0 == nstrcmp("switch", json_string_value(j_element_type))) {
               i_element_type = BENOIC_ELEMENT_TYPE_SWITCH;
-            } else if (0 == strcmp("dimmer", json_string_value(j_element_type))) {
+            } else if (0 == nstrcmp("dimmer", json_string_value(j_element_type))) {
               i_element_type = BENOIC_ELEMENT_TYPE_DIMMER;
-            } else if (0 == strcmp("heater", json_string_value(j_element_type))) {
+            } else if (0 == nstrcmp("heater", json_string_value(j_element_type))) {
               i_element_type = BENOIC_ELEMENT_TYPE_HEATER;
             }
             
@@ -379,7 +379,7 @@ json_t * is_action_valid(struct config_elements * config, json_t * j_action) {
                     }
                   } else if (i_element_type == BENOIC_ELEMENT_TYPE_HEATER) {
                     j_mode = json_object_get(j_parameters, "mode");
-                    if (j_mode != NULL && !json_is_string(j_mode) && 0 != strcmp("off", json_string_value(j_mode)) && 0 != strcmp("auto", json_string_value(j_mode)) && 0 != strcmp("manual", json_string_value(j_mode))) {
+                    if (j_mode != NULL && !json_is_string(j_mode) && 0 != nstrcmp("off", json_string_value(j_mode)) && 0 != nstrcmp("auto", json_string_value(j_mode)) && 0 != nstrcmp("manual", json_string_value(j_mode))) {
                       json_array_append_new(j_result, json_pack("{ss}", "action", "mode is invalid, must be 'off', 'auto', 'manual' or none"));
                     }
                     
@@ -394,7 +394,7 @@ json_t * is_action_valid(struct config_elements * config, json_t * j_action) {
         }
         json_decref(j_device);
       }
-    } else if (0 == strcmp("carleon", json_string_value(j_submodule))) {
+    } else if (0 == nstrcmp("carleon", json_string_value(j_submodule))) {
       j_command = json_object_get(j_action, "command");
       j_element = json_object_get(j_action, "element");
       j_parameters = json_object_get(j_action, "parameters");
@@ -428,7 +428,7 @@ json_t * is_action_valid(struct config_elements * config, json_t * j_action) {
               } else {
                 found_element = 0;
                 json_array_foreach(json_object_get(j_element_list, "element"), index, j_cur_element) {
-                  if (0 == strcmp(json_string_value(json_object_get(j_cur_element, "name")), json_string_value(j_element))) {
+                  if (0 == nstrcmp(json_string_value(json_object_get(j_cur_element, "name")), json_string_value(j_element))) {
                     found_element = 1;
                   }
                 }
@@ -442,11 +442,11 @@ json_t * is_action_valid(struct config_elements * config, json_t * j_action) {
                     json_array_append_new(j_result, json_pack("{ss}", "action", "parameter is required"));
                   }
                   if (j_command_param != NULL) {
-                    if (0 == strcmp("string", json_string_value(json_object_get(j_cur_param, "type"))) && !json_is_string(j_command_param)) {
+                    if (0 == nstrcmp("string", json_string_value(json_object_get(j_cur_param, "type"))) && !json_is_string(j_command_param)) {
                       json_array_append_new(j_result, json_pack("{ss}", "action", "parameter must be a string"));
-                    } else if (0 == strcmp("integer", json_string_value(json_object_get(j_cur_param, "type"))) && !json_is_integer(j_command_param)) {
+                    } else if (0 == nstrcmp("integer", json_string_value(json_object_get(j_cur_param, "type"))) && !json_is_integer(j_command_param)) {
                       json_array_append_new(j_result, json_pack("{ss}", "action", "parameter must be an integer"));
-                    } else if (0 == strcmp("real", json_string_value(json_object_get(j_cur_param, "type"))) && !json_is_real(j_command_param)) {
+                    } else if (0 == nstrcmp("real", json_string_value(json_object_get(j_cur_param, "type"))) && !json_is_real(j_command_param)) {
                       json_array_append_new(j_result, json_pack("{ss}", "action", "parameter must be an real"));
                     }
                   }
@@ -522,7 +522,7 @@ int script_remove_tag(struct config_elements * config, const char * script_name,
         return ANGHARAD_RESULT_OK;
       } else if (json_is_array(j_tags)) {
         for (i = json_array_size(json_object_get(json_object_get(j_script, "options"), "tags"))-1; i >= 0; i--) {
-          if (0 == strcmp(json_string_value(json_array_get(json_object_get(json_object_get(j_script, "options"), "tags"), i)), tag)) {
+          if (0 == nstrcmp(json_string_value(json_array_get(json_object_get(json_object_get(j_script, "options"), "tags"), i)), tag)) {
             json_array_remove(json_object_get(json_object_get(j_script, "options"), "tags"), i);
           }
         }
@@ -542,17 +542,20 @@ int script_remove_tag(struct config_elements * config, const char * script_name,
 
 int script_run(struct config_elements * config, const char * script_name) {
   json_t * j_result = script_get(config, script_name), * j_script, * j_message, * j_action_list, * j_action;
-  int res = ANGHARAD_RESULT_OK;
+  int res = A_OK;
   char * str_message_text;
   size_t index;
   
-  if (j_result == NULL) {
+  if (config == NULL || script_name == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "script_run - Error input parameters");
+    res = A_ERROR_PARAM;
+  } else if (j_result == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "script_run - Error getting script");
-    res = ANGHARAD_RESULT_ERROR;
+    res = A_ERROR_NOT_FOUND;
   } else {
     if (json_integer_value(json_object_get(j_result, "result")) == ANGHARAD_RESULT_NOT_FOUND) {
       json_decref(j_result);
-      res = ANGHARAD_RESULT_NOT_FOUND;
+      res = A_ERROR_NOT_FOUND;
     } else if (json_integer_value(json_object_get(j_result, "result")) == ANGHARAD_RESULT_OK) {
       // Send a message via gareth submodule
       j_script = json_object_get(j_result, "script");
@@ -567,15 +570,15 @@ int script_run(struct config_elements * config, const char * script_name) {
         json_array_foreach(j_action_list, index, j_action) {
           if (action_run(config, j_action) != ANGHARAD_RESULT_OK) {
             y_log_message(Y_LOG_LEVEL_ERROR, "script_run - Error executing action %d in script %s", index, script_name);
-            res = ANGHARAD_RESULT_ERROR;
+            res = A_ERROR;
           }
         }
       } else {
         y_log_message(Y_LOG_LEVEL_ERROR, "script_run - Error getting action list");
-        res = ANGHARAD_RESULT_ERROR;
+        res = A_ERROR;
       }
     } else {
-      res = ANGHARAD_RESULT_ERROR;
+      res = A_ERROR;
     }
     json_decref(j_result);
   }
@@ -608,9 +611,9 @@ int action_run(struct config_elements * config, json_t * j_action) {
   
   is_valid = is_action_valid(config, j_action);
   if (is_valid != NULL && json_is_array(is_valid) && json_array_size(is_valid) > 0) {
-    y_log_message(Y_LOG_LEVEL_DEBUG, "error in is_valid %s", json_dumps(is_valid, JSON_ENCODE_ANY));
+    y_log_message(Y_LOG_LEVEL_DEBUG, "error in is_valid");
     res = ANGHARAD_RESULT_ERROR;
-  } else if (0 == strcmp(json_string_value(json_object_get(j_action, "submodule")), "benoic")) {
+  } else if (0 == nstrcmp(json_string_value(json_object_get(j_action, "submodule")), "benoic")) {
     parameters = json_object_get(j_action, "parameters");
     element = json_object_get(j_action, "element");
     command = json_object_get(j_action, "command");
@@ -618,11 +621,11 @@ int action_run(struct config_elements * config, json_t * j_action) {
     element_type = json_object_get(parameters, "element_type");
     j_device = get_device(config->b_config, json_string_value(device));
     if (j_device != NULL) {
-      if (0 == strcmp("switch", json_string_value(element_type))) {
+      if (0 == nstrcmp("switch", json_string_value(element_type))) {
         i_element_type = BENOIC_ELEMENT_TYPE_SWITCH;
-      } else if (0 == strcmp("dimmer", json_string_value(element_type))) {
+      } else if (0 == nstrcmp("dimmer", json_string_value(element_type))) {
         i_element_type = BENOIC_ELEMENT_TYPE_DIMMER;
-      } else if (0 == strcmp("heater", json_string_value(element_type))) {
+      } else if (0 == nstrcmp("heater", json_string_value(element_type))) {
         i_element_type = BENOIC_ELEMENT_TYPE_HEATER;
       }
       
@@ -631,9 +634,9 @@ int action_run(struct config_elements * config, json_t * j_action) {
       } else if (i_element_type == BENOIC_ELEMENT_TYPE_DIMMER && json_is_integer(command)) {
         command_res = set_dimmer(config->b_config, j_device, json_string_value(element), json_integer_value(command));
       } else if (i_element_type == BENOIC_ELEMENT_TYPE_HEATER && json_is_integer(command)) {
-        if (0 == strcmp(json_string_value(json_object_get(parameters, "mode")), "off")) {
+        if (0 == nstrcmp(json_string_value(json_object_get(parameters, "mode")), "off")) {
           i_heater_mode = BENOIC_ELEMENT_HEATER_MODE_OFF;
-        } else if (0 == strcmp(json_string_value(json_object_get(parameters, "mode")), "auto")) {
+        } else if (0 == nstrcmp(json_string_value(json_object_get(parameters, "mode")), "auto")) {
           i_heater_mode = BENOIC_ELEMENT_HEATER_MODE_AUTO;
         } else {
           i_heater_mode = BENOIC_ELEMENT_HEATER_MODE_MANUAL;
@@ -648,12 +651,12 @@ int action_run(struct config_elements * config, json_t * j_action) {
       res = ANGHARAD_RESULT_ERROR;
     }
     json_decref(j_device);
-  } else if (j_action != NULL && 0 == strcmp(json_string_value(json_object_get(j_action, "submodule")), "carleon")) {
+  } else if (j_action != NULL && 0 == nstrcmp(json_string_value(json_object_get(j_action, "submodule")), "carleon")) {
     cur_service = get_service_from_uid(config->c_config, json_string_value(json_object_get(json_object_get(j_action, "parameters"), "service")));
     if (cur_service != NULL) {
       j_result = service_exec(config->c_config, cur_service, json_string_value(json_object_get(j_action, "command")), json_string_value(json_object_get(j_action, "element")), json_object_get(j_action, "parameters"));
       if (j_result == NULL || json_integer_value(json_object_get(j_result, "result")) != WEBSERVICE_RESULT_OK) {
-        y_log_message(Y_LOG_LEVEL_DEBUG, "error in carleon command_res %s", json_dumps(j_result, JSON_ENCODE_ANY));
+        y_log_message(Y_LOG_LEVEL_DEBUG, "error in carleon command_res");
         res = ANGHARAD_RESULT_ERROR;
       }
       json_decref(j_result);

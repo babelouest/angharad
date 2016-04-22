@@ -21,16 +21,12 @@ DROP TABLE IF EXISTS `g_alert_smtp`;
 DROP TABLE IF EXISTS `g_alert_http_header`;
 DROP TABLE IF EXISTS `g_alert_http`;
 
-DROP TABLE IF EXISTS `a_event_condition`;
-DROP TABLE IF EXISTS `a_event_script`;
-DROP TABLE IF EXISTS `a_event_trigger`;
-DROP TABLE IF EXISTS `a_event_scheduler`;
-DROP TABLE IF EXISTS `a_condition`;
-DROP TABLE IF EXISTS `a_event`;
+DROP TABLE IF EXISTS `a_session`;
+DROP TABLE IF EXISTS `a_scheduler_script`;
+DROP TABLE IF EXISTS `a_trigger_script`;
 DROP TABLE IF EXISTS `a_trigger`;
 DROP TABLE IF EXISTS `a_scheduler`;
 DROP TABLE IF EXISTS `a_script`;
-DROP TABLE IF EXISTS `a_session`;
 DROP TABLE IF EXISTS `a_submodule`;
 
 CREATE TABLE `b_device_type` (
@@ -193,6 +189,7 @@ CREATE TABLE `a_scheduler` (
   `ash_description` varchar(128),
   `ash_enabled` tinyint(1) DEFAULT 1,
   `ash_options` BLOB,
+  `ash_conditions` BLOB,
   `ash_next_time` timestamp,
   `ash_repeat` tinyint(1) DEFAULT -1, -- -1: None, 0: minute, 1: hours, 2: days, 3: day of week, 4: month, 5: year
   `ash_repeat_value` INT(11),
@@ -206,6 +203,7 @@ CREATE TABLE `a_trigger` (
   `at_description` varchar(128),
   `at_enabled` tinyint(1) DEFAULT 1,
   `at_options` BLOB,
+  `at_conditions` BLOB,
   `at_submodule` varchar(64) NOT NULL,
   `at_source` varchar(64) NOT NULL,
   `at_element` varchar(64) NOT NULL,
@@ -214,26 +212,20 @@ CREATE TABLE `a_trigger` (
   PRIMARY KEY (`at_id`)
 );
 
-CREATE TABLE `a_event` (
-  `ae_id` int(11) NOT NULL AUTO_INCREMENT,
+CREATE TABLE `a_scheduler_script` (
   `ash_id` int(11),
-  `at_id` int(11),
-  `ae_name` varchar(64) NOT NULL UNIQUE,
-  `ae_description` varchar(128),
-  `ae_enabled` tinyint(1) DEFAULT 1,
-  `ae_options` BLOB,
-  `ae_conditions` BLOB,
-  PRIMARY KEY (`ae_id`),
+  `asc_id` int(11),
+  `ass_enabled` tinyint(1) DEFAULT 1,
   CONSTRAINT `scheduler_id_ibfk_1` FOREIGN KEY (`ash_id`) REFERENCES `a_scheduler` (`ash_id`) ON DELETE CASCADE,
-  CONSTRAINT `trigger_id_ibfk_1` FOREIGN KEY (`at_id`) REFERENCES `a_trigger` (`at_id`) ON DELETE CASCADE
+  CONSTRAINT `script_id_ibfk_1` FOREIGN KEY (`asc_id`) REFERENCES `a_script` (`asc_id`) ON DELETE CASCADE
 );
 
-CREATE TABLE `a_event_script` (
-  `ae_id` int(11),
+CREATE TABLE `a_trigger_script` (
+  `at_id` int(11),
   `asc_id` int(11),
-  `aes_enabled` tinyint(1) DEFAULT 1,
-  CONSTRAINT `event_id_ibfk_4` FOREIGN KEY (`ae_id`) REFERENCES `a_event` (`ae_id`) ON DELETE CASCADE,
-  CONSTRAINT `script_id_ibfk_1` FOREIGN KEY (`asc_id`) REFERENCES `a_script` (`asc_id`) ON DELETE CASCADE
+  `ats_enabled` tinyint(1) DEFAULT 1,
+  CONSTRAINT `trigger_id_ibfk_1` FOREIGN KEY (`at_id`) REFERENCES `a_trigger` (`at_id`) ON DELETE CASCADE,
+  CONSTRAINT `script_id_ibfk_2` FOREIGN KEY (`asc_id`) REFERENCES `a_script` (`asc_id`) ON DELETE CASCADE
 );
 
 CREATE TABLE `a_session` (

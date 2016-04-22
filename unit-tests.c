@@ -514,37 +514,185 @@ void run_script_tests() {
 }
 
 void run_scheduler_tests() {
-  json_t * scheduler_valid = json_loads("{\
+  char * str_scheduler_valid1 = msprintf("{\
     \"name\":\"sch1\",\
     \"description\":\"first scheduler\",\
     \"enabled\":true,\
-    \"next_time\":1460946219,\
-    \"repeat\":-1,\
-    \"repeat_value\":0,\
+    \"next_time\":%u,\
+    \"repeat\":0,\
+    \"repeat_value\":2,\
     \"remove_after\":false,\
+    \"scripts\":[\
+      {\
+        \"name\":\"script1\",\
+        \"enabled\":true\
+      },\
+      {\
+        \"name\":\"script2\",\
+        \"enabled\":true\
+      }\
+    ],\
     \"options\":{\
       \"tags\":[\
         \"tag1\",\
         \"tag2\",\
         \"tag3\"\
       ]\
-    }\
-  }", JSON_DECODE_ANY, NULL);
-  json_t * scheduler_valid2 = json_loads("{\
+    },\
+    \"conditions\":[\
+      {\
+        \"submodule\": \"benoic\",\
+        \"element\": \"sw1\",\
+        \"command\": 1,\
+        \"parameters\": {\
+          \"device\": \"dev1\",\
+          \"element_type\": \"switch\"\
+        },\
+        \"condition\":\"==\",\
+        \"value\":1\
+      },\
+      {\
+        \"submodule\": \"carleon\",\
+        \"element\": \"mock1\",\
+        \"command\": \"exec\",\
+        \"parameters\": {\
+          \"service\": \"00-00-00\",\
+          \"param1\": \"plop\",\
+          \"param2\": 3,\
+          \"param3\": 4.4\
+        },\
+        \"condition\":\">=\",\
+        \"value\":0\
+      }\
+    ]\
+  }", (unsigned)time(NULL));
+  char * str_scheduler_valid2 = msprintf("{\
     \"name\":\"sch1\",\
     \"description\":\"first scheduler enhanced\",\
     \"enabled\":true,\
-    \"next_time\":1460946219,\
-    \"repeat\":2,\
-    \"repeat_value\":30,\
+    \"next_time\":%u,\
+    \"repeat\":0,\
+    \"repeat_value\":3,\
     \"remove_after\":false,\
+    \"scripts\":[\
+      {\
+        \"name\":\"script1\",\
+        \"enabled\":false\
+      },\
+      {\
+        \"name\":\"script2\",\
+        \"enabled\":true\
+      }\
+    ],\
     \"options\":{\
       \"tags\":[\
         \"tag1\",\
         \"tag3\"\
       ]\
+    },\
+    \"conditions\":[\
+      {\
+        \"submodule\": \"benoic\",\
+        \"element\": \"di1\",\
+        \"command\": 1,\
+        \"parameters\": {\
+          \"device\": \"dev1\",\
+          \"element_type\": \"dimmer\"\
+        },\
+        \"condition\":\"==\",\
+        \"value\":10\
+      },\
+      {\
+        \"submodule\": \"carleon\",\
+        \"element\": \"mock1\",\
+        \"command\": \"exec\",\
+        \"parameters\": {\
+          \"service\": \"00-00-00\",\
+          \"param1\": \"plop\",\
+          \"param2\": 3,\
+          \"param3\": 4.4\
+        },\
+        \"condition\":\"==\",\
+        \"value\":0\
+      }\
+    ]\
+  }", (unsigned)time(NULL));
+  json_t * benoic_device_valid = json_loads("{\
+    \"name\":\"dev1\",\
+    \"description\":\"first test\",\
+    \"type_uid\":\"00-00-00\",\
+    \"enabled\":true,\
+    \"options\":{\
+      \"uri\":\"dev1\",\
+      \"baud\":6900,\
+      \"do_not_check_certificate\":false,\
+      \"device_specified\":\"TBD\"\
     }\
   }", JSON_DECODE_ANY, NULL);
+  json_t * carleon_mock_valid = json_loads("{\
+    \"name\":\"mock1\",\
+    \"description\":\"Description for mock1\"\
+  }", JSON_DECODE_ANY, NULL);
+  json_t * script_valid = json_loads("{\
+    \"name\": \"script1\",\
+    \"description\": \"description for script1\",\
+    \"options\": {\
+      \"tags\": [\"tag1\", \"tag2\"]\
+    },\
+    \"actions\": [\
+      {\
+        \"submodule\": \"benoic\",\
+        \"element\": \"sw1\",\
+        \"command\": 1,\
+        \"parameters\": {\
+          \"device\": \"dev1\",\
+          \"element_type\": \"switch\"\
+        }\
+      },\
+      {\
+        \"submodule\": \"carleon\",\
+        \"element\": \"mock1\",\
+        \"command\": \"exec\",\
+        \"parameters\": {\
+          \"service\": \"00-00-00\",\
+          \"param1\": \"plop\",\
+          \"param2\": 3,\
+          \"param3\": 4.4\
+        }\
+      }\
+    ]\
+  }", JSON_DECODE_ANY, NULL);
+  json_t * script_valid2 = json_loads("{\
+    \"name\": \"script2\",\
+    \"description\": \"description for modified script1\",\
+    \"options\": {\
+      \"tags\": [\"tag2\"]\
+    },\
+    \"actions\": [\
+      {\
+        \"submodule\": \"benoic\",\
+        \"element\": \"sw1\",\
+        \"command\": 1,\
+        \"parameters\": {\
+          \"device\": \"dev1\",\
+          \"element_type\": \"switch\"\
+        }\
+      },\
+      {\
+        \"submodule\": \"carleon\",\
+        \"element\": \"mock1\",\
+        \"command\": \"exec\",\
+        \"parameters\": {\
+          \"service\": \"00-00-00\",\
+          \"param1\": \"plop\",\
+          \"param2\": 3,\
+          \"param3\": 4.4\
+        }\
+      }\
+    ]\
+  }", JSON_DECODE_ANY, NULL);
+  json_t * scheduler_valid = json_loads(str_scheduler_valid1, JSON_DECODE_ANY, NULL);
+  json_t * scheduler_valid2 = json_loads(str_scheduler_valid2, JSON_DECODE_ANY, NULL);
   json_t * scheduler_invalid = json_loads("{\
     \"name\":\"sch2\",\
     \"description\":\"bad scheduler\",\
@@ -553,30 +701,156 @@ void run_scheduler_tests() {
     \"repeat\":\"z\",\
     \"repeat_value\":-3,\
     \"remove_after\":4,\
+    \"scripts\":[\
+      {\
+        \"name\":\"script12\",\
+        \"enabled\":4\
+      },\
+      {\
+        \"name\":9,\
+        \"enabled\":true\
+      }\
+    ],\
     \"options\":{\
       \"tags\":[\
         \"tag1\",\
         3\
       ]\
-    }\
+    },\
+    \"conditions\":[\
+      {\
+        \"submodule\": \"benoic\",\
+        \"element\": \"sw1\",\
+        \"command\": 1,\
+        \"parameters\": {\
+          \"device\": \"dev1\",\
+          \"element_type\": \"switch\"\
+        },\
+        \"condition\":\"==\",\
+        \"value\":\"err\"\
+      },\
+      {\
+        \"submodule\": \"carleon\",\
+        \"element\": \"mock1\",\
+        \"command\": \"exec\",\
+        \"parameters\": {\
+          \"service\": \"00-00-00\",\
+          \"param1\": \"plop\",\
+          \"param2\": 3,\
+          \"param3\": 4.4\
+        },\
+        \"condition\":\"err\",\
+        \"value\":0\
+      }\
+    ]\
   }", JSON_DECODE_ANY, NULL);
   
+  run_simple_test("POST", SERVER_URL PREFIX_BENOIC "/device/", benoic_device_valid, 200, NULL);
+  run_simple_test("POST", SERVER_URL PREFIX_CARLEON "/mock-service/", carleon_mock_valid, 200, NULL);
+  run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/script/", script_valid, 200, NULL);
+  run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/script/", script_valid2, 200, NULL);
   run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/scheduler/", NULL, 200, NULL);
   run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/scheduler/", scheduler_valid, 200, NULL);
   run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/scheduler/", scheduler_valid, 400, NULL);
   run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/scheduler/sch1", NULL, 200, scheduler_valid);
   run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/scheduler/", scheduler_invalid, 400, NULL);
+  getchar();
   run_simple_test("PUT", SERVER_URL PREFIX_ANGHARAD "/scheduler/sch1", scheduler_valid2, 200, NULL);
   run_simple_test("PUT", SERVER_URL PREFIX_ANGHARAD "/scheduler/sch2", scheduler_valid2, 404, NULL);
   run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/scheduler/sch1", NULL, 200, scheduler_valid2);
+  getchar();
   run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/scheduler/sch1", NULL, 200, NULL);
+  run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/script/script1", NULL, 200, NULL);
+  run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/script/script2", NULL, 200, NULL);
+  run_simple_test("DELETE", SERVER_URL PREFIX_BENOIC "/device/dev1", NULL, 200, NULL);
+  run_simple_test("DELETE", SERVER_URL PREFIX_CARLEON "/mock-service/mock1", NULL, 200, NULL);
   
   json_decref(scheduler_valid);
   json_decref(scheduler_valid2);
   json_decref(scheduler_invalid);
+  json_decref(script_valid);
+  json_decref(script_valid2);
+  json_decref(benoic_device_valid);
+  json_decref(carleon_mock_valid);
+  free(str_scheduler_valid1);
+  free(str_scheduler_valid2);
 }
 
 void run_trigger_tests() {
+  json_t * benoic_device_valid = json_loads("{\
+    \"name\":\"dev1\",\
+    \"description\":\"first test\",\
+    \"type_uid\":\"00-00-00\",\
+    \"enabled\":true,\
+    \"options\":{\
+      \"uri\":\"dev1\",\
+      \"baud\":6900,\
+      \"do_not_check_certificate\":false,\
+      \"device_specified\":\"TBD\"\
+    }\
+  }", JSON_DECODE_ANY, NULL);
+  json_t * carleon_mock_valid = json_loads("{\
+    \"name\":\"mock1\",\
+    \"description\":\"Description for mock1\"\
+  }", JSON_DECODE_ANY, NULL);
+  json_t * script_valid = json_loads("{\
+    \"name\": \"script1\",\
+    \"description\": \"description for script1\",\
+    \"options\": {\
+      \"tags\": [\"tag1\", \"tag2\"]\
+    },\
+    \"actions\": [\
+      {\
+        \"submodule\": \"benoic\",\
+        \"element\": \"sw1\",\
+        \"command\": 1,\
+        \"parameters\": {\
+          \"device\": \"dev1\",\
+          \"element_type\": \"switch\"\
+        }\
+      },\
+      {\
+        \"submodule\": \"carleon\",\
+        \"element\": \"mock1\",\
+        \"command\": \"exec\",\
+        \"parameters\": {\
+          \"service\": \"00-00-00\",\
+          \"param1\": \"plop\",\
+          \"param2\": 3,\
+          \"param3\": 4.4\
+        }\
+      }\
+    ]\
+  }", JSON_DECODE_ANY, NULL);
+  json_t * script_valid2 = json_loads("{\
+    \"name\": \"script2\",\
+    \"description\": \"description for modified script1\",\
+    \"options\": {\
+      \"tags\": [\"tag2\"]\
+    },\
+    \"actions\": [\
+      {\
+        \"submodule\": \"benoic\",\
+        \"element\": \"sw1\",\
+        \"command\": 1,\
+        \"parameters\": {\
+          \"device\": \"dev1\",\
+          \"element_type\": \"switch\"\
+        }\
+      },\
+      {\
+        \"submodule\": \"carleon\",\
+        \"element\": \"mock1\",\
+        \"command\": \"exec\",\
+        \"parameters\": {\
+          \"service\": \"00-00-00\",\
+          \"param1\": \"plop\",\
+          \"param2\": 3,\
+          \"param3\": 4.4\
+        }\
+      }\
+    ]\
+  }", JSON_DECODE_ANY, NULL);
   json_t * trigger_valid = json_loads("{\
     \"name\":\"tri1\",\
     \"description\":\"first trigger\",\
@@ -592,7 +866,50 @@ void run_trigger_tests() {
         \"tag2\",\
         \"tag3\"\
       ]\
-    }\
+    },\
+    \"scripts\":[\
+      {\
+        \"name\":\"script1\",\
+        \"enabled\":true\
+      },\
+      {\
+        \"name\":\"script2\",\
+        \"enabled\":true\
+      }\
+    ],\
+    \"options\":{\
+      \"tags\":[\
+        \"tag1\",\
+        \"tag2\",\
+        \"tag3\"\
+      ]\
+    },\
+    \"conditions\":[\
+      {\
+        \"submodule\": \"benoic\",\
+        \"element\": \"di1\",\
+        \"command\": 1,\
+        \"parameters\": {\
+          \"device\": \"dev1\",\
+          \"element_type\": \"dimmer\"\
+        },\
+        \"condition\":\"==\",\
+        \"value\":10\
+      },\
+      {\
+        \"submodule\": \"carleon\",\
+        \"element\": \"mock1\",\
+        \"command\": \"exec\",\
+        \"parameters\": {\
+          \"service\": \"00-00-00\",\
+          \"param1\": \"plop\",\
+          \"param2\": 3,\
+          \"param3\": 4.4\
+        },\
+        \"condition\":\"==\",\
+        \"value\":0\
+      }\
+    ]\
   }", JSON_DECODE_ANY, NULL);
   json_t * trigger_valid2 = json_loads("{\
     \"name\":\"tri1\",\
@@ -608,7 +925,43 @@ void run_trigger_tests() {
         \"tag1\",\
         \"tag3\"\
       ]\
-    }\
+    },\
+    \"scripts\":[\
+      {\
+        \"name\":\"script1\",\
+        \"enabled\":false\
+      },\
+      {\
+        \"name\":\"script2\",\
+        \"enabled\":true\
+      }\
+    ],\
+    \"conditions\":[\
+      {\
+        \"submodule\": \"benoic\",\
+        \"element\": \"sw1\",\
+        \"command\": 1,\
+        \"parameters\": {\
+          \"device\": \"dev1\",\
+          \"element_type\": \"switch\"\
+        },\
+        \"condition\":\"==\",\
+        \"value\":1\
+      },\
+      {\
+        \"submodule\": \"carleon\",\
+        \"element\": \"mock1\",\
+        \"command\": \"exec\",\
+        \"parameters\": {\
+          \"service\": \"00-00-00\",\
+          \"param1\": \"plop\",\
+          \"param2\": 3,\
+          \"param3\": 4.4\
+        },\
+        \"condition\":\">=\",\
+        \"value\":0\
+      }\
+    ]\
   }", JSON_DECODE_ANY, NULL);
   json_t * trigger_invalid = json_loads("{\
     \"name\":\"tri2\",\
@@ -625,9 +978,49 @@ void run_trigger_tests() {
         \"tag2\",\
         4\
       ]\
-    }\
+    },\
+    \"scripts\":[\
+      {\
+        \"name\":\"script12\",\
+        \"enabled\":4\
+      },\
+      {\
+        \"name\":9,\
+        \"enabled\":true\
+      }\
+    ],\
+    \"conditions\":[\
+      {\
+        \"submodule\": \"benoic\",\
+        \"element\": \"di1\",\
+        \"command\": 1,\
+        \"parameters\": {\
+          \"device\": \"dev1\",\
+          \"element_type\": \"dimmer\"\
+        },\
+        \"condition\":\"==\",\
+        \"value\":\"err\"\
+      },\
+      {\
+        \"submodule\": \"carleon\",\
+        \"element\": \"mock1\",\
+        \"command\": \"exec\",\
+        \"parameters\": {\
+          \"service\": \"00-00-00\",\
+          \"param1\": \"plop\",\
+          \"param2\": 3,\
+          \"param3\": 4.4\
+        },\
+        \"condition\":\"err\",\
+        \"value\":0\
+      }\
+    ]\
   }", JSON_DECODE_ANY, NULL);
   
+  run_simple_test("POST", SERVER_URL PREFIX_BENOIC "/device/", benoic_device_valid, 200, NULL);
+  run_simple_test("POST", SERVER_URL PREFIX_CARLEON "/mock-service/", carleon_mock_valid, 200, NULL);
+  run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/script/", script_valid, 200, NULL);
+  run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/script/", script_valid2, 200, NULL);
   run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/trigger/", NULL, 200, NULL);
   run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/trigger/", trigger_valid, 200, NULL);
   run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/trigger/", trigger_valid, 400, NULL);
@@ -637,107 +1030,18 @@ void run_trigger_tests() {
   run_simple_test("PUT", SERVER_URL PREFIX_ANGHARAD "/trigger/tri2", trigger_valid2, 404, NULL);
   run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/trigger/tri1", NULL, 200, trigger_valid2);
   run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/trigger/tri1", NULL, 200, NULL);
+  run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/script/script1", NULL, 200, NULL);
+  run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/script/script2", NULL, 200, NULL);
+  run_simple_test("DELETE", SERVER_URL PREFIX_BENOIC "/device/dev1", NULL, 200, NULL);
+  run_simple_test("DELETE", SERVER_URL PREFIX_CARLEON "/mock-service/mock1", NULL, 200, NULL);
   
   json_decref(trigger_valid);
   json_decref(trigger_valid2);
   json_decref(trigger_invalid);
-}
-
-void run_event_tests() {
-  json_t * event_valid = json_loads("{\
-    \"name\":\"evt1\",\
-    \"description\":\"first event\",\
-    \"enabled\":true,\
-    \"scheduler\":\"sch1\",\
-    \"options\":{\
-      \"tags\":[\
-        \"tag1\",\
-        \"tag2\",\
-        \"tag3\"\
-      ]\
-    }\
-  }", JSON_DECODE_ANY, NULL);
-  json_t * event_valid2 = json_loads("{\
-    \"name\":\"evt1\",\
-    \"description\":\"first event amended\",\
-    \"enabled\":false,\
-    \"trigger\":\"tri1\",\
-    \"options\":{\
-      \"tags\":[\
-        \"tag1\",\
-        \"tag3\"\
-      ]\
-    }\
-  }", JSON_DECODE_ANY, NULL);
-  json_t * event_invalid = json_loads("{\
-    \"name\":\"evt2\",\
-    \"description\":\"wrong event\",\
-    \"enabled\":1,\
-    \"scheduler\":\"plop\",\
-    \"options\":{\
-      \"tags\":[\
-        2,\
-        \"tag3\"\
-      ]\
-    }\
-  }", JSON_DECODE_ANY, NULL);
-  json_t * trigger_valid = json_loads("{\
-    \"name\":\"tri1\",\
-    \"description\":\"first trigger\",\
-    \"enabled\":true,\
-    \"submodule\":\"benoic\",\
-    \"source\":\"dev1\",\
-    \"element\":\"elt1\",\
-    \"message\":\"hello\",\
-    \"message_match\":1,\
-    \"options\":{\
-      \"tags\":[\
-        \"tag1\",\
-        \"tag2\",\
-        \"tag3\"\
-      ]\
-    }\
-  }", JSON_DECODE_ANY, NULL);
-  json_t * scheduler_valid = json_loads("{\
-    \"name\":\"sch1\",\
-    \"description\":\"first scheduler\",\
-    \"enabled\":true,\
-    \"next_time\":1460946219,\
-    \"repeat\":-1,\
-    \"repeat_value\":0,\
-    \"remove_after\":false,\
-    \"options\":{\
-      \"tags\":[\
-        \"tag1\",\
-        \"tag2\",\
-        \"tag3\"\
-      ]\
-    }\
-  }", JSON_DECODE_ANY, NULL);
-  
-  run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/scheduler/", scheduler_valid, 200, NULL);
-  run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/trigger/", trigger_valid, 200, NULL);
-  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/event/", NULL, 200, NULL);
-  run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/event/", event_valid, 200, NULL);
-  run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/event/", event_valid, 400, NULL);
-  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/event/evt1", NULL, 200, event_valid);
-  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/event/evt2", NULL, 404, NULL);
-  run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/event/", event_invalid, 400, NULL);
-  run_simple_test("PUT", SERVER_URL PREFIX_ANGHARAD "/event/evt1", event_valid2, 200, NULL);
-  run_simple_test("PUT", SERVER_URL PREFIX_ANGHARAD "/event/evt2", event_valid2, 404, NULL);
-  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/event/evt1", NULL, 200, event_valid2);
-  run_simple_test("PUT", SERVER_URL PREFIX_ANGHARAD "/event/evt1/tag4", NULL, 200, NULL);
-  run_simple_test("PUT", SERVER_URL PREFIX_ANGHARAD "/event/evt1/tag8", NULL, 200, NULL);
-  run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/event/evt1/tag1", NULL, 200, NULL);
-  run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/event/evt1", NULL, 200, NULL);
-  run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/scheduler/sch1", NULL, 200, NULL);
-  run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/trigger/tri1", NULL, 200, NULL);
-  
-  json_decref(event_valid);
-  json_decref(event_valid2);
-  json_decref(event_invalid);
-  json_decref(trigger_valid);
-  json_decref(scheduler_valid);
+  json_decref(script_valid);
+  json_decref(script_valid2);
+  json_decref(benoic_device_valid);
+  json_decref(carleon_mock_valid);
 }
 
 int main(void) {
@@ -753,8 +1057,5 @@ int main(void) {
   printf("Press <enter> to run trigger tests\n");
   getchar();
   run_trigger_tests();
-  printf("Press <enter> to run event tests\n");
-  getchar();
-  run_event_tests();
   return 0;
 }
