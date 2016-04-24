@@ -115,10 +115,7 @@ int condition_list_check(struct config_elements * config, json_t * condition_lis
     return 1;
   } else {
     json_array_foreach(condition_list, index, condition) {
-      if (!condition_check(config, condition)) {
-        char * str_condition = json_dumps(condition, JSON_ENCODE_ANY);
-        y_log_message(Y_LOG_LEVEL_DEBUG, "condition not valid: %s", str_condition);
-        free(str_condition);
+      if (condition_check(config, condition) != A_ERROR_TRUE) {
         return 0;
       }
     }
@@ -140,15 +137,15 @@ int condition_list_check(struct config_elements * config, json_t * condition_lis
  * 
  */
 int condition_check(struct config_elements * config, json_t * j_condition) {
-  int res = ANGHARAD_RESULT_TRUE;
+  int res = A_ERROR_TRUE;
   json_t * parameters, * device, * element_type, * element, * command, * j_device, * is_valid, * j_result = NULL, * j_value;
   int i_element_type = BENOIC_ELEMENT_TYPE_NONE;
   struct _carleon_service * cur_service = NULL;
   
   is_valid = is_condition_valid(config, j_condition);
   if (is_valid != NULL && json_is_array(is_valid) && json_array_size(is_valid) > 0) {
-    y_log_message(Y_LOG_LEVEL_DEBUG, "error in is_valid");
-    res = ANGHARAD_RESULT_ERROR;
+    y_log_message(Y_LOG_LEVEL_ERROR, "error in is_valid");
+    res = A_ERROR;
   } else if (0 == nstrcmp(json_string_value(json_object_get(j_condition, "submodule")), "benoic")) {
     parameters = json_object_get(j_condition, "parameters");
     element = json_object_get(j_condition, "element");
@@ -182,12 +179,12 @@ int condition_check(struct config_elements * config, json_t * j_condition) {
         
         res = compare_values(j_value, json_object_get(j_condition, "value"), json_string_value(json_object_get(j_condition, "condition")));
       } else {
-        y_log_message(Y_LOG_LEVEL_DEBUG, "error in getting benoic element value");
-        res = ANGHARAD_RESULT_ERROR;
+        y_log_message(Y_LOG_LEVEL_ERROR, "error in getting benoic element value");
+        res = A_ERROR;
       }
       json_decref(j_result);
     } else {
-      res = ANGHARAD_RESULT_ERROR;
+      res = A_ERROR;
     }
     json_decref(j_device);
   } else if (j_condition != NULL && 0 == nstrcmp(json_string_value(json_object_get(j_condition, "submodule")), "carleon")) {
@@ -195,8 +192,8 @@ int condition_check(struct config_elements * config, json_t * j_condition) {
     if (cur_service != NULL) {
       j_result = service_exec(config->c_config, cur_service, json_string_value(json_object_get(j_condition, "command")), json_string_value(json_object_get(j_condition, "element")), json_object_get(j_condition, "parameters"));
       if (j_result == NULL || json_integer_value(json_object_get(j_result, "result")) != WEBSERVICE_RESULT_OK) {
-        y_log_message(Y_LOG_LEVEL_DEBUG, "error in carleon command_res");
-        res = ANGHARAD_RESULT_ERROR;
+        y_log_message(Y_LOG_LEVEL_ERROR, "error in carleon command_res");
+        res = A_ERROR;
       } else {
         if (json_object_get(j_condition, "field") != NULL) {
           j_value = json_object_get(j_result, json_string_value(json_object_get(j_condition, "field")));
@@ -208,12 +205,12 @@ int condition_check(struct config_elements * config, json_t * j_condition) {
       }
       json_decref(j_result);
     } else {
-      y_log_message(Y_LOG_LEVEL_DEBUG, "error in cur_service");
-      res = ANGHARAD_RESULT_ERROR;
+      y_log_message(Y_LOG_LEVEL_ERROR, "error in cur_service");
+      res = A_ERROR;
     }
   } else {
-    y_log_message(Y_LOG_LEVEL_DEBUG, "error in submodule");
-    res = ANGHARAD_RESULT_ERROR;
+    y_log_message(Y_LOG_LEVEL_ERROR, "error in submodule");
+    res = A_ERROR;
   }
   json_decref(is_valid);
   return res;
@@ -221,65 +218,65 @@ int condition_check(struct config_elements * config, json_t * j_condition) {
 
 int compare_values(json_t * j_value1, json_t * j_value2, const char * operator) {
   if (j_value1 == NULL || j_value2 == NULL || operator == NULL) {
-    y_log_message(Y_LOG_LEVEL_DEBUG, "compare_values - error input parameters");
-    return ANGHARAD_RESULT_ERROR;
+    y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error input parameters");
+    return A_ERROR_PARAM;
   } else if (0 == nstrcmp(operator, "==")) {
-    return json_equal(j_value1, j_value2)?ANGHARAD_RESULT_TRUE:ANGHARAD_RESULT_FALSE;
-  } else if (0 == nstrcmp(operator, "==")) {
-    return json_equal(j_value1, j_value2)?ANGHARAD_RESULT_FALSE:ANGHARAD_RESULT_TRUE;
+    return json_equal(j_value1, j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
+  } else if (0 == nstrcmp(operator, "!=")) {
+    return json_equal(j_value1, j_value2)?A_ERROR_FALSE:A_ERROR_TRUE;
   } else if (0 == nstrcmp(operator, ">")) {
     if (json_is_integer(j_value1) && json_is_integer(j_value2)) {
-      return json_integer_value(j_value1)>json_integer_value(j_value2)?ANGHARAD_RESULT_TRUE:ANGHARAD_RESULT_FALSE;
+      return json_integer_value(j_value1)>json_integer_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
     } else if (json_is_real(j_value1) && json_is_real(j_value2)) {
-      return json_real_value(j_value1)>json_real_value(j_value2)?ANGHARAD_RESULT_TRUE:ANGHARAD_RESULT_FALSE;
+      return json_real_value(j_value1)>json_real_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
     } else {
-      y_log_message(Y_LOG_LEVEL_DEBUG, "compare_values - error values not the same type");
-      return ANGHARAD_RESULT_ERROR;
+      y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error values not the same type");
+      return A_ERROR_PARAM;
     }
   } else if (0 == nstrcmp(operator, ">=")) {
     if (json_is_integer(j_value1) && json_is_integer(j_value2)) {
-      return json_integer_value(j_value1)>=json_integer_value(j_value2)?ANGHARAD_RESULT_TRUE:ANGHARAD_RESULT_FALSE;
+      return json_integer_value(j_value1)>=json_integer_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
     } else if (json_is_real(j_value1) && json_is_real(j_value2)) {
-      return json_real_value(j_value1)>json_real_value(j_value2)?ANGHARAD_RESULT_TRUE:ANGHARAD_RESULT_FALSE;
+      return json_real_value(j_value1)>json_real_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
     } else {
-      y_log_message(Y_LOG_LEVEL_DEBUG, "compare_values - error values not the same type");
-      return ANGHARAD_RESULT_ERROR;
+      y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error values not the same type");
+      return A_ERROR_PARAM;
     }
   } else if (0 == nstrcmp(operator, "<")) {
     if (json_is_integer(j_value1) && json_is_integer(j_value2)) {
-      return json_integer_value(j_value1)<json_integer_value(j_value2)?ANGHARAD_RESULT_TRUE:ANGHARAD_RESULT_FALSE;
+      return json_integer_value(j_value1)<json_integer_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
     } else if (json_is_real(j_value1) && json_is_real(j_value2)) {
-      return json_real_value(j_value1)>json_real_value(j_value2)?ANGHARAD_RESULT_TRUE:ANGHARAD_RESULT_FALSE;
+      return json_real_value(j_value1)>json_real_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
     } else {
-      y_log_message(Y_LOG_LEVEL_DEBUG, "compare_values - error values not the same type");
-      return ANGHARAD_RESULT_ERROR;
+      y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error values not the same type");
+      return A_ERROR_PARAM;
     }
   } else if (0 == nstrcmp(operator, "<=")) {
     if (json_is_integer(j_value1) && json_is_integer(j_value2)) {
-      return json_integer_value(j_value1)<=json_integer_value(j_value2)?ANGHARAD_RESULT_TRUE:ANGHARAD_RESULT_FALSE;
+      return json_integer_value(j_value1)<=json_integer_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
     } else if (json_is_real(j_value1) && json_is_real(j_value2)) {
-      return json_real_value(j_value1)>json_real_value(j_value2)?ANGHARAD_RESULT_TRUE:ANGHARAD_RESULT_FALSE;
+      return json_real_value(j_value1)>json_real_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
     } else {
-      y_log_message(Y_LOG_LEVEL_DEBUG, "compare_values - error values not the same type");
-      return ANGHARAD_RESULT_ERROR;
+      y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error values not the same type");
+      return A_ERROR_PARAM;
     }
   } else if (0 == nstrcmp(operator, "contains")) {
     if (!json_is_string(j_value1) || !json_is_string(j_value2)) {
-      y_log_message(Y_LOG_LEVEL_DEBUG, "compare_values - error values not string type with a contains operator");
-      return ANGHARAD_RESULT_ERROR;
+      y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error values not string type with a contains operator");
+      return A_ERROR_PARAM;
     } else {
-      return strstr(json_string_value(j_value1), json_string_value(j_value2))!=NULL?ANGHARAD_RESULT_TRUE:ANGHARAD_RESULT_FALSE;
+      return nstrstr(json_string_value(j_value1), json_string_value(j_value2))!=NULL?A_ERROR_TRUE:A_ERROR_FALSE;
     }
   } else if (0 == nstrcmp(operator, "not contains")) {
     if (!json_is_string(j_value1) || !json_is_string(j_value2)) {
-      y_log_message(Y_LOG_LEVEL_DEBUG, "compare_values - error values not string type with a not contains operator");
-      return ANGHARAD_RESULT_ERROR;
+      y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error values not string type with a not contains operator");
+      return A_ERROR_PARAM;
     } else {
-      return strstr(json_string_value(j_value1), json_string_value(j_value2))==NULL?ANGHARAD_RESULT_TRUE:ANGHARAD_RESULT_FALSE;
+      return nstrstr(json_string_value(j_value1), json_string_value(j_value2))==NULL?A_ERROR_TRUE:A_ERROR_FALSE;
     }
   } else {
-    y_log_message(Y_LOG_LEVEL_DEBUG, "compare_values - error operator not found");
-    return ANGHARAD_RESULT_ERROR;
+    y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error operator not found");
+    return A_ERROR_PARAM;
   }
 }
 
@@ -305,7 +302,7 @@ json_t * is_script_list_valid(struct config_elements * config, json_t * script_l
           json_array_append_new(j_return, json_pack("{ss}", "script", "name attribute is mandatory and must be a string"));
         } else {
           j_script = script_get(config, json_string_value(json_object_get(script, "name")));
-          if (json_integer_value(json_object_get(j_script, "result")) != ANGHARAD_RESULT_OK) {
+          if (json_integer_value(json_object_get(j_script, "result")) != A_OK) {
             json_array_append_new(j_return, json_pack("{ss}", "script", "script does not exist"));
           }
           json_decref(j_script);

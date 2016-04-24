@@ -84,13 +84,6 @@ authentication =
 #   password_filter = "PASSWORD"
 # }
 
-# .htpassword file authentication (Apache standard)
-# authentication =
-# {
-#   type = "htpasswd"
-#   file = "path/to/file/htpasswd"
-# }
-
 # LDAP authentication
 # authentication =
 # {

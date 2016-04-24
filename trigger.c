@@ -28,6 +28,96 @@
 
 #include "angharad.h"
 
+int alert_received(struct config_elements * config, const char * submodule_name, const char * source, const char * element, const char * message) {
+  json_t * j_query, * j_result, * cur_trigger, * j_result_trigger, * j_trigger, * script;
+  int res, message_match, message_match_check = A_ERROR_FALSE;
+  size_t index, index_sc;
+  
+  j_query = json_pack("{sss[s]s{sissssss}}",
+                      "table",
+                      ANGHARAD_TABLE_TRIGGER,
+                      "columns",
+                        "at_name",
+                      "where",
+                        "at_enabled",
+                        1,
+                        "at_submodule",
+                        submodule_name,
+                        "at_source",
+                        source,
+                        "at_element",
+                        element);
+  if (j_query == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "alert_received - Error allocating resources for j_query");
+    return A_ERROR_MEMORY;
+  }
+  
+  res = h_select(config->conn, j_query, &j_result, NULL);
+  json_decref(j_query);
+  if (res == H_OK) {
+    
+    json_array_foreach (j_result, index, cur_trigger) {
+      j_result_trigger = trigger_get(config, json_string_value(json_object_get(cur_trigger, "at_name")));
+      
+      if (j_result_trigger != NULL && json_integer_value(json_object_get(j_result_trigger, "result")) == A_OK) {
+        j_trigger = json_object_get(j_result_trigger, "trigger");
+        
+        if (j_trigger != NULL) {
+          // First, check message match
+          message_match = json_integer_value(json_object_get(j_trigger, "at_message_match"));
+          
+          switch (message_match) {
+            case TRIGGER_MESSAGE_MATCH_NONE:
+              message_match_check = A_ERROR_TRUE;
+              break;
+            case TRIGGER_MESSAGE_MATCH_EQUAL:
+              message_match_check = (0==nstrcmp(message, json_string_value(json_object_get(j_trigger, "message"))))?A_ERROR_TRUE:A_ERROR_FALSE;
+              break;
+            case TRIGGER_MESSAGE_MATCH_DIFFERENT:
+              message_match_check = (0!=nstrcmp(message, json_string_value(json_object_get(j_trigger, "message"))))?A_ERROR_TRUE:A_ERROR_FALSE;
+              break;
+            case TRIGGER_MESSAGE_MATCH_CONTAINS:
+              message_match_check = (NULL!=nstrstr(message, json_string_value(json_object_get(j_trigger, "message"))))?A_ERROR_TRUE:A_ERROR_FALSE;
+              break;
+            case TRIGGER_MESSAGE_MATCH_NOT_CONTAINS:
+              message_match_check = (NULL==nstrstr(message, json_string_value(json_object_get(j_trigger, "message"))))?A_ERROR_TRUE:A_ERROR_FALSE;
+              break;
+            case TRIGGER_MESSAGE_MATCH_EMPTY:
+              message_match_check = (nstrlen(message)==0)?A_ERROR_TRUE:A_ERROR_FALSE;
+              break;
+            case TRIGGER_MESSAGE_MATCH_NOT_EMPTY:
+              message_match_check = (nstrlen(message)>0)?A_ERROR_TRUE:A_ERROR_FALSE;
+              break;
+            default:
+              message_match_check = A_ERROR_FALSE;
+              break;
+          }
+          
+          // If there's a message match, check conditions
+          if (message_match_check == A_ERROR_TRUE) {
+            if (condition_list_check(config, json_object_get(j_trigger, "conditions"))) {
+              // If all conditions are checked, run scripts
+              json_array_foreach(json_object_get(j_trigger, "scripts"), index_sc, script) {
+                if (json_object_get(script, "enabled") == json_true() && json_is_string(json_object_get(script, "name"))) {
+                  y_log_message(Y_LOG_LEVEL_INFO, "alert_received - run script %s", json_string_value(json_object_get(script, "name")));
+                  script_run(config, json_string_value(json_object_get(script, "name")));
+                }
+              }
+            }
+          }
+        }
+      }
+      json_decref(j_result_trigger);
+    }
+    json_decref(j_result);
+    
+  } else {
+    y_log_message(Y_LOG_LEVEL_ERROR, "alert_received - Error executing j_query");
+    return A_ERROR_DB;
+  }
+  return A_OK;
+}
+
 json_t * trigger_get(struct config_elements * config, const char * trigger_name) {
   json_t * j_query, * j_result, * j_trigger, * j_options, * j_conditions, * j_bool, * to_return, * script_list;
   int res;
@@ -50,7 +140,7 @@ json_t * trigger_get(struct config_elements * config, const char * trigger_name)
   
   if (j_query == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "trigger_get - Error allocating resources for j_query");
-    return json_pack("{si}", "result", ANGHARAD_RESULT_ERROR);
+    return json_pack("{si}", "result", A_ERROR_MEMORY);
   }
   
   if (trigger_name != NULL) {
@@ -64,7 +154,7 @@ json_t * trigger_get(struct config_elements * config, const char * trigger_name)
       to_return = json_array();
       if (to_return == NULL) {
         y_log_message(Y_LOG_LEVEL_ERROR, "trigger_get - Error allocating resources for to_return");
-        return json_pack("{si}", "result", ANGHARAD_RESULT_ERROR);
+        return json_pack("{si}", "result", A_ERROR_MEMORY);
       }
       json_array_foreach(j_result, index, j_trigger) {
         j_bool = json_object_get(j_trigger, "ash_enabled");
@@ -78,7 +168,7 @@ json_t * trigger_get(struct config_elements * config, const char * trigger_name)
         json_object_set_new(j_trigger, "conditions", j_conditions);
         
         script_list = trigger_get_script_list(config, json_string_value(json_object_get(j_trigger, "name")));
-        if (json_integer_value(json_object_get(script_list, "result")) == ANGHARAD_RESULT_OK) {
+        if (json_integer_value(json_object_get(script_list, "result")) == A_OK) {
           json_object_set_new(j_trigger, "scripts", json_copy(json_object_get(script_list, "scripts")));
         } else {
           json_object_set_new(j_trigger, "scripts", json_array());
@@ -88,17 +178,17 @@ json_t * trigger_get(struct config_elements * config, const char * trigger_name)
         json_array_append_new(to_return, json_copy(j_trigger));
       }
       json_decref(j_result);
-      return json_pack("{siso}", "result", ANGHARAD_RESULT_OK, "triggers", to_return);
+      return json_pack("{siso}", "result", A_OK, "triggers", to_return);
     } else {
       if (json_array_size(j_result) == 0) {
         json_decref(j_result);
-        return json_pack("{si}", "result", ANGHARAD_RESULT_NOT_FOUND);
+        return json_pack("{si}", "result", A_ERROR_NOT_FOUND);
       } else {
         j_trigger = json_copy(json_array_get(j_result, 0));
         json_decref(j_result);
         if (j_trigger == NULL) {
           y_log_message(Y_LOG_LEVEL_ERROR, "trigger_get - Error allocating resources for j_trigger");
-          return json_pack("{si}", "result", ANGHARAD_RESULT_ERROR);
+          return json_pack("{si}", "result", A_ERROR_MEMORY);
         }
         j_bool = json_object_get(j_trigger, "at_enabled");
         json_object_set_new(j_trigger, "enabled", json_integer_value(j_bool)?json_true():json_false());
@@ -111,19 +201,19 @@ json_t * trigger_get(struct config_elements * config, const char * trigger_name)
         json_object_set_new(j_trigger, "conditions", j_conditions);
         
         script_list = trigger_get_script_list(config, json_string_value(json_object_get(j_trigger, "name")));
-        if (json_integer_value(json_object_get(script_list, "result")) == ANGHARAD_RESULT_OK) {
+        if (json_integer_value(json_object_get(script_list, "result")) == A_OK) {
           json_object_set_new(j_trigger, "scripts", json_copy(json_object_get(script_list, "scripts")));
         } else {
           json_object_set_new(j_trigger, "scripts", json_array());
         }
         json_decref(script_list);
         
-        return json_pack("{siso}", "result", ANGHARAD_RESULT_OK, "trigger", j_trigger);
+        return json_pack("{siso}", "result", A_OK, "trigger", j_trigger);
       }
     }
   } else {
     y_log_message(Y_LOG_LEVEL_ERROR, "trigger_get - Error allocating resources for j_query");
-    return json_pack("{si}", "result", ANGHARAD_RESULT_ERROR);
+    return json_pack("{si}", "result", A_ERROR_MEMORY);
   }
 }
 
@@ -283,9 +373,9 @@ int trigger_modify(struct config_elements * config, const char * trigger_name, j
   }
   
   cur_trigger = trigger_get(config, trigger_name);
-  res_cur_trigger = (cur_trigger != NULL?json_integer_value(json_object_get(cur_trigger, "result")):ANGHARAD_RESULT_ERROR);
+  res_cur_trigger = (cur_trigger != NULL?json_integer_value(json_object_get(cur_trigger, "result")):A_ERROR);
   json_decref(cur_trigger);
-  if (res_cur_trigger == ANGHARAD_RESULT_OK) {
+  if (res_cur_trigger == A_OK) {
     str_options = json_dumps(json_object_get(j_trigger, "options"), JSON_COMPACT);
     str_conditions = json_dumps(json_object_get(j_trigger, "conditions"), JSON_COMPACT);
     j_query = json_pack("{sss{sssisssssssssssssi}s{ss}}",
@@ -318,7 +408,7 @@ int trigger_modify(struct config_elements * config, const char * trigger_name, j
       y_log_message(Y_LOG_LEVEL_ERROR, "trigger_modify - Error executing db query");
       return A_ERROR_DB;
     }
-  } else if (res_cur_trigger == ANGHARAD_RESULT_NOT_FOUND) {
+  } else if (res_cur_trigger == A_ERROR_NOT_FOUND) {
     return A_ERROR_NOT_FOUND;
   } else {
     return A_ERROR;
@@ -335,9 +425,9 @@ int trigger_delete(struct config_elements * config, const char * trigger_name) {
   }
   
   cur_trigger = trigger_get(config, trigger_name);
-  res_cur_trigger = (cur_trigger != NULL?json_integer_value(json_object_get(cur_trigger, "result")):ANGHARAD_RESULT_ERROR);
+  res_cur_trigger = (cur_trigger != NULL?json_integer_value(json_object_get(cur_trigger, "result")):A_ERROR);
   json_decref(cur_trigger);
-  if (res_cur_trigger == ANGHARAD_RESULT_OK) {
+  if (res_cur_trigger == A_OK) {
     j_query = json_pack("{sss{ss}}",
                         "table", ANGHARAD_TABLE_TRIGGER,
                         "where",
@@ -356,7 +446,7 @@ int trigger_delete(struct config_elements * config, const char * trigger_name) {
       y_log_message(Y_LOG_LEVEL_ERROR, "trigger_delete - Error executing db query");
       return A_ERROR_DB;
     }
-  } else if (res_cur_trigger == ANGHARAD_RESULT_NOT_FOUND) {
+  } else if (res_cur_trigger == A_ERROR_NOT_FOUND) {
     return A_ERROR_NOT_FOUND;
   } else {
     return A_ERROR;
@@ -369,12 +459,12 @@ int trigger_add_tag(struct config_elements * config, const char * trigger_name, 
   
   if (j_result == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "trigger_add_tag - Error getting trigger");
-    return ANGHARAD_RESULT_ERROR;
+    return A_ERROR;
   } else {
-    if (json_integer_value(json_object_get(j_result, "result")) == ANGHARAD_RESULT_NOT_FOUND) {
+    if (json_integer_value(json_object_get(j_result, "result")) == A_ERROR_NOT_FOUND) {
       json_decref(j_result);
-      return ANGHARAD_RESULT_NOT_FOUND;
-    } else if (json_integer_value(json_object_get(j_result, "result")) == ANGHARAD_RESULT_OK) {
+      return A_ERROR_NOT_FOUND;
+    } else if (json_integer_value(json_object_get(j_result, "result")) == A_OK) {
       j_trigger = json_object_get(j_result, "trigger");
       j_tags = json_object_get(json_object_get(j_trigger, "options"), "tags");
       if (j_tags == NULL) {
@@ -383,14 +473,14 @@ int trigger_add_tag(struct config_elements * config, const char * trigger_name, 
         json_array_append_new(json_object_get(json_object_get(j_trigger, "options"), "tags"), json_string(tag));
       } else {
         json_decref(j_result);
-        return ANGHARAD_RESULT_ERROR;
+        return A_ERROR;
       }
       res = trigger_modify(config, trigger_name, j_trigger);
       json_decref(j_result);
       return res;
     } else {
       json_decref(j_result);
-      return ANGHARAD_RESULT_ERROR;
+      return A_ERROR;
     }
   }
 }
@@ -401,17 +491,17 @@ int trigger_remove_tag(struct config_elements * config, const char * trigger_nam
   
   if (j_result == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "trigger_remove_tag - Error getting trigger");
-    return ANGHARAD_RESULT_ERROR;
+    return A_ERROR;
   } else {
-    if (json_integer_value(json_object_get(j_result, "result")) == ANGHARAD_RESULT_NOT_FOUND) {
+    if (json_integer_value(json_object_get(j_result, "result")) == A_ERROR_NOT_FOUND) {
       json_decref(j_result);
-      return ANGHARAD_RESULT_NOT_FOUND;
-    } else if (json_integer_value(json_object_get(j_result, "result")) == ANGHARAD_RESULT_OK) {
+      return A_ERROR_NOT_FOUND;
+    } else if (json_integer_value(json_object_get(j_result, "result")) == A_OK) {
       j_trigger = json_object_get(j_result, "trigger");
       j_tags = json_object_get(json_object_get(j_trigger, "options"), "tags");
       if (j_tags == NULL) {
         json_decref(j_result);
-        return ANGHARAD_RESULT_OK;
+        return A_OK;
       } else if (json_is_array(j_tags)) {
         for (i = json_array_size(json_object_get(json_object_get(j_trigger, "options"), "tags"))-1; i >= 0; i--) {
           if (0 == nstrcmp(json_string_value(json_array_get(json_object_get(json_object_get(j_trigger, "options"), "tags"), i)), tag)) {
@@ -423,11 +513,11 @@ int trigger_remove_tag(struct config_elements * config, const char * trigger_nam
         return res;
       } else {
         json_decref(j_result);
-        return ANGHARAD_RESULT_ERROR;
+        return A_ERROR;
       }
     } else {
       json_decref(j_result);
-      return ANGHARAD_RESULT_ERROR;
+      return A_ERROR;
     }
   }
 }
@@ -446,7 +536,7 @@ json_t * trigger_get_script_list(struct config_elements * config, const char * t
   
   if (res != H_OK) {
     y_log_message(Y_LOG_LEVEL_ERROR, "trigger_get_script_list - Error getting trigger");
-    return json_pack("{si}", "result", ANGHARAD_RESULT_ERROR);
+    return json_pack("{si}", "result", A_ERROR);
   } else {
     json_array_foreach(j_result, index, j_trigger) {
       if (json_integer_value(json_object_get(j_trigger, "i_enabled")) == 0) {
@@ -456,7 +546,7 @@ json_t * trigger_get_script_list(struct config_elements * config, const char * t
       }
       json_object_del(j_trigger, "i_enabled");
     }
-    return json_pack("{siso}", "result", ANGHARAD_RESULT_OK, "scripts", j_result);
+    return json_pack("{siso}", "result", A_OK, "scripts", j_result);
   }
 }
 

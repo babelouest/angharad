@@ -754,11 +754,9 @@ void run_scheduler_tests() {
   run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/scheduler/", scheduler_valid, 400, NULL);
   run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/scheduler/sch1", NULL, 200, scheduler_valid);
   run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/scheduler/", scheduler_invalid, 400, NULL);
-  getchar();
   run_simple_test("PUT", SERVER_URL PREFIX_ANGHARAD "/scheduler/sch1", scheduler_valid2, 200, NULL);
   run_simple_test("PUT", SERVER_URL PREFIX_ANGHARAD "/scheduler/sch2", scheduler_valid2, 404, NULL);
   run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/scheduler/sch1", NULL, 200, scheduler_valid2);
-  getchar();
   run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/scheduler/sch1", NULL, 200, NULL);
   run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/script/script1", NULL, 200, NULL);
   run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/script/script2", NULL, 200, NULL);
@@ -1044,6 +1042,426 @@ void run_trigger_tests() {
   json_decref(carleon_mock_valid);
 }
 
+void run_scheduler_trigger_exec_tests() {
+  char * str_scheduler_checked_1 = msprintf("{\
+    \"name\":\"sch1\",\
+    \"description\":\"first scheduler\",\
+    \"enabled\":true,\
+    \"next_time\":%u,\
+    \"repeat\":0,\
+    \"repeat_value\":2,\
+    \"remove_after\":false,\
+    \"scripts\":[\
+      {\
+        \"name\":\"script1\",\
+        \"enabled\":true\
+      },\
+      {\
+        \"name\":\"script2\",\
+        \"enabled\":false\
+      }\
+    ],\
+    \"options\":{\
+      \"tags\":[\
+      ]\
+    },\
+    \"conditions\":[\
+      {\
+        \"submodule\": \"benoic\",\
+        \"element\": \"sw1\",\
+        \"command\": 1,\
+        \"parameters\": {\
+          \"device\": \"dev1\",\
+          \"element_type\": \"switch\"\
+        },\
+        \"condition\":\"==\",\
+        \"value\":0\
+      },\
+      {\
+        \"submodule\": \"carleon\",\
+        \"element\": \"mock1\",\
+        \"command\": \"exec\",\
+        \"parameters\": {\
+          \"service\": \"00-00-00\",\
+          \"param1\": \"plop\",\
+          \"param2\": 3,\
+          \"param3\": 4.4\
+        },\
+        \"condition\":\">=\",\
+        \"value\":0\
+      }\
+    ]\
+  }", (unsigned)time(NULL));
+  char * str_scheduler_checked_2 = msprintf("{\
+    \"name\":\"sch2\",\
+    \"description\":\"second scheduler\",\
+    \"enabled\":true,\
+    \"next_time\":%u,\
+    \"repeat\":0,\
+    \"repeat_value\":5,\
+    \"remove_after\":false,\
+    \"scripts\":[\
+      {\
+        \"name\":\"script1\",\
+        \"enabled\":false\
+      },\
+      {\
+        \"name\":\"script2\",\
+        \"enabled\":true\
+      }\
+    ],\
+    \"options\":{\
+      \"tags\":[\
+      ]\
+    },\
+    \"conditions\":[\
+      {\
+        \"submodule\": \"benoic\",\
+        \"element\": \"sw2\",\
+        \"command\": 1,\
+        \"parameters\": {\
+          \"device\": \"dev1\",\
+          \"element_type\": \"switch\"\
+        },\
+        \"condition\":\"==\",\
+        \"value\":1\
+      },\
+      {\
+        \"submodule\": \"carleon\",\
+        \"element\": \"mock1\",\
+        \"command\": \"exec2\",\
+        \"parameters\": {\
+          \"service\": \"00-00-00\",\
+          \"param1\": \"plop\",\
+          \"param2\": 3,\
+          \"param3\": 4.4\
+        },\
+        \"condition\":\"!=\",\
+        \"value\":0\
+      }\
+    ]\
+  }", (unsigned)time(NULL));
+  char * str_scheduler_unchecked = msprintf("{\
+    \"name\":\"sch3\",\
+    \"description\":\"third scheduler\",\
+    \"enabled\":true,\
+    \"next_time\":%u,\
+    \"repeat\":0,\
+    \"repeat_value\":2,\
+    \"remove_after\":false,\
+    \"scripts\":[\
+      {\
+        \"name\":\"script1\",\
+        \"enabled\":true\
+      },\
+      {\
+        \"name\":\"script2\",\
+        \"enabled\":true\
+      }\
+    ],\
+    \"options\":{\
+      \"tags\":[\
+      ]\
+    },\
+    \"conditions\":[\
+      {\
+        \"submodule\": \"benoic\",\
+        \"element\": \"sw2\",\
+        \"command\": 1,\
+        \"parameters\": {\
+          \"device\": \"dev1\",\
+          \"element_type\": \"switch\"\
+        },\
+        \"condition\":\"==\",\
+        \"value\":0\
+      },\
+      {\
+        \"submodule\": \"carleon\",\
+        \"element\": \"mock1\",\
+        \"command\": \"exec2\",\
+        \"parameters\": {\
+          \"service\": \"00-00-00\",\
+          \"param1\": \"plop\",\
+          \"param2\": 3,\
+          \"param3\": 4.4\
+        },\
+        \"condition\":\"<=\",\
+        \"value\":2\
+      }\
+    ]\
+  }", (unsigned)time(NULL));
+  json_t * benoic_device = json_loads("{\
+    \"name\":\"dev1\",\
+    \"description\":\"first test\",\
+    \"type_uid\":\"00-00-00\",\
+    \"enabled\":true,\
+    \"options\":{\
+      \"uri\":\"dev1\",\
+      \"baud\":6900,\
+      \"do_not_check_certificate\":false,\
+      \"device_specified\":\"TBD\"\
+    }\
+  }", JSON_DECODE_ANY, NULL);
+  json_t * carleon_service = json_loads("{\
+    \"name\":\"mock1\",\
+    \"description\":\"Description for mock1\"\
+  }", JSON_DECODE_ANY, NULL);
+  json_t * script1 = json_loads("{\
+    \"name\": \"script1\",\
+    \"description\": \"description for script1\",\
+    \"options\": {\
+      \"tags\": [\"tag1\", \"tag2\"]\
+    },\
+    \"actions\": [\
+      {\
+        \"submodule\": \"benoic\",\
+        \"element\": \"sw1\",\
+        \"command\": 1,\
+        \"parameters\": {\
+          \"device\": \"dev1\",\
+          \"element_type\": \"switch\"\
+        }\
+      },\
+      {\
+        \"submodule\": \"carleon\",\
+        \"element\": \"mock1\",\
+        \"command\": \"exec\",\
+        \"parameters\": {\
+          \"service\": \"00-00-00\",\
+          \"param1\": \"plop\",\
+          \"param2\": 3,\
+          \"param3\": 4.4\
+        }\
+      }\
+    ]\
+  }", JSON_DECODE_ANY, NULL);
+  json_t * script2 = json_loads("{\
+    \"name\": \"script2\",\
+    \"description\": \"description for modified script1\",\
+    \"options\": {\
+      \"tags\": [\"tag2\"]\
+    },\
+    \"actions\": [\
+      {\
+        \"submodule\": \"benoic\",\
+        \"element\": \"sw1\",\
+        \"command\": 1,\
+        \"parameters\": {\
+          \"device\": \"dev1\",\
+          \"element_type\": \"switch\"\
+        }\
+      },\
+      {\
+        \"submodule\": \"carleon\",\
+        \"element\": \"mock1\",\
+        \"command\": \"exec\",\
+        \"parameters\": {\
+          \"service\": \"00-00-00\",\
+          \"param1\": \"plop\",\
+          \"param2\": 3,\
+          \"param3\": 4.4\
+        }\
+      }\
+    ]\
+  }", JSON_DECODE_ANY, NULL);
+  json_t * scheduler_checked1 = json_loads(str_scheduler_checked_1, JSON_DECODE_ANY, NULL);
+  json_t * scheduler_checked2 = json_loads(str_scheduler_checked_2, JSON_DECODE_ANY, NULL);
+  json_t * scheduler_unchecked = json_loads(str_scheduler_unchecked, JSON_DECODE_ANY, NULL);
+  json_t * trigger_checked1 = json_loads("{\
+    \"name\":\"tri1\",\
+    \"description\":\"first trigger\",\
+    \"enabled\":true,\
+    \"submodule\":\"benoic\",\
+    \"source\":\"dev1\",\
+    \"element\":\"sw1\",\
+    \"message\":\"hello\",\
+    \"message_match\":0,\
+    \"options\":{\
+      \"tags\":[\
+      ]\
+    },\
+    \"scripts\":[\
+      {\
+        \"name\":\"script1\",\
+        \"enabled\":false\
+      },\
+      {\
+        \"name\":\"script2\",\
+        \"enabled\":true\
+      }\
+    ],\
+    \"conditions\":[\
+      {\
+        \"submodule\": \"benoic\",\
+        \"element\": \"sw1\",\
+        \"command\": 1,\
+        \"parameters\": {\
+          \"device\": \"dev1\",\
+          \"element_type\": \"switch\"\
+        },\
+        \"condition\":\"==\",\
+        \"value\":0\
+      },\
+      {\
+        \"submodule\": \"carleon\",\
+        \"element\": \"mock1\",\
+        \"command\": \"exec\",\
+        \"parameters\": {\
+          \"service\": \"00-00-00\",\
+          \"param1\": \"plop\",\
+          \"param2\": 3,\
+          \"param3\": 4.4\
+        },\
+        \"condition\":\">=\",\
+        \"value\":0\
+      }\
+    ]\
+  }", JSON_DECODE_ANY, NULL);
+  json_t * trigger_checked2 = json_loads("{\
+    \"name\":\"tri2\",\
+    \"description\":\"second trigger\",\
+    \"enabled\":true,\
+    \"submodule\":\"benoic\",\
+    \"source\":\"dev1\",\
+    \"element\":\"di1\",\
+    \"message\":\"hello\",\
+    \"message_match\":0,\
+    \"options\":{\
+      \"tags\":[\
+      ]\
+    },\
+    \"scripts\":[\
+      {\
+        \"name\":\"script1\",\
+        \"enabled\":true\
+      },\
+      {\
+        \"name\":\"script2\",\
+        \"enabled\":false\
+      }\
+    ],\
+    \"conditions\":[\
+      {\
+        \"submodule\": \"benoic\",\
+        \"element\": \"sw2\",\
+        \"command\": 1,\
+        \"parameters\": {\
+          \"device\": \"dev1\",\
+          \"element_type\": \"switch\"\
+        },\
+        \"condition\":\"==\",\
+        \"value\":1\
+      },\
+      {\
+        \"submodule\": \"carleon\",\
+        \"element\": \"mock1\",\
+        \"command\": \"exec2\",\
+        \"parameters\": {\
+          \"service\": \"00-00-00\",\
+          \"param1\": \"plop\",\
+          \"param2\": 3,\
+          \"param3\": 4.4\
+        },\
+        \"condition\":\"!=\",\
+        \"value\":0\
+      }\
+    ]\
+  }", JSON_DECODE_ANY, NULL);
+  json_t * trigger_unchecked = json_loads("{\
+    \"name\":\"tri3\",\
+    \"description\":\"third trigger\",\
+    \"enabled\":true,\
+    \"submodule\":\"benoic\",\
+    \"source\":\"dev1\",\
+    \"element\":\"he1\",\
+    \"message\":\"hello\",\
+    \"message_match\":0,\
+    \"options\":{\
+      \"tags\":[\
+      ]\
+    },\
+    \"scripts\":[\
+      {\
+        \"name\":\"script1\",\
+        \"enabled\":true\
+      },\
+      {\
+        \"name\":\"script2\",\
+        \"enabled\":true\
+      }\
+    ],\
+    \"conditions\":[\
+      {\
+        \"submodule\": \"benoic\",\
+        \"element\": \"sw2\",\
+        \"command\": 1,\
+        \"parameters\": {\
+          \"device\": \"dev1\",\
+          \"element_type\": \"switch\"\
+        },\
+        \"condition\":\"==\",\
+        \"value\":0\
+      },\
+      {\
+        \"submodule\": \"carleon\",\
+        \"element\": \"mock1\",\
+        \"command\": \"exec2\",\
+        \"parameters\": {\
+          \"service\": \"00-00-00\",\
+          \"param1\": \"plop\",\
+          \"param2\": 3,\
+          \"param3\": 4.4\
+        },\
+        \"condition\":\"<=\",\
+        \"value\":2\
+      }\
+    ]\
+  }", JSON_DECODE_ANY, NULL);
+  
+  run_simple_test("POST", SERVER_URL PREFIX_BENOIC "/device/", benoic_device, 200, NULL);
+  run_simple_test("POST", SERVER_URL PREFIX_CARLEON "/mock-service/", carleon_service, 200, NULL);
+  run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/script/", script1, 200, NULL);
+  run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/script/", script2, 200, NULL);
+  run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/scheduler/", scheduler_checked1, 200, NULL);
+  run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/scheduler/", scheduler_checked2, 200, NULL);
+  run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/scheduler/", scheduler_unchecked, 200, NULL);
+  run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/trigger/", trigger_checked1, 200, NULL);
+  run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/trigger/", trigger_checked2, 200, NULL);
+  run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/trigger/", trigger_unchecked, 200, NULL);
+  
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/alert/benoic/dev1/sw1/plop", NULL, 200, NULL);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/alert/benoic/dev1/di1/plop", NULL, 200, NULL);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/alert/benoic/dev1/he1/plop", NULL, 200, NULL);
+  
+  printf("Paused, press <enter> to continue tests\n");
+  getchar();
+  
+  run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/scheduler/sch1", NULL, 200, NULL);
+  run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/scheduler/sch2", NULL, 200, NULL);
+  run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/scheduler/sch3", NULL, 200, NULL);
+  run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/trigger/tri1", NULL, 200, NULL);
+  run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/trigger/tri2", NULL, 200, NULL);
+  run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/trigger/tri3", NULL, 200, NULL);
+  run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/script/script1", NULL, 200, NULL);
+  run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/script/script2", NULL, 200, NULL);
+  run_simple_test("DELETE", SERVER_URL PREFIX_BENOIC "/device/dev1", NULL, 200, NULL);
+  run_simple_test("DELETE", SERVER_URL PREFIX_CARLEON "/mock-service/mock1", NULL, 200, NULL);
+  
+  json_decref(scheduler_checked1);
+  json_decref(scheduler_checked2);
+  json_decref(scheduler_unchecked);
+  json_decref(trigger_checked1);
+  json_decref(trigger_checked2);
+  json_decref(trigger_unchecked);
+  json_decref(script1);
+  json_decref(script2);
+  json_decref(benoic_device);
+  json_decref(carleon_service);
+  free(str_scheduler_checked_1);
+  free(str_scheduler_checked_2);
+  free(str_scheduler_unchecked);
+}
+
 int main(void) {
   printf("Press <enter> to run submodule tests\n");
   getchar();
@@ -1057,5 +1475,8 @@ int main(void) {
   printf("Press <enter> to run trigger tests\n");
   getchar();
   run_trigger_tests();
+  printf("Press <enter> to run scheduler and trigger execution tests\n");
+  getchar();
+  run_scheduler_trigger_exec_tests();
   return 0;
 }

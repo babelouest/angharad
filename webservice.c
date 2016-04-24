@@ -38,8 +38,16 @@ int callback_angharad_default (const struct _u_request * request, struct _u_resp
   return H_OK;
 }
 
-int callback_angharad_alert (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  return U_OK;
+int callback_angharad_alert (const struct _u_request * request, struct _u_response * response, void * user_data) {  
+  if (user_data == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "callback_carleon_service_element_remove_tag - Error, user_data is NULL");
+    return U_ERROR_PARAMS;
+  } else {
+    if (alert_received((struct config_elements *)user_data, u_map_get(request->map_url, "submodule_name"), u_map_get(request->map_url, "source"), u_map_get(request->map_url, "element"), u_map_get(request->map_url, "message")) != A_OK) {
+      response->status = 500;
+    }
+    return U_OK;
+  }
 }
 
 int callback_angharad_submodule_list (const struct _u_request * request, struct _u_response * response, void * user_data) {
@@ -49,9 +57,9 @@ int callback_angharad_submodule_list (const struct _u_request * request, struct 
     return U_ERROR_PARAMS;
   } else {
     j_result = submodule_get((struct config_elements *)user_data, NULL);
-    if (j_result != NULL && json_integer_value(json_object_get(j_result, "result")) == ANGHARAD_RESULT_NOT_FOUND) {
+    if (j_result != NULL && json_integer_value(json_object_get(j_result, "result")) == A_ERROR_NOT_FOUND) {
       response->status = 404;
-    } else if (j_result != NULL && json_integer_value(json_object_get(j_result, "result")) == ANGHARAD_RESULT_OK) {
+    } else if (j_result != NULL && json_integer_value(json_object_get(j_result, "result")) == A_OK) {
       response->json_body = json_copy(json_object_get(j_result, "submodules"));
     } else {
       response->status = 500;
@@ -68,9 +76,9 @@ int callback_angharad_submodule_get (const struct _u_request * request, struct _
     return U_ERROR_PARAMS;
   } else {
     j_result = submodule_get((struct config_elements *)user_data, u_map_get(request->map_url, "submodule_name"));
-    if (j_result != NULL && json_integer_value(json_object_get(j_result, "result")) == ANGHARAD_RESULT_NOT_FOUND) {
+    if (j_result != NULL && json_integer_value(json_object_get(j_result, "result")) == A_ERROR_NOT_FOUND) {
       response->status = 404;
-    } else if (j_result != NULL && json_integer_value(json_object_get(j_result, "result")) == ANGHARAD_RESULT_OK) {
+    } else if (j_result != NULL && json_integer_value(json_object_get(j_result, "result")) == A_OK) {
       response->json_body = json_copy(json_object_get(j_result, "submodule"));
     } else {
       response->status = 500;
@@ -103,7 +111,7 @@ int callback_angharad_script_list (const struct _u_request * request, struct _u_
     return U_ERROR_PARAMS;
   } else {
     j_script = script_get((struct config_elements *)user_data, NULL);
-    if (j_script == NULL || json_integer_value(json_object_get(j_script, "result")) == ANGHARAD_RESULT_ERROR) {
+    if (j_script == NULL || json_integer_value(json_object_get(j_script, "result")) == A_ERROR) {
       y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_script_list - Error getting script list, aborting");
       response->status = 500;
     } else {
@@ -121,10 +129,10 @@ int callback_angharad_script_get (const struct _u_request * request, struct _u_r
     return U_ERROR_PARAMS;
   } else {
     j_script = script_get((struct config_elements *)user_data, u_map_get(request->map_url, "script_name"));
-    if (j_script == NULL || json_integer_value(json_object_get(j_script, "result")) == ANGHARAD_RESULT_ERROR) {
+    if (j_script == NULL || json_integer_value(json_object_get(j_script, "result")) == A_ERROR) {
       y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_script_get - Error getting script, aborting");
       response->status = 500;
-    } else if (json_integer_value(json_object_get(j_script, "result")) == ANGHARAD_RESULT_NOT_FOUND) {
+    } else if (json_integer_value(json_object_get(j_script, "result")) == A_ERROR_NOT_FOUND) {
       response->status = 404;
     } else {
       response->json_body = json_copy(json_object_get(j_script, "script"));
@@ -146,12 +154,12 @@ int callback_angharad_script_add (const struct _u_request * request, struct _u_r
     if (valid != NULL && json_array_size(valid) == 0) {
       json_decref(valid);
       valid = script_get((struct config_elements *)user_data, json_string_value(json_object_get(request->json_body, "name")));
-      if (valid == NULL || json_integer_value(json_object_get(valid, "result")) == ANGHARAD_RESULT_ERROR) {
+      if (valid == NULL || json_integer_value(json_object_get(valid, "result")) == A_ERROR) {
         response->status = 500;
-      } else if (json_integer_value(json_object_get(valid, "result")) == ANGHARAD_RESULT_NOT_FOUND) {
+      } else if (json_integer_value(json_object_get(valid, "result")) == A_ERROR_NOT_FOUND) {
         json_decref(valid);
         res = script_add((struct config_elements *)user_data, request->json_body);
-        if (res == ANGHARAD_RESULT_ERROR) {
+        if (res == A_ERROR) {
           response->status = 500;
         }
       } else {
@@ -181,10 +189,12 @@ int callback_angharad_script_modify (const struct _u_request * request, struct _
     if (valid != NULL && json_array_size(valid) == 0) {
       json_decref(valid);
       res = script_modify((struct config_elements *)user_data, u_map_get(request->map_url, "script_name"), request->json_body);
-      if (res == ANGHARAD_RESULT_ERROR) {
-        response->status = 500;
-      } else if (res == ANGHARAD_RESULT_NOT_FOUND) {
+      if (res == A_OK) {
+        response->status = 200;
+      } else if (res == A_ERROR_NOT_FOUND) {
         response->status = 404;
+      } else {
+        response->status = 500;
       }
     } else if (valid != NULL) {
       response->json_body = valid;
@@ -204,10 +214,12 @@ int callback_angharad_script_remove (const struct _u_request * request, struct _
     return U_ERROR_PARAMS;
   } else {
     res = script_delete((struct config_elements *)user_data, u_map_get(request->map_url, "script_name"));
-    if (res == ANGHARAD_RESULT_ERROR) {
-      response->status = 500;
-    } else if (res == ANGHARAD_RESULT_NOT_FOUND) {
+    if (res == A_OK) {
+      response->status = 200;
+    } else if (res == A_ERROR_NOT_FOUND) {
       response->status = 404;
+    } else {
+      response->status = 500;
     }
     return U_OK;
   }
@@ -225,12 +237,12 @@ int callback_angharad_script_add_tag (const struct _u_request * request, struct 
     return U_OK;
   } else {
     res = script_add_tag((struct config_elements *)user_data, u_map_get(request->map_url, "script_name"), u_map_get(request->map_url, "tag"));
-    if (res == ANGHARAD_RESULT_OK) {
+    if (res == A_OK) {
       return U_OK;
-    } else if (res == ANGHARAD_RESULT_NOT_FOUND) {
+    } else if (res == A_ERROR_NOT_FOUND) {
       response->status = 404;
       response->json_body = json_pack("{ss}", "error", "script not found");
-    } else if (res == ANGHARAD_RESULT_ERROR) {
+    } else if (res == A_ERROR_PARAM) {
       response->status = 400;
       response->json_body = json_pack("{ss}", "error", "tag invalid");
     } else {
@@ -252,12 +264,12 @@ int callback_angharad_script_remove_tag (const struct _u_request * request, stru
     return U_OK;
   } else {
     res = script_remove_tag((struct config_elements *)user_data, u_map_get(request->map_url, "script_name"), u_map_get(request->map_url, "tag"));
-    if (res == ANGHARAD_RESULT_OK) {
+    if (res == A_OK) {
       return U_OK;
-    } else if (res == ANGHARAD_RESULT_NOT_FOUND) {
+    } else if (res == A_ERROR_NOT_FOUND) {
       response->status = 404;
       response->json_body = json_pack("{ss}", "error", "script not found");
-    } else if (res == ANGHARAD_RESULT_ERROR) {
+    } else if (res == A_ERROR_PARAM) {
       response->status = 400;
       response->json_body = json_pack("{ss}", "error", "tag invalid");
     } else {
@@ -295,7 +307,7 @@ int callback_angharad_scheduler_list (const struct _u_request * request, struct 
     return U_ERROR_PARAMS;
   } else {
     j_scheduler = scheduler_get((struct config_elements *)user_data, NULL, 0);
-    if (j_scheduler == NULL || json_integer_value(json_object_get(j_scheduler, "result")) == ANGHARAD_RESULT_ERROR) {
+    if (j_scheduler == NULL || json_integer_value(json_object_get(j_scheduler, "result")) == A_ERROR) {
       y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_scheduler_list - Error getting scheduler list, aborting");
       response->status = 500;
     } else {
@@ -313,10 +325,10 @@ int callback_angharad_scheduler_get (const struct _u_request * request, struct _
     return U_ERROR_PARAMS;
   } else {
     j_scheduler = scheduler_get((struct config_elements *)user_data, u_map_get(request->map_url, "scheduler_name"), 0);
-    if (j_scheduler == NULL || json_integer_value(json_object_get(j_scheduler, "result")) == ANGHARAD_RESULT_ERROR) {
+    if (j_scheduler == NULL || json_integer_value(json_object_get(j_scheduler, "result")) == A_ERROR) {
       y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_scheduler_get - Error getting scheduler, aborting");
       response->status = 500;
-    } else if (json_integer_value(json_object_get(j_scheduler, "result")) == ANGHARAD_RESULT_NOT_FOUND) {
+    } else if (json_integer_value(json_object_get(j_scheduler, "result")) == A_ERROR_NOT_FOUND) {
       response->status = 404;
     } else {
       response->json_body = json_copy(json_object_get(j_scheduler, "scheduler"));
@@ -338,9 +350,9 @@ int callback_angharad_scheduler_add (const struct _u_request * request, struct _
     if (valid != NULL && json_array_size(valid) == 0) {
       json_decref(valid);
       valid = scheduler_get((struct config_elements *)user_data, json_string_value(json_object_get(request->json_body, "name")), 0);
-      if (valid == NULL || json_integer_value(json_object_get(valid, "result")) == ANGHARAD_RESULT_ERROR) {
+      if (valid == NULL || json_integer_value(json_object_get(valid, "result")) == A_ERROR) {
         response->status = 500;
-      } else if (json_integer_value(json_object_get(valid, "result")) == ANGHARAD_RESULT_NOT_FOUND) {
+      } else if (json_integer_value(json_object_get(valid, "result")) == A_ERROR_NOT_FOUND) {
         json_decref(valid);
         res = scheduler_add((struct config_elements *)user_data, request->json_body);
         if (res != A_OK) {
@@ -400,7 +412,7 @@ int callback_angharad_scheduler_remove (const struct _u_request * request, struc
     res = scheduler_delete((struct config_elements *)user_data, u_map_get(request->map_url, "scheduler_name"));
     if (res == A_OK) {
       response->status = 200;
-    } else if (res == ANGHARAD_RESULT_NOT_FOUND) {
+    } else if (res == A_ERROR_NOT_FOUND) {
       response->status = 404;
     } else {
       response->status = 500;
@@ -421,12 +433,12 @@ int callback_angharad_scheduler_add_tag (const struct _u_request * request, stru
     return U_OK;
   } else {
     res = scheduler_add_tag((struct config_elements *)user_data, u_map_get(request->map_url, "scheduler_name"), u_map_get(request->map_url, "tag"));
-    if (res == ANGHARAD_RESULT_OK) {
+    if (res == A_OK) {
       return U_OK;
-    } else if (res == ANGHARAD_RESULT_NOT_FOUND) {
+    } else if (res == A_ERROR_NOT_FOUND) {
       response->status = 404;
       response->json_body = json_pack("{ss}", "error", "scheduler not found");
-    } else if (res == ANGHARAD_RESULT_ERROR) {
+    } else if (res == A_ERROR_PARAM) {
       response->status = 400;
       response->json_body = json_pack("{ss}", "error", "tag invalid");
     } else {
@@ -448,12 +460,12 @@ int callback_angharad_scheduler_remove_tag (const struct _u_request * request, s
     return U_OK;
   } else {
     res = scheduler_remove_tag((struct config_elements *)user_data, u_map_get(request->map_url, "scheduler_name"), u_map_get(request->map_url, "tag"));
-    if (res == ANGHARAD_RESULT_OK) {
+    if (res == A_OK) {
       return U_OK;
-    } else if (res == ANGHARAD_RESULT_NOT_FOUND) {
+    } else if (res == A_ERROR_NOT_FOUND) {
       response->status = 404;
       response->json_body = json_pack("{ss}", "error", "scheduler not found");
-    } else if (res == ANGHARAD_RESULT_ERROR) {
+    } else if (res == A_ERROR) {
       response->status = 400;
       response->json_body = json_pack("{ss}", "error", "tag invalid");
     } else {
@@ -470,7 +482,7 @@ int callback_angharad_trigger_list (const struct _u_request * request, struct _u
     return U_ERROR_PARAMS;
   } else {
     j_trigger = trigger_get((struct config_elements *)user_data, NULL);
-    if (j_trigger == NULL || json_integer_value(json_object_get(j_trigger, "result")) == ANGHARAD_RESULT_ERROR) {
+    if (j_trigger == NULL || json_integer_value(json_object_get(j_trigger, "result")) == A_ERROR) {
       y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_trigger_list - Error getting trigger list, aborting");
       response->status = 500;
     } else {
@@ -488,10 +500,10 @@ int callback_angharad_trigger_get (const struct _u_request * request, struct _u_
     return U_ERROR_PARAMS;
   } else {
     j_trigger = trigger_get((struct config_elements *)user_data, u_map_get(request->map_url, "trigger_name"));
-    if (j_trigger == NULL || json_integer_value(json_object_get(j_trigger, "result")) == ANGHARAD_RESULT_ERROR) {
+    if (j_trigger == NULL || json_integer_value(json_object_get(j_trigger, "result")) == A_ERROR) {
       y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_trigger_get - Error getting trigger, aborting");
       response->status = 500;
-    } else if (json_integer_value(json_object_get(j_trigger, "result")) == ANGHARAD_RESULT_NOT_FOUND) {
+    } else if (json_integer_value(json_object_get(j_trigger, "result")) == A_ERROR_NOT_FOUND) {
       response->status = 404;
     } else {
       response->json_body = json_copy(json_object_get(j_trigger, "trigger"));
@@ -513,9 +525,9 @@ int callback_angharad_trigger_add (const struct _u_request * request, struct _u_
     if (valid != NULL && json_array_size(valid) == 0) {
       json_decref(valid);
       valid = trigger_get((struct config_elements *)user_data, json_string_value(json_object_get(request->json_body, "name")));
-      if (valid == NULL || json_integer_value(json_object_get(valid, "result")) == ANGHARAD_RESULT_ERROR) {
+      if (valid == NULL || json_integer_value(json_object_get(valid, "result")) == A_ERROR) {
         response->status = 500;
-      } else if (json_integer_value(json_object_get(valid, "result")) == ANGHARAD_RESULT_NOT_FOUND) {
+      } else if (json_integer_value(json_object_get(valid, "result")) == A_ERROR_NOT_FOUND) {
         json_decref(valid);
         res = trigger_add((struct config_elements *)user_data, request->json_body);
         if (res != A_OK) {
@@ -596,12 +608,12 @@ int callback_angharad_trigger_add_tag (const struct _u_request * request, struct
     return U_OK;
   } else {
     res = trigger_add_tag((struct config_elements *)user_data, u_map_get(request->map_url, "trigger_name"), u_map_get(request->map_url, "tag"));
-    if (res == ANGHARAD_RESULT_OK) {
+    if (res == A_OK) {
       return U_OK;
-    } else if (res == ANGHARAD_RESULT_NOT_FOUND) {
+    } else if (res == A_ERROR_NOT_FOUND) {
       response->status = 404;
       response->json_body = json_pack("{ss}", "error", "trigger not found");
-    } else if (res == ANGHARAD_RESULT_ERROR) {
+    } else if (res == A_ERROR_PARAM) {
       response->status = 400;
       response->json_body = json_pack("{ss}", "error", "tag invalid");
     } else {
@@ -623,12 +635,12 @@ int callback_angharad_trigger_remove_tag (const struct _u_request * request, str
     return U_OK;
   } else {
     res = trigger_remove_tag((struct config_elements *)user_data, u_map_get(request->map_url, "trigger_name"), u_map_get(request->map_url, "tag"));
-    if (res == ANGHARAD_RESULT_OK) {
+    if (res == A_OK) {
       return U_OK;
-    } else if (res == ANGHARAD_RESULT_NOT_FOUND) {
+    } else if (res == A_ERROR_NOT_FOUND) {
       response->status = 404;
       response->json_body = json_pack("{ss}", "error", "trigger not found");
-    } else if (res == ANGHARAD_RESULT_ERROR) {
+    } else if (res == A_ERROR_PARAM) {
       response->status = 400;
       response->json_body = json_pack("{ss}", "error", "tag invalid");
     } else {
@@ -689,11 +701,52 @@ int callback_angharad_static_file (const struct _u_request * request, struct _u_
 }
 
 int callback_angharad_auth_get (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  json_t * result;
+  
+  if (user_data == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_auth_get - Error, user_data is NULL");
+    return U_ERROR_PARAMS;
+  } else if (u_map_get(request->map_cookie, "ANGHARAD_SESSION_ID") != NULL) {
+    result = auth_get((struct config_elements *)user_data, u_map_get(request->map_cookie, "ANGHARAD_SESSION_ID"));
+    
+    if (result != NULL && json_integer_value(json_object_get(result, "result")) == A_OK) {
+      response->json_body = json_copy(json_object_get(result, "session"));
+    } else {
+      response->status = 401;
+    }
+  } else {
+    response->status = 401;
+  }
   return U_OK;
 }
 
 int callback_angharad_auth_check (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  return U_OK;
+  json_t * result;
+  
+  if (user_data == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_auth_check - Error, user_data is NULL");
+    return U_ERROR_PARAMS;
+  } else if (json_object_get(request->json_body, "user") == NULL || !json_is_string(json_object_get(request->json_body, "user")) ||
+             json_object_get(request->json_body, "password") == NULL || !json_is_string(json_object_get(request->json_body, "password")) ||
+             (json_object_get(request->json_body, "validity") != NULL && !json_is_integer(json_object_get(request->json_body, "validity")))) {
+    response->status = 400;
+    response->json_body = json_pack("{ss}", "error", "Invalid parameters");
+    return U_OK;
+  } else {
+    result = auth_check((struct config_elements *)user_data,
+                        json_string_value(json_object_get(request->json_body, "user")),
+                        json_string_value(json_object_get(request->json_body, "password")),
+                        json_integer_value(json_object_get(request->json_body, "validity")));
+    y_log_message(Y_LOG_LEVEL_DEBUG, "result is %s", json_dumps(result, JSON_ENCODE_ANY));
+    if (result != NULL && json_integer_value(json_object_get(result, "result")) == A_OK) {
+      response->json_body = json_copy(json_object_get(result, "session"));
+      ulfius_add_cookie_to_response(response, "ANGHARAD_SESSION_ID", json_string_value(json_object_get(json_object_get(result, "session"), "token")), NULL, 0, NULL, NULL, 0, 0);
+    } else {
+      ulfius_add_cookie_to_response(response, "ANGHARAD_SESSION_ID", "", NULL, 0, NULL, NULL, 0, 0);
+      response->status = 401;
+    }
+    return U_OK;
+  }
 }
 
 int callback_angharad_auth_function (const struct _u_request * request, struct _u_response * response, void * user_data) {

@@ -42,29 +42,24 @@ void * thread_scheduler_run(void * args) {
       ts = *localtime(&now);
       if (ts.tm_sec == 0) {
         // Check schedules and events
-        y_log_message(Y_LOG_LEVEL_DEBUG, "thread_scheduler_run - Check schedules and events");
         scheduler_list = scheduler_get(config, NULL, 1);
-        if (scheduler_list == NULL || json_integer_value(json_object_get(scheduler_list, "result")) != ANGHARAD_RESULT_OK) {
+        if (scheduler_list == NULL || json_integer_value(json_object_get(scheduler_list, "result")) != A_OK) {
           y_log_message(Y_LOG_LEVEL_ERROR, "thread_scheduler_run - Error getting scheduler list");
         } else {
-          y_log_message(Y_LOG_LEVEL_DEBUG, "found %d schedulers", json_array_size(json_object_get(scheduler_list, "schedulers")));
           json_array_foreach (json_object_get(scheduler_list, "schedulers"), index, scheduler) {
             next_time = json_integer_value(json_object_get(scheduler, "next_time"));
             
-            y_log_message(Y_LOG_LEVEL_DEBUG, "thread_scheduler_run - Scheduler %s to check", json_string_value(json_object_get(scheduler, "name")));
             if (json_integer_value(json_object_get(scheduler, "next_time")) >= (now - 60) && condition_list_check(config, json_object_get(scheduler, "conditions"))) {
-              y_log_message(Y_LOG_LEVEL_DEBUG, "thread_scheduler_run - Scheduler %s checked, running each script", json_string_value(json_object_get(scheduler, "name")));
+              next_time = now;
               json_array_foreach(json_object_get(scheduler, "scripts"), index_sc, script) {
                 if (json_object_get(script, "enabled") == json_true() && json_is_string(json_object_get(script, "name"))) {
-                  y_log_message(Y_LOG_LEVEL_DEBUG, "thread_scheduler_run - run script %s", json_string_value(json_object_get(script, "name")));
+                  y_log_message(Y_LOG_LEVEL_INFO, "thread_scheduler_run - run script %s", json_string_value(json_object_get(script, "name")));
                   script_run(config, json_string_value(json_object_get(script, "name")));
-                  next_time = now;
                 }
               }
             }
             
             // Calculate next time or remove scheduler if needed
-            y_log_message(Y_LOG_LEVEL_DEBUG, "thread_scheduler_run - calculate with remove_after: %d, repeat: %d/%d", (json_object_get(scheduler, "remove_after")==json_true()), json_integer_value(json_object_get(scheduler, "repeat")), json_integer_value(json_object_get(scheduler, "repeat_value")));
             if (json_object_get(scheduler, "remove_after") == json_true()) {
               if (scheduler_delete(config, json_string_value(json_object_get(scheduler, "name"))) != A_OK) {
                 y_log_message(Y_LOG_LEVEL_ERROR, "Error removing scheduler %s", json_string_value(json_object_get(scheduler, "name")));
@@ -76,7 +71,6 @@ void * thread_scheduler_run(void * args) {
               }
               
               if (next_time > 0) {
-                y_log_message(Y_LOG_LEVEL_DEBUG, "thread_scheduler_run - next_time for scheduler %s is %ld which is %ld seconds", json_string_value(json_object_get(scheduler, "name")), next_time, (next_time - now));
                 json_object_set_new(scheduler, "next_time", json_integer(next_time));
                 if (scheduler_modify(config, json_string_value(json_object_get(scheduler, "name")), scheduler) != A_OK) {
                   y_log_message(Y_LOG_LEVEL_ERROR, "Error updating scheduler %s", json_string_value(json_object_get(scheduler, "name")));
@@ -117,7 +111,7 @@ json_t * scheduler_get(struct config_elements * config, const char * scheduler_n
   
   if (j_query == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_get - Error allocating resources for j_query");
-    return json_pack("{si}", "result", ANGHARAD_RESULT_ERROR);
+    return json_pack("{si}", "result", A_ERROR_MEMORY);
   }
   
   if (scheduler_name != NULL || runnable) {
@@ -140,7 +134,7 @@ json_t * scheduler_get(struct config_elements * config, const char * scheduler_n
       to_return = json_array();
       if (to_return == NULL) {
         y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_get - Error allocating resources for to_return");
-        return json_pack("{si}", "result", ANGHARAD_RESULT_ERROR);
+        return json_pack("{si}", "result", A_ERROR_MEMORY);
       }
       json_array_foreach(j_result, index, j_scheduler) {
         j_bool = json_object_get(j_scheduler, "ash_enabled");
@@ -160,7 +154,7 @@ json_t * scheduler_get(struct config_elements * config, const char * scheduler_n
         json_object_set_new(j_scheduler, "repeat", j_repeat);
         
         script_list = scheduler_get_script_list(config, json_string_value(json_object_get(j_scheduler, "name")));
-        if (json_integer_value(json_object_get(script_list, "result")) == ANGHARAD_RESULT_OK) {
+        if (json_integer_value(json_object_get(script_list, "result")) == A_OK) {
           json_object_set_new(j_scheduler, "scripts", json_copy(json_object_get(script_list, "scripts")));
         } else {
           json_object_set_new(j_scheduler, "scripts", json_array());
@@ -170,17 +164,17 @@ json_t * scheduler_get(struct config_elements * config, const char * scheduler_n
         json_array_append_new(to_return, json_copy(j_scheduler));
       }
       json_decref(j_result);
-      return json_pack("{siso}", "result", ANGHARAD_RESULT_OK, "schedulers", to_return);
+      return json_pack("{siso}", "result", A_OK, "schedulers", to_return);
     } else {
       if (json_array_size(j_result) == 0) {
         json_decref(j_result);
-        return json_pack("{si}", "result", ANGHARAD_RESULT_NOT_FOUND);
+        return json_pack("{si}", "result", A_ERROR_NOT_FOUND);
       } else {
         j_scheduler = json_copy(json_array_get(j_result, 0));
         json_decref(j_result);
         if (j_scheduler == NULL) {
           y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_get - Error allocating resources for j_scheduler");
-          return json_pack("{si}", "result", ANGHARAD_RESULT_ERROR);
+          return json_pack("{si}", "result", A_ERROR_MEMORY);
         }
         j_bool = json_object_get(j_scheduler, "ash_enabled");
         json_object_set_new(j_scheduler, "enabled", json_integer_value(j_bool)?json_true():json_false());
@@ -199,19 +193,19 @@ json_t * scheduler_get(struct config_elements * config, const char * scheduler_n
         json_object_set_new(j_scheduler, "repeat", j_repeat);
 
         script_list = scheduler_get_script_list(config, json_string_value(json_object_get(j_scheduler, "name")));
-        if (json_integer_value(json_object_get(script_list, "result")) == ANGHARAD_RESULT_OK) {
+        if (json_integer_value(json_object_get(script_list, "result")) == A_OK) {
           json_object_set_new(j_scheduler, "scripts", json_copy(json_object_get(script_list, "scripts")));
         } else {
           json_object_set_new(j_scheduler, "scripts", json_array());
         }
         json_decref(script_list);
         
-        return json_pack("{siso}", "result", ANGHARAD_RESULT_OK, "scheduler", j_scheduler);
+        return json_pack("{siso}", "result", A_OK, "scheduler", j_scheduler);
       }
     }
   } else {
     y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_get - Error allocating resources for j_query");
-    return json_pack("{si}", "result", ANGHARAD_RESULT_ERROR);
+    return json_pack("{si}", "result", A_ERROR_MEMORY);
   }
 }
 
@@ -367,9 +361,9 @@ int scheduler_modify(struct config_elements * config, const char * scheduler_nam
   }
   
   cur_scheduler = scheduler_get(config, scheduler_name, 0);
-  res_cur_scheduler = (cur_scheduler != NULL?json_integer_value(json_object_get(cur_scheduler, "result")):ANGHARAD_RESULT_ERROR);
+  res_cur_scheduler = (cur_scheduler != NULL?json_integer_value(json_object_get(cur_scheduler, "result")):A_ERROR);
   json_decref(cur_scheduler);
-  if (res_cur_scheduler == ANGHARAD_RESULT_OK) {
+  if (res_cur_scheduler == A_OK) {
     str_options = json_dumps(json_object_get(j_scheduler, "options"), JSON_COMPACT);
     str_conditions = json_dumps(json_object_get(j_scheduler, "conditions"), JSON_COMPACT);
     str_next_time = msprintf("FROM_UNIXTIME(%d)", json_integer_value(json_object_get(j_scheduler, "next_time")));
@@ -403,7 +397,7 @@ int scheduler_modify(struct config_elements * config, const char * scheduler_nam
       y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_modify - Error executing db query");
       return A_ERROR_DB;
     }
-  } else if (res_cur_scheduler == ANGHARAD_RESULT_NOT_FOUND) {
+  } else if (res_cur_scheduler == A_ERROR_NOT_FOUND) {
     return A_ERROR_NOT_FOUND;
   } else {
     return A_ERROR;
@@ -420,9 +414,9 @@ int scheduler_delete(struct config_elements * config, const char * scheduler_nam
   }
   
   cur_scheduler = scheduler_get(config, scheduler_name, 0);
-  res_cur_scheduler = (cur_scheduler != NULL?json_integer_value(json_object_get(cur_scheduler, "result")):ANGHARAD_RESULT_ERROR);
+  res_cur_scheduler = (cur_scheduler != NULL?json_integer_value(json_object_get(cur_scheduler, "result")):A_ERROR);
   json_decref(cur_scheduler);
-  if (res_cur_scheduler == ANGHARAD_RESULT_OK) {
+  if (res_cur_scheduler == A_OK) {
     j_query = json_pack("{sss{ss}}",
                         "table", ANGHARAD_TABLE_SCHEDULER,
                         "where",
@@ -441,7 +435,7 @@ int scheduler_delete(struct config_elements * config, const char * scheduler_nam
       y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_delete - Error executing db query");
       return A_ERROR_DB;
     }
-  } else if (res_cur_scheduler == ANGHARAD_RESULT_NOT_FOUND) {
+  } else if (res_cur_scheduler == A_ERROR_NOT_FOUND) {
     return A_ERROR_NOT_FOUND;
   } else {
     return A_ERROR;
@@ -456,10 +450,10 @@ int scheduler_add_tag(struct config_elements * config, const char * scheduler_na
     y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_add_tag - Error getting scheduler");
     return A_ERROR_PARAM;
   } else {
-    if (json_integer_value(json_object_get(j_result, "result")) == ANGHARAD_RESULT_NOT_FOUND) {
+    if (json_integer_value(json_object_get(j_result, "result")) == A_ERROR_NOT_FOUND) {
       json_decref(j_result);
       return A_ERROR_NOT_FOUND;
-    } else if (json_integer_value(json_object_get(j_result, "result")) == ANGHARAD_RESULT_OK) {
+    } else if (json_integer_value(json_object_get(j_result, "result")) == A_OK) {
       j_scheduler = json_object_get(j_result, "scheduler");
       j_tags = json_object_get(json_object_get(j_scheduler, "options"), "tags");
       if (j_tags == NULL) {
@@ -488,10 +482,10 @@ int scheduler_remove_tag(struct config_elements * config, const char * scheduler
     y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_remove_tag - Error getting scheduler");
     return A_ERROR;
   } else {
-    if (json_integer_value(json_object_get(j_result, "result")) == ANGHARAD_RESULT_NOT_FOUND) {
+    if (json_integer_value(json_object_get(j_result, "result")) == A_ERROR_NOT_FOUND) {
       json_decref(j_result);
       return A_ERROR_NOT_FOUND;
-    } else if (json_integer_value(json_object_get(j_result, "result")) == ANGHARAD_RESULT_OK) {
+    } else if (json_integer_value(json_object_get(j_result, "result")) == A_OK) {
       j_scheduler = json_object_get(j_result, "scheduler");
       j_tags = json_object_get(json_object_get(j_scheduler, "options"), "tags");
       if (j_tags == NULL) {
@@ -600,7 +594,7 @@ json_t * scheduler_get_script_list(struct config_elements * config, const char *
   
   if (res != H_OK) {
     y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_get_script_list - Error getting scheduler");
-    return json_pack("{si}", "result", ANGHARAD_RESULT_ERROR);
+    return json_pack("{si}", "result", A_ERROR);
   } else {
     json_array_foreach(j_result, index, j_script) {
       if (json_integer_value(json_object_get(j_script, "i_enabled")) == 0) {
@@ -610,7 +604,7 @@ json_t * scheduler_get_script_list(struct config_elements * config, const char *
       }
       json_object_del(j_script, "i_enabled");
     }
-    return json_pack("{siso}", "result", ANGHARAD_RESULT_OK, "scripts", j_result);
+    return json_pack("{siso}", "result", A_OK, "scripts", j_result);
   }
 }
 

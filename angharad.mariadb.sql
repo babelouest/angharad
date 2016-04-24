@@ -30,207 +30,214 @@ DROP TABLE IF EXISTS `a_script`;
 DROP TABLE IF EXISTS `a_submodule`;
 
 CREATE TABLE `b_device_type` (
-  `bdt_uid` varchar(64) PRIMARY KEY NOT NULL,
-  `bdt_enabled` tinyint(1) DEFAULT 0,
-  `bdt_name` varchar(64) NOT NULL UNIQUE,
-  `bdt_description` varchar(512),
+  `bdt_uid` VARCHAR(64) PRIMARY KEY NOT NULL,
+  `bdt_enabled` TINYINT(1) DEFAULT 0,
+  `bdt_name` VARCHAR(64) NOT NULL UNIQUE,
+  `bdt_description` VARCHAR(512),
   `bdt_options` BLOB
 );
 
 CREATE TABLE `b_device` (
-  `bd_id` int(11) PRIMARY KEY AUTO_INCREMENT,
-  `bd_name` varchar(64) NOT NULL UNIQUE,
-  `bd_display` varchar(128),
-  `bd_description` varchar(512),
-  `bd_enabled` tinyint(1) DEFAULT 1,
-  `bd_connected` tinyint(1) DEFAULT 0,
-  `bdt_uid` varchar(64),
+  `bd_id` INT(11) PRIMARY KEY AUTO_INCREMENT,
+  `bd_name` VARCHAR(64) NOT NULL UNIQUE,
+  `bd_display` VARCHAR(128),
+  `bd_description` VARCHAR(512),
+  `bd_enabled` TINYINT(1) DEFAULT 1,
+  `bd_connected` TINYINT(1) DEFAULT 0,
+  `bdt_uid` VARCHAR(64),
   `bd_options` BLOB,
-  `bd_last_seen` timestamp,
+  `bd_last_seen` TIMESTAMP,
   CONSTRAINT `device_type_ibfk_1` FOREIGN KEY (`bdt_uid`) REFERENCES `b_device_type` (`bdt_uid`)
 );
 
 CREATE TABLE `b_element` (
-  `be_id` int(11) PRIMARY KEY AUTO_INCREMENT,
-  `bd_name` varchar(64),
-  `be_name` varchar(64) NOT NULL,
-  `be_display` varchar(128),
-  `be_type` tinyint(1), -- 0 sensor, 1 switch, 2 dimmer, 3 heater
-  `be_description` varchar(128),
-  `be_enabled` tinyint(1) DEFAULT 1,
+  `be_id` INT(11) PRIMARY KEY AUTO_INCREMENT,
+  `bd_name` VARCHAR(64),
+  `be_name` VARCHAR(64) NOT NULL,
+  `be_display` VARCHAR(128),
+  `be_type` TINYINT(1), -- 0 sensor, 1 switch, 2 dimmer, 3 heater
+  `be_description` VARCHAR(128),
+  `be_enabled` TINYINT(1) DEFAULT 1,
   `be_options` BLOB,
-  `be_monitored` tinyint(1) DEFAULT 0,
-  `be_monitored_every` tinyint(1) DEFAULT 0,
-  `be_monitored_next` timestamp,
+  `be_monitored` TINYINT(1) DEFAULT 0,
+  `be_monitored_every` TINYINT(1) DEFAULT 0,
+  `be_monitored_next` TIMESTAMP,
   CONSTRAINT `device_ibfk_1` FOREIGN KEY (`bd_name`) REFERENCES `b_device` (`bd_name`) ON DELETE CASCADE
 );
 
 CREATE TABLE `b_monitor` (
-  `bm_id` int(11) PRIMARY KEY AUTO_INCREMENT,
-  `be_id` int(11),
-  `bm_date` timestamp DEFAULT CURRENT_TIMESTAMP,
-  `bm_value` varchar(16)
+  `bm_id` INT(11) PRIMARY KEY AUTO_INCREMENT,
+  `be_id` INT(11),
+  `bm_date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `bm_value` VARCHAR(16)
 );
 
 CREATE TABLE `c_service` (
-  `cs_uid` varchar(64) PRIMARY KEY NOT NULL,
-  `cs_enabled` tinyint(1) DEFAULT 0,
-  `cs_name` varchar(64) NOT NULL UNIQUE,
-  `cs_description` varchar(512)
+  `cs_uid` VARCHAR(64) PRIMARY KEY NOT NULL,
+  `cs_enabled` TINYINT(1) DEFAULT 0,
+  `cs_name` VARCHAR(64) NOT NULL UNIQUE,
+  `cs_description` VARCHAR(512)
 );
 
 CREATE TABLE `c_element` (
-  `cs_uid` varchar(64),
-  `ce_name` varchar(64),
+  `cs_uid` VARCHAR(64),
+  `ce_name` VARCHAR(64),
   `ce_tag` blob,
   CONSTRAINT `service_ibfk_1` FOREIGN KEY (`cs_uid`) REFERENCES `c_service` (`cs_uid`)
 );
 
 CREATE TABLE `c_profile` (
-  `cp_id` int(11) PRIMARY KEY AUTO_INCREMENT,
-  `cp_name` varchar(64) NOT NULL UNIQUE,
+  `cp_id` INT(11) PRIMARY KEY AUTO_INCREMENT,
+  `cp_name` VARCHAR(64) NOT NULL UNIQUE,
   `cp_data` BLOB -- profile data, json in a blob for old mysql versions compatibility
 );
 
 CREATE TABLE `g_alert_http` (
-  `ah_id` int(11) NOT NULL AUTO_INCREMENT,
-  `ah_name` varchar(64) NOT NULL UNIQUE,
-  `ah_method` varchar(16),
-  `ah_url` varchar(128) NOT NULL,
-  `ah_body` varchar(512),
+  `ah_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `ah_name` VARCHAR(64) NOT NULL UNIQUE,
+  `ah_method` VARCHAR(16),
+  `ah_url` VARCHAR(128) NOT NULL,
+  `ah_body` VARCHAR(512),
   PRIMARY KEY (`ah_id`)
 );
 
 CREATE TABLE `g_alert_http_header` (
-  `ahh_id` int(11) NOT NULL AUTO_INCREMENT,
-  `ah_id` int(11) NOT NULL,
-  `ahh_key` varchar(64) NOT NULL,
-  `ahh_value` varchar(128) DEFAULT NULL,
+  `ahh_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `ah_id` INT(11) NOT NULL,
+  `ahh_key` VARCHAR(64) NOT NULL,
+  `ahh_value` VARCHAR(128) DEFAULT NULL,
   PRIMARY KEY (`ahh_id`),
   KEY `ah_id` (`ah_id`),
   CONSTRAINT `alert_http_header_ibfk_1` FOREIGN KEY (`ah_id`) REFERENCES `g_alert_http` (`ah_id`) ON DELETE CASCADE
 );
 
 CREATE TABLE `g_alert_smtp` (
-  `as_id` int(11) NOT NULL AUTO_INCREMENT,
-  `as_name` varchar(64) NOT NULL UNIQUE,
-  `as_host` varchar(128) NOT NULL,
-  `as_port` int(5) DEFAULT 0 NOT NULL,
-  `as_tls` int(1) DEFAULT 0 NOT NULL,
-  `as_check_ca` int(1) DEFAULT 1 NOT NULL,
-  `as_user` varchar(128) DEFAULT NULL,
-  `as_password` varchar(128) DEFAULT NULL,
-  `as_from` varchar(128) NOT NULL,
-  `as_to` varchar(128) NOT NULL,
-  `as_cc` varchar(128) DEFAULT NULL,
-  `as_bcc` varchar(128) DEFAULT NULL,
-  `as_subject` varchar(128) NOT NULL,
-  `as_body` varchar(512) NOT NULL,
+  `as_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `as_name` VARCHAR(64) NOT NULL UNIQUE,
+  `as_host` VARCHAR(128) NOT NULL,
+  `as_port` INT(5) DEFAULT 0 NOT NULL,
+  `as_tls` INT(1) DEFAULT 0 NOT NULL,
+  `as_check_ca` INT(1) DEFAULT 1 NOT NULL,
+  `as_user` VARCHAR(128) DEFAULT NULL,
+  `as_password` VARCHAR(128) DEFAULT NULL,
+  `as_from` VARCHAR(128) NOT NULL,
+  `as_to` VARCHAR(128) NOT NULL,
+  `as_cc` VARCHAR(128) DEFAULT NULL,
+  `as_bcc` VARCHAR(128) DEFAULT NULL,
+  `as_subject` VARCHAR(128) NOT NULL,
+  `as_body` VARCHAR(512) NOT NULL,
   PRIMARY KEY (`as_id`)
 );
 
 CREATE TABLE `g_filter` (
-  `f_id` int(11) NOT NULL AUTO_INCREMENT,
-  `f_name` varchar(64) NOT NULL UNIQUE,
-  `f_description` varchar(128),
+  `f_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `f_name` VARCHAR(64) NOT NULL UNIQUE,
+  `f_description` VARCHAR(128),
   PRIMARY KEY (`f_id`)
 );
 
 CREATE TABLE `g_filter_clause` (
-  `fc_id` int(11) NOT NULL AUTO_INCREMENT,
-  `f_id` int(11) NOT NULL,
-  `fc_element` int(2) NOT NULL,
-  `fc_operator` int(1) DEFAULT 0,
-  `fc_value` varchar(128),
+  `fc_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `f_id` INT(11) NOT NULL,
+  `fc_element` INT(2) NOT NULL,
+  `fc_operator` INT(1) DEFAULT 0,
+  `fc_value` VARCHAR(128),
   PRIMARY KEY (`fc_id`),
   CONSTRAINT `filter_condition_ibfk_1` FOREIGN KEY (`f_id`) REFERENCES `g_filter` (`f_id`) ON DELETE CASCADE
 );
 
 CREATE TABLE `g_filter_alert` (
-  `f_id` int(11) NOT NULL,
-  `ah_name` varchar(64) NULL,
-  `as_name` varchar(64) NULL,
+  `f_id` INT(11) NOT NULL,
+  `ah_name` VARCHAR(64) NULL,
+  `as_name` VARCHAR(64) NULL,
   CONSTRAINT `filter_alert_ibfk_1` FOREIGN KEY (`f_id`) REFERENCES `g_filter` (`f_id`) ON DELETE CASCADE,
   CONSTRAINT `filter_alert_ibfk_2` FOREIGN KEY (`ah_name`) REFERENCES `g_alert_http` (`ah_name`) ON DELETE CASCADE,
   CONSTRAINT `filter_alert_ibfk_3` FOREIGN KEY (`as_name`) REFERENCES `g_alert_smtp` (`as_name`) ON DELETE CASCADE
 );
 
 CREATE TABLE `g_message` (
-  `m_id` int(11) NOT NULL AUTO_INCREMENT,
-  `m_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `m_priority` int(11) NOT NULL,
-  `m_source` varchar(64) NOT NULL,
-  `m_text` varchar(256) NOT NULL,
-  `m_tags` varchar(576),
+  `m_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `m_date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `m_priority` INT(11) NOT NULL,
+  `m_source` VARCHAR(64) NOT NULL,
+  `m_text` VARCHAR(256) NOT NULL,
+  `m_tags` VARCHAR(576),
   PRIMARY KEY (`m_id`)
 );
 
 CREATE TABLE `a_submodule` (
-  `as_name` varchar(64) NOT NULL UNIQUE,
-  `as_description` varchar(128),
-  `as_enabled` tinyint(1) default 1
+  `as_name` VARCHAR(64) NOT NULL UNIQUE,
+  `as_description` VARCHAR(128),
+  `as_enabled` TINYINT(1) default 1
 );
 INSERT INTO `a_submodule` (`as_name`, `as_description`, `as_enabled`) VALUES ('benoic', 'House automation devices management', 1);
 INSERT INTO `a_submodule` (`as_name`, `as_description`, `as_enabled`) VALUES ('carleon', 'House automation side services management', 1);
 INSERT INTO `a_submodule` (`as_name`, `as_description`, `as_enabled`) VALUES ('gareth', 'Messenger service', 1);
 
 CREATE TABLE `a_script` (
-  `asc_id` int(11) NOT NULL AUTO_INCREMENT,
-  `asc_name` varchar(64) NOT NULL UNIQUE,
-  `asc_description` varchar(128),
+  `asc_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `asc_name` VARCHAR(64) NOT NULL UNIQUE,
+  `asc_description` VARCHAR(128),
   `asc_actions` BLOB,
   `asc_options` BLOB,
   PRIMARY KEY (`asc_id`)
 );
 
 CREATE TABLE `a_scheduler` (
-  `ash_id` int(11) NOT NULL AUTO_INCREMENT,
-  `ash_name` varchar(64) NOT NULL UNIQUE,
-  `ash_description` varchar(128),
-  `ash_enabled` tinyint(1) DEFAULT 1,
+  `ash_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `ash_name` VARCHAR(64) NOT NULL UNIQUE,
+  `ash_description` VARCHAR(128),
+  `ash_enabled` TINYINT(1) DEFAULT 1,
   `ash_options` BLOB,
   `ash_conditions` BLOB,
-  `ash_next_time` timestamp,
-  `ash_repeat` tinyint(1) DEFAULT -1, -- -1: None, 0: minute, 1: hours, 2: days, 3: day of week, 4: month, 5: year
+  `ash_next_time` TIMESTAMP,
+  `ash_repeat` TINYINT(1) DEFAULT -1, -- -1: None, 0: minute, 1: hours, 2: days, 3: day of week, 4: month, 5: year
   `ash_repeat_value` INT(11),
   `ash_remove_after` INT(11) DEFAULT 0,
   PRIMARY KEY (`ash_id`)
 );
 
 CREATE TABLE `a_trigger` (
-  `at_id` int(11) NOT NULL AUTO_INCREMENT,
-  `at_name` varchar(64) NOT NULL UNIQUE,
-  `at_description` varchar(128),
-  `at_enabled` tinyint(1) DEFAULT 1,
+  `at_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `at_name` VARCHAR(64) NOT NULL UNIQUE,
+  `at_description` VARCHAR(128),
+  `at_enabled` TINYINT(1) DEFAULT 1,
   `at_options` BLOB,
   `at_conditions` BLOB,
-  `at_submodule` varchar(64) NOT NULL,
-  `at_source` varchar(64) NOT NULL,
-  `at_element` varchar(64) NOT NULL,
-  `at_message` varchar(128),
-  `at_message_match` tinyint(1) DEFAULT 0, -- 0 none, 1 equal, 2 different, 3 contains, 4 empty, 5 not empty
+  `at_submodule` VARCHAR(64) NOT NULL,
+  `at_source` VARCHAR(64) NOT NULL,
+  `at_element` VARCHAR(64) NOT NULL,
+  `at_message` VARCHAR(128),
+  `at_message_match` TINYINT(1) DEFAULT 0, -- 0 none, 1 equal, 2 different, 3 contains, 4 not contains, 5 empty, 6 not empty
   PRIMARY KEY (`at_id`)
 );
 
 CREATE TABLE `a_scheduler_script` (
-  `ash_id` int(11),
-  `asc_id` int(11),
-  `ass_enabled` tinyint(1) DEFAULT 1,
+  `ash_id` INT(11),
+  `asc_id` INT(11),
+  `ass_enabled` TINYINT(1) DEFAULT 1,
   CONSTRAINT `scheduler_id_ibfk_1` FOREIGN KEY (`ash_id`) REFERENCES `a_scheduler` (`ash_id`) ON DELETE CASCADE,
   CONSTRAINT `script_id_ibfk_1` FOREIGN KEY (`asc_id`) REFERENCES `a_script` (`asc_id`) ON DELETE CASCADE
 );
 
 CREATE TABLE `a_trigger_script` (
-  `at_id` int(11),
-  `asc_id` int(11),
-  `ats_enabled` tinyint(1) DEFAULT 1,
+  `at_id` INT(11),
+  `asc_id` INT(11),
+  `ats_enabled` TINYINT(1) DEFAULT 1,
   CONSTRAINT `trigger_id_ibfk_1` FOREIGN KEY (`at_id`) REFERENCES `a_trigger` (`at_id`) ON DELETE CASCADE,
   CONSTRAINT `script_id_ibfk_2` FOREIGN KEY (`asc_id`) REFERENCES `a_script` (`asc_id`) ON DELETE CASCADE
 );
 
 CREATE TABLE `a_session` (
-  `ass_session_token` varchar(128) NOT NULL UNIQUE,
-  `ass_login` varchar(64) NOT NULL,
-  `ass_validity` timestamp,
-  `ass_security` tinyint(1) default 0 -- 0 public, 1 private
+  `ass_session_token` VARCHAR(128) NOT NULL UNIQUE,
+  `ass_login` VARCHAR(64) NOT NULL,
+  `ass_validity` TIMESTAMP, -- if 0, then session is expired when lastseen < 5 minutes
+  `ass_lastseen` TIMESTAMP
+);
+CREATE INDEX `session_uuid_idx` ON `a_session` (`ass_session_token`);
+
+CREATE TABLE `a_user` (
+  `au_login` VARCHAR(128) NOT NULL UNIQUE,
+  `au_password` VARCHAR(128) NOT NULL,
+  `au_enabled` TINYINT(1) DEFAULT 1
 );

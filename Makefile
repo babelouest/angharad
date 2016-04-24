@@ -28,7 +28,7 @@
 PREFIX=/usr/local
 CC=gcc
 CFLAGS=-c -Wall -D_REENTRANT -I$(PREFIX)/include $(ADDITIONALFLAGS)
-LIBS=-L$(PREFIX)/lib -lc -lm -lpthread -ldl -ljansson -lulfius -lhoel -lyder -lorcania
+LIBS=-L$(PREFIX)/lib -lc -lm -lpthread -ldl -luuid -ljansson -lulfius -lhoel -lyder -lorcania
 
 # subprojects locations
 GARETH_LOCATION=gareth
@@ -38,7 +38,7 @@ CARLEON_LOCATION=carleon
 GARETH_LIBS=$(GARETH_LOCATION)/gareth.o $(GARETH_LOCATION)/alert.o $(GARETH_LOCATION)/filter.o $(GARETH_LOCATION)/message.o
 BENOIC_LIBS=$(BENOIC_LOCATION)/benoic.o $(BENOIC_LOCATION)/device.o $(BENOIC_LOCATION)/device-element.o
 CARLEON_LIBS=$(CARLEON_LOCATION)/carleon.o $(CARLEON_LOCATION)/service.o $(CARLEON_LOCATION)/profile.o
-ANGHARAD_LIBS=angharad.h angharad.o condition.o scheduler.o trigger.o script.o webservice.o
+ANGHARAD_LIBS=angharad.h angharad.o condition.o scheduler.o trigger.o script.o webservice.o authentication.o
 
 angharad: gareth.o benoic.o carleon.o $(ANGHARAD_LIBS)
 	$(CC) -o angharad $(ANGHARAD_LIBS) $(GARETH_LIBS) $(BENOIC_LIBS) $(CARLEON_LIBS) $(LIBS) -lconfig
@@ -60,6 +60,9 @@ script.o: script.c angharad.h
 
 webservice.o: webservice.c angharad.h
 	$(CC) $(CFLAGS) webservice.c
+
+authentication.o: authentication.c angharad.h
+	$(CC) $(CFLAGS) authentication.c
 
 gareth.o:
 	cd $(GARETH_LOCATION) && $(MAKE) $(DEBUGFLAG)

@@ -34,6 +34,7 @@
 #include <signal.h>
 #include <jansson.h>
 #include <math.h>
+#include <uuid/uuid.h>
 
 // Angharad libraries
 #include <ulfius.h>
@@ -65,23 +66,26 @@
 #define ALLOW_ORIGIN_DEFAULT        "*"
 #define STATIC_FILES_PREFIX_DEFAULT "sagremor"
 
-#define A_OK              0
-#define A_ERROR           1
-#define A_ERROR_DB        2
-#define A_ERROR_IO        3
-#define A_ERROR_NOT_FOUND 4
-#define A_ERROR_PARAM     5
-#define A_ERROR_MEMORY    6
+#define MODULE_RESULT_ERROR     0
+#define MODULE_RESULT_OK        1
+#define MODULE_RESULT_NOT_FOUND 2
+#define MODULE_RESULT_TIMEOUT   3
+
+#define A_OK                 0
+#define A_ERROR              1
+#define A_ERROR_DB           2
+#define A_ERROR_IO           3
+#define A_ERROR_NOT_FOUND    4
+#define A_ERROR_PARAM        5
+#define A_ERROR_MEMORY       6
+#define A_ERROR_TRUE         7
+#define A_ERROR_FALSE        8
+#define A_ERROR_UNAUTHORIZED 9
+#define A_ERROR_EXPIRED      10
 
 #define ANGHARAD_STATUS_RUN      0
 #define ANGHARAD_STATUS_STOPPING 1
 #define ANGHARAD_STATUS_STOP     2
-
-#define ANGHARAD_RESULT_ERROR     0
-#define ANGHARAD_RESULT_OK        1
-#define ANGHARAD_RESULT_NOT_FOUND 2
-#define ANGHARAD_RESULT_TRUE      3
-#define ANGHARAD_RESULT_FALSE     4
 
 #define ANGHARAD_SUBMODULE_BENOIC  "benoic"
 #define ANGHARAD_SUBMODULE_CARLEON "carleon"
@@ -96,6 +100,10 @@
 #define ANGHARAD_TABLE_SCHEDULER_SCRIPT "a_scheduler_script"
 #define ANGHARAD_TABLE_TRIGGER_SCRIPT   "a_trigger_script"
 
+#define ANGHARAD_AUTH_TYPE_NONE     0
+#define ANGHARAD_AUTH_TYPE_DATABASE 1
+#define ANGHARAD_AUTH_TYPE_LDAP     2
+
 #define SCHEDULER_REPEAT_NONE         -1
 #define SCHEDULER_REPEAT_MINUTE       0
 #define SCHEDULER_REPEAT_HOUR         1
@@ -103,6 +111,28 @@
 #define SCHEDULER_REPEAT_DAY_OF_WEEK  3
 #define SCHEDULER_REPEAT_MONTH        4
 #define SCHEDULER_REPEAT_YEAR         5
+
+#define TRIGGER_MESSAGE_MATCH_NONE         0
+#define TRIGGER_MESSAGE_MATCH_EQUAL        1
+#define TRIGGER_MESSAGE_MATCH_DIFFERENT    2
+#define TRIGGER_MESSAGE_MATCH_CONTAINS     3
+#define TRIGGER_MESSAGE_MATCH_NOT_CONTAINS 4
+#define TRIGGER_MESSAGE_MATCH_EMPTY        5
+#define TRIGGER_MESSAGE_MATCH_NOT_EMPTY    6
+
+struct _auth_database {
+  char * table;
+  char * login_column;
+  char * password_column;
+  char * password_filter;
+};
+
+struct _auth_ldap {
+  char * url;
+  char * bind_dn;
+  char * bind_passwd;
+  char * filter;
+};
 
 struct config_elements {
   char *                   config_file;
@@ -123,6 +153,9 @@ struct config_elements {
   struct _benoic_config  * b_config;
   struct _carleon_config * c_config;
   unsigned int             angharad_status;
+  unsigned int             auth_type;
+  struct _auth_database  * auth_database;
+  struct _auth_ldap      * auth_ldap;
 };
 
 int global_handler_variable;
@@ -142,6 +175,8 @@ int close_angharad(struct config_elements * config);
 int angharad_run_thread(struct config_elements * config);
 
 void * thread_scheduler_run(void * args);
+
+int alert_received(struct config_elements * config, const char * submodule_name, const char * source, const char * element, const char * message);
 
 json_t * script_get(struct config_elements * config, const char * script_name);
 int script_add(struct config_elements * config, json_t * j_script);
@@ -185,6 +220,12 @@ int trigger_add_tag(struct config_elements * config, const char * trigger_name, 
 int trigger_remove_tag(struct config_elements * config, const char * trigger_name, const char * tag);
 
 const char * get_filename_ext(const char *path);
+
+json_t * auth_get(struct config_elements * config, const char * session_id);
+json_t * auth_check(struct config_elements * config, const char * user, const char * password, const int validity);
+int auth_check_credentials(struct config_elements * config, const char * user, const char * password);
+int auth_check_credentials_database(struct config_elements * config, const char * user, const char * password);
+int auth_check_credentials_ldap(struct config_elements * config, const char * user, const char * password);
 
 // Callback functions for webservices
 int callback_angharad_alert (const struct _u_request * request, struct _u_response * response, void * user_data);

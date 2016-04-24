@@ -302,9 +302,11 @@ void exit_handler(int signal) {
 int build_config_from_file(struct config_elements * config) {
   
   config_t cfg;
-  config_setting_t * root, * database;
+  config_setting_t * root, * database, * auth;
   const char * cur_prefix_angharad, * cur_prefix_benoic, * cur_prefix_carleon, * cur_prefix_gareth, * cur_log_mode, * cur_log_level, * cur_log_file = NULL, * one_log_mode, * carleon_services_path, * benoic_modules_path, * cur_allow_origin, * cur_static_files_prefix,
-             * db_type, * db_sqlite_path, * db_mariadb_host = NULL, * db_mariadb_user = NULL, * db_mariadb_password = NULL, * db_mariadb_dbname = NULL, * cur_angharad_realm = NULL, * cur_static_files_path = NULL;
+             * db_type, * db_sqlite_path, * db_mariadb_host = NULL, * db_mariadb_user = NULL, * db_mariadb_password = NULL, * db_mariadb_dbname = NULL, * cur_angharad_realm = NULL, * cur_static_files_path = NULL,
+             * cur_auth_type = NULL, * cur_auth_db_table = NULL, * cur_auth_db_login_column = NULL, * cur_auth_db_password_column = NULL, * cur_auth_db_password_filter = NULL,
+             * cur_auth_ldap_url = NULL, * cur_auth_ldap_bind_dn = NULL, * cur_auth_ldap_bind_passwd = NULL, * cur_auth_ldap_filter = NULL;
   int db_mariadb_port = 0;
   
   config_init(&cfg);
@@ -499,6 +501,103 @@ int build_config_from_file(struct config_elements * config) {
     return 0;
   }
 
+  auth = config_setting_get_member(root, "authentication");
+  if (auth != NULL) {
+    if (config_setting_lookup_string(auth, "type", &cur_auth_type) == CONFIG_TRUE) {
+      if (0 == nstrncmp(cur_auth_type, "database", strlen("database"))) {
+        config_setting_lookup_string(auth, "table", &cur_auth_db_table);
+        config_setting_lookup_string(auth, "login_column", &cur_auth_db_login_column);
+        config_setting_lookup_string(auth, "password_column", &cur_auth_db_password_column);
+        config_setting_lookup_string(auth, "password_filter", &cur_auth_db_password_filter);
+        if (cur_auth_db_table != NULL && cur_auth_db_login_column != NULL && cur_auth_db_password_column != NULL) {
+          config->auth_database = malloc(sizeof(struct _auth_database));
+          if (config->auth_database == NULL) {
+            config_destroy(&cfg);
+            fprintf(stderr, "Error allocating resources for config->auth_database\n");
+            return 0;
+          } else {
+            config->auth_database->table = nstrdup(cur_auth_db_table);
+            if (config->auth_database->table == NULL) {
+              config_destroy(&cfg);
+              fprintf(stderr, "Error allocating resources for config->auth_database->table\n");
+              return 0;
+            }
+            config->auth_database->login_column = nstrdup(cur_auth_db_login_column);
+            if (config->auth_database->login_column == NULL) {
+              config_destroy(&cfg);
+              fprintf(stderr, "Error allocating resources for config->auth_database->login_column\n");
+              return 0;
+            }
+            config->auth_database->password_column = nstrdup(cur_auth_db_password_column);
+            if (config->auth_database->password_column == NULL) {
+              config_destroy(&cfg);
+              fprintf(stderr, "Error allocating resources for config->auth_database->password_column\n");
+              return 0;
+            }
+            if (cur_auth_db_password_filter != NULL) {
+              config->auth_database->password_filter = nstrdup(cur_auth_db_password_filter);
+              if (config->auth_database->password_filter == NULL) {
+                config_destroy(&cfg);
+                fprintf(stderr, "Error allocating resources for config->auth_database->password_filter\n");
+                return 0;
+              }
+            }
+          }
+        } else {
+          config_destroy(&cfg);
+          fprintf(stderr, "Error, auth database error parameters\n");
+          return 0;
+        }
+      } else if (0 == nstrncmp(cur_auth_type, "ldap", strlen("ldap"))) {
+        config_setting_lookup_string(auth, "url", &cur_auth_ldap_url);
+        config_setting_lookup_string(auth, "bind_dn", &cur_auth_ldap_bind_dn);
+        config_setting_lookup_string(auth, "bind_passwd", &cur_auth_ldap_bind_passwd);
+        config_setting_lookup_string(auth, "filter", &cur_auth_ldap_filter);
+        if (cur_auth_ldap_url != NULL && cur_auth_ldap_bind_dn != NULL && cur_auth_ldap_bind_passwd != NULL && cur_auth_ldap_filter != NULL) {
+          config->auth_ldap = malloc(sizeof(struct _auth_ldap));
+          if (config->auth_ldap == NULL) {
+            config_destroy(&cfg);
+            fprintf(stderr, "Error allocating resources for config->auth_ldap\n");
+            return 0;
+          } else {
+            config->auth_ldap->url = nstrdup(cur_auth_ldap_url);
+            if (config->auth_ldap->url == NULL) {
+              config_destroy(&cfg);
+              fprintf(stderr, "Error allocating resources for config->auth_ldap->url\n");
+              return 0;
+            }
+            config->auth_ldap->bind_dn = nstrdup(cur_auth_ldap_bind_dn);
+            if (config->auth_ldap->bind_dn == NULL) {
+              config_destroy(&cfg);
+              fprintf(stderr, "Error allocating resources for config->auth_ldap->bind_dn\n");
+              return 0;
+            }
+            config->auth_ldap->bind_passwd = nstrdup(cur_auth_ldap_bind_passwd);
+            if (config->auth_ldap->bind_passwd == NULL) {
+              config_destroy(&cfg);
+              fprintf(stderr, "Error allocating resources for config->auth_ldap->bind_passwd\n");
+              return 0;
+            }
+            config->auth_ldap->filter = nstrdup(cur_auth_ldap_filter);
+            if (config->auth_ldap->filter == NULL) {
+              config_destroy(&cfg);
+              fprintf(stderr, "Error allocating resources for config->auth_ldap->filter\n");
+              return 0;
+            }
+          }
+        } else {
+          config_destroy(&cfg);
+          fprintf(stderr, "Error, auth ldap error parameters\n");
+          return 0;
+        }
+      }
+    } else {
+      config_destroy(&cfg);
+      fprintf(stderr, "Error, no authentication type found\n");
+      return 0;
+    }
+  }
+  
   if (config->angharad_realm == NULL) {
     // Get prefix url
     if (config_lookup_string(&cfg, "authentication_realm", &cur_angharad_realm)) {
@@ -649,6 +748,9 @@ int main(int argc, char ** argv) {
   config->log_level = Y_LOG_LEVEL_NONE;
   config->log_file = NULL;
   config->angharad_status = ANGHARAD_STATUS_STOP;
+  config->auth_type = ANGHARAD_AUTH_TYPE_NONE;
+  config->auth_database = NULL;
+  config->auth_ldap = NULL;
   config->instance = malloc(sizeof(struct _u_instance));
   config->c_config = malloc(sizeof(struct _carleon_config));
   config->b_config = malloc(sizeof(struct _benoic_config));
@@ -692,7 +794,7 @@ int main(int argc, char ** argv) {
   
   // Initialize benoic webservice if enabled
   submodule = submodule_get(config, ANGHARAD_SUBMODULE_BENOIC);
-  if (submodule != NULL && json_integer_value(json_object_get(submodule, "result")) == ANGHARAD_RESULT_OK && json_object_get(json_object_get(submodule, "submodule"), "enabled") == json_true()) {
+  if (submodule != NULL && json_integer_value(json_object_get(submodule, "result")) == A_OK && json_object_get(json_object_get(submodule, "submodule"), "enabled") == json_true()) {
     res = init_benoic(config->instance, config->url_prefix_benoic, config->b_config);
     if (res != B_OK) {
       y_log_message(Y_LOG_LEVEL_ERROR, "Error initializing benoic webservice: %d", res);
@@ -704,7 +806,7 @@ int main(int argc, char ** argv) {
   
   // Initialize benoic webservice if enabled
   submodule = submodule_get(config, ANGHARAD_SUBMODULE_CARLEON);
-  if (submodule != NULL && json_integer_value(json_object_get(submodule, "result")) == ANGHARAD_RESULT_OK && json_object_get(json_object_get(submodule, "submodule"), "enabled") == json_true()) {
+  if (submodule != NULL && json_integer_value(json_object_get(submodule, "result")) == A_OK && json_object_get(json_object_get(submodule, "submodule"), "enabled") == json_true()) {
     res = init_carleon(config->instance, config->url_prefix_carleon, config->c_config);
     if (res != C_OK) {
       y_log_message(Y_LOG_LEVEL_ERROR, "Error initializing carleon webservice: %d", res);
@@ -716,7 +818,7 @@ int main(int argc, char ** argv) {
 
   // Initialize benoic webservice if enabled
   submodule = submodule_get(config, ANGHARAD_SUBMODULE_GARETH);
-  if (submodule != NULL && json_integer_value(json_object_get(submodule, "result")) == ANGHARAD_RESULT_OK && json_object_get(json_object_get(submodule, "submodule"), "enabled") == json_true()) {
+  if (submodule != NULL && json_integer_value(json_object_get(submodule, "result")) == A_OK && json_object_get(json_object_get(submodule, "submodule"), "enabled") == json_true()) {
     res = init_gareth(config->instance, config->url_prefix_gareth, config->conn);
     if (!res) {
       y_log_message(Y_LOG_LEVEL_ERROR, "Error initializing gareth webservice: %d", res);
@@ -777,7 +879,7 @@ json_t * submodule_get(struct config_elements * config, const char * submodule) 
     if (submodule != NULL) {
       if (json_array_size(j_result) == 0) {
         json_decref(j_result);
-        return json_pack("{si}", "result", ANGHARAD_RESULT_NOT_FOUND);
+        return json_pack("{si}", "result", A_ERROR_NOT_FOUND);
       } else {
         j_submodule = json_copy(json_array_get(j_result, 0));
         if (json_integer_value(json_object_get(j_submodule, "enabled")) == 1) {
@@ -788,7 +890,7 @@ json_t * submodule_get(struct config_elements * config, const char * submodule) 
           json_object_set_new(j_submodule, "enabled", json_false());
         }
         json_decref(j_result);
-        return json_pack("{siso}", "result", ANGHARAD_RESULT_OK, "submodule", j_submodule);
+        return json_pack("{siso}", "result", A_OK, "submodule", j_submodule);
       }
     } else {
       json_array_foreach(j_result, index, j_submodule) {
@@ -800,7 +902,7 @@ json_t * submodule_get(struct config_elements * config, const char * submodule) 
           json_object_set_new(j_submodule, "enabled", json_false());
         }
       }
-      return json_pack("{siso}", "result", ANGHARAD_RESULT_OK, "submodules", j_result);
+      return json_pack("{siso}", "result", A_OK, "submodules", j_result);
     }
   } else {
     y_log_message(Y_LOG_LEVEL_ERROR, "submodule_get - Error executing db query");
@@ -813,7 +915,7 @@ int submodule_enable(struct config_elements * config, const char * submodule, in
   json_t * j_submodule = submodule_get(config, submodule), * j_query;
   int res;
   
-  if (j_submodule != NULL && json_integer_value(json_object_get(j_submodule, "result")) == ANGHARAD_RESULT_OK) {
+  if (j_submodule != NULL && json_integer_value(json_object_get(j_submodule, "result")) == A_OK) {
     if (enabled && json_object_get(json_object_get(j_submodule, "submodule"), "enabled") == json_false()) {
       json_decref(j_submodule);
       // Enable disabled module
