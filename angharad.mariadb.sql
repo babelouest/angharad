@@ -21,6 +21,7 @@ DROP TABLE IF EXISTS `g_alert_smtp`;
 DROP TABLE IF EXISTS `g_alert_http_header`;
 DROP TABLE IF EXISTS `g_alert_http`;
 
+DROP TABLE IF EXISTS `a_user`;
 DROP TABLE IF EXISTS `a_session`;
 DROP TABLE IF EXISTS `a_scheduler_script`;
 DROP TABLE IF EXISTS `a_trigger_script`;
@@ -230,7 +231,8 @@ CREATE TABLE `a_trigger_script` (
 
 CREATE TABLE `a_session` (
   `ass_session_token` VARCHAR(128) NOT NULL UNIQUE,
-  `ass_login` VARCHAR(64) NOT NULL,
+  `ass_enabled` TINYINT(1) DEFAULT 1,
+  `ass_login` VARCHAR(64),
   `ass_validity` TIMESTAMP, -- if 0, then session is expired when lastseen < 5 minutes
   `ass_lastseen` TIMESTAMP
 );
@@ -239,5 +241,6 @@ CREATE INDEX `session_uuid_idx` ON `a_session` (`ass_session_token`);
 CREATE TABLE `a_user` (
   `au_login` VARCHAR(128) NOT NULL UNIQUE,
   `au_password` VARCHAR(128) NOT NULL,
-  `au_enabled` TINYINT(1) DEFAULT 1
+  `au_enabled` TINYINT(1) DEFAULT 1,
+  PRIMARY KEY (`au_login`)
 );

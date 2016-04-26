@@ -222,10 +222,11 @@ int trigger_remove_tag(struct config_elements * config, const char * trigger_nam
 const char * get_filename_ext(const char *path);
 
 json_t * auth_get(struct config_elements * config, const char * session_id);
-json_t * auth_check(struct config_elements * config, const char * user, const char * password, const int validity);
-int auth_check_credentials(struct config_elements * config, const char * user, const char * password);
-int auth_check_credentials_database(struct config_elements * config, const char * user, const char * password);
-int auth_check_credentials_ldap(struct config_elements * config, const char * user, const char * password);
+json_t * auth_check(struct config_elements * config, const char * login, const char * password, const int validity);
+int auth_check_credentials(struct config_elements * config, const char * login, const char * password);
+int auth_check_credentials_database(struct config_elements * config, const char * login, const char * password);
+int auth_check_credentials_ldap(struct config_elements * config, const char * login, const char * password);
+json_t * auth_generate_new_token(struct config_elements * config, const char * login, int validity);
 
 // Callback functions for webservices
 int callback_angharad_alert (const struct _u_request * request, struct _u_response * response, void * user_data);

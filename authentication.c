@@ -28,91 +28,176 @@
 
 #include "angharad.h"
 
+/**
+ * 
+ * Get authentication:
+ * 
+ *  if token valid then
+ *   return token and validity
+ *  else if no authorization
+ *   generate new token with validity of 10 years and no login
+ *   store new session with login and validity
+ *   return new token session with validity
+ *  else
+ *   return unauthorized
+ *  end
+ * end
+ * 
+ */
 json_t * auth_get(struct config_elements * config, const char * session_id) {
-  json_t * j_query, * j_result;
-  int res;
+  json_t * j_query, * j_result = NULL, * j_return;
+  int res, res_size;
   time_t now;
-  char * query = NULL;
+  struct tm* tm;
   
-  j_query = json_pack("{sss[ss]s{ss}}",
-                      "table",
-                      ANGHARAD_TABLE_SESSION,
-                      "columns",
-                        "UNIX_TIMESTAMP(ass_validity) AS validity",
-                        "UNIX_TIMESTAMP(ass_lastseen) AS lastseen",
-                      "where",
-                        "ass_session_token",
-                        session_id);
-  res = h_select(config->conn, j_query, &j_result, &query);
-  y_log_message(Y_LOG_LEVEL_DEBUG, "query is %s", query);
-  json_decref(j_query);
+  time(&now);
+  
+  if (session_id != NULL) {
+    j_query = json_pack("{sss[sss]s{sssi}}",
+                        "table",
+                        ANGHARAD_TABLE_SESSION,
+                        "columns",
+                          "UNIX_TIMESTAMP(ass_validity) AS validity",
+                          "UNIX_TIMESTAMP(ass_lastseen) AS lastseen",
+                          "ass_login AS login"
+                        "where",
+                          "ass_session_token",
+                          session_id,
+                          "ass_enabled",
+                          1);
+    res = h_select(config->conn, j_query, &j_result, NULL);
+    json_decref(j_query);
+  } else {
+    res = H_OK;
+  }
   if (res == H_OK) {
-    if (json_array_size(j_result) == 0) {
-      return json_pack("{si}", "result", A_ERROR_UNAUTHORIZED);
-    } else if (json_array_size(j_result) > 1) {
-      y_log_message(Y_LOG_LEVEL_ERROR, "auth_get - Error in j_query result");
-      return json_pack("{si}", "result", A_ERROR_DB);
+    if (session_id != NULL) {
+      res_size = json_array_size(j_result);
     } else {
-      time(&now);
-      if (json_object_get(j_result, "validity") != NULL && json_object_get(j_result, "validity") != json_null()) {
-        // Check if session hasn't expired
-        if (json_integer_value(json_object_get(j_result, "validity")) > now) {
-          return json_pack("{sis{sssi}}", "result", A_OK, "session", "token", session_id, "validity", json_integer_value(json_object_get(j_result, "validity")));
-        } else {
-          return json_pack("{si}", "result", A_ERROR_EXPIRED);
-        }
-      } else if (json_object_get(j_result, "validity") == json_null()) {
-        // Check if temp session is still valid
-        if (json_integer_value(json_object_get(j_result, "lastseen")) > (now - (60 * 5))) {
-          return json_pack("{sis{sssi}}", "result", A_OK, "session", "token", session_id, "validity", 0);
-        } else {
-          return json_pack("{si}", "result", A_ERROR_EXPIRED);
-        }
-      } else {
-        return json_pack("{si}", "result", A_ERROR_EXPIRED);
-      }
+      res_size = 0;
     }
+    if (res_size == 0) {
+      // No session or wrong session
+      if (config->auth_type == ANGHARAD_AUTH_TYPE_NONE) {
+        y_log_message(Y_LOG_LEVEL_DEBUG, "session not found");
+        // Generate new session
+        tm = localtime(&now);
+        tm->tm_year += 10;
+        j_return = auth_generate_new_token(config, NULL, mktime(tm));
+      } else {
+        // Return unauthorized
+        y_log_message(Y_LOG_LEVEL_ERROR, "auth_get - No valid session found");
+        j_return = json_pack("{si}", "result", A_ERROR_UNAUTHORIZED);
+      }
+    } else if (res_size > 1) {
+      // Obviously an error
+      y_log_message(Y_LOG_LEVEL_ERROR, "auth_get - Error in j_query result");
+      j_return = json_pack("{si}", "result", A_ERROR_DB);
+    } else {
+      // Session found, return it
+      y_log_message(Y_LOG_LEVEL_DEBUG, "session found");
+      j_return = json_pack("{sis{sssi}}", "result", A_OK, "session", "token", session_id, "validity", json_integer_value(json_object_get(j_result, "validity")));
+    }
+    json_decref(j_result);
   } else {
     y_log_message(Y_LOG_LEVEL_ERROR, "auth_get - Error executing j_query");
-    return json_pack("{si}", "result", A_ERROR_DB);
+    j_return = json_pack("{si}", "result", A_ERROR_DB);
   }
+  return j_return;
 }
 
-json_t * auth_check(struct config_elements * config, const char * user, const char * password, const int validity) {
-  uuid_t uuid;
-  char uuid_str[37];
-  int res;
+/**
+ * 
+ * Check authentication:
+ * 
+ * if no authentication then
+ *  generate new token with validity of 10 years and no login
+ *  store new session with login and validity
+* *  return new token session with validity
+ * else
+ *  if credentials valid then
+ *   generate new token with validity specified (default 0)
+ *   store new session with login and validity
+ *   return new token session with validity
+ *  else
+ *   return unauthorized
+ *  end
+ * end
+ * 
+ */
+json_t * auth_check(struct config_elements * config, const char * login, const char * password, const int validity) {
+  json_t * j_return;
+  time_t now;
+  struct tm* tm;
   
-  res = auth_check_credentials(config, user, password);
-  if (res == A_OK) {
-    uuid_generate_random(uuid);
-    uuid_unparse_lower(uuid, uuid_str);
-    y_log_message(Y_LOG_LEVEL_DEBUG, "uuid generated is %s", uuid_str);
-    return json_pack("{sissssi}}", "result", A_OK, "session", "token", uuid_str, "validity", validity);
-  } else if (res == A_ERROR_UNAUTHORIZED) {
-    return json_pack("{si}", "result", A_ERROR_UNAUTHORIZED);
+  if (config->auth_type == ANGHARAD_AUTH_TYPE_NONE) {
+    // Generate new session
+    time(&now);
+    tm = localtime(&now);
+    tm->tm_year += 10;
+    j_return = auth_generate_new_token(config, NULL, mktime(tm));
   } else {
-    return json_pack("{si}", "result", A_ERROR);
+    if (auth_check_credentials(config, login, password) == A_OK) {
+      j_return = auth_generate_new_token(config, login, validity);
+    } else {
+      // Return unauthorized
+      y_log_message(Y_LOG_LEVEL_ERROR, "auth_check - Error in credentials");
+      j_return = json_pack("{si}", "result", A_ERROR_UNAUTHORIZED);
+    }
   }
+  return j_return;
 }
 
-int auth_check_credentials(struct config_elements * config, const char * user, const char * password) {
+int auth_check_credentials(struct config_elements * config, const char * login, const char * password) {
   if (config->auth_type == ANGHARAD_AUTH_TYPE_NONE) {
     return A_OK;
   } else if (config->auth_type == ANGHARAD_AUTH_TYPE_DATABASE) {
-    return auth_check_credentials_database(config, user, password);
+    return auth_check_credentials_database(config, login, password);
   } else if (config->auth_type == ANGHARAD_AUTH_TYPE_LDAP) {
-    return auth_check_credentials_ldap(config, user, password);
+    return auth_check_credentials_ldap(config, login, password);
   } else {
     return A_ERROR_PARAM;
   }
 }
 
-int auth_check_credentials_database(struct config_elements * config, const char * user, const char * password) {
+json_t * auth_generate_new_token(struct config_elements * config, const char * login, int validity) {
+  json_t * j_query, * j_login = login==NULL?json_null():json_string(login);
+  uuid_t uuid;
+  char uuid_str[37];
+  int res;
+  
+  uuid_generate_random(uuid);
+  uuid_unparse_lower(uuid, uuid_str);
+  
+  j_query = json_pack("{sss[{sssosis{ss}}]}",
+                      "table",
+                      ANGHARAD_TABLE_SESSION,
+                      "values",
+                        "ass_session_token",
+                        uuid_str,
+                        "ass_login",
+                        j_login,
+                        "ass_validity",
+                        validity,
+                        "ass_lastseen",
+                          "raw",
+                          "NOW()");
+  res = h_insert(config->conn, j_query, NULL);
+  json_decref(j_query);
+  json_decref(j_login);
+  if (res == H_OK) {
+    return json_pack("{sis{sssi}}", "result", A_OK, "session", "token", uuid_str, "validity", validity);
+  } else {
+    y_log_message(Y_LOG_LEVEL_ERROR, "auth_generate_new_token - Error database");
+    return json_pack("{si}", "result", A_ERROR_DB);
+  }
+}
+
+int auth_check_credentials_database(struct config_elements * config, const char * login, const char * password) {
   return A_ERROR_UNAUTHORIZED;
 }
 
-int auth_check_credentials_ldap(struct config_elements * config, const char * user, const char * password) {
+int auth_check_credentials_ldap(struct config_elements * config, const char * login, const char * password) {
   return A_ERROR_UNAUTHORIZED;
 }
 
