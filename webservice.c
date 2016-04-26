@@ -702,6 +702,7 @@ int callback_angharad_static_file (const struct _u_request * request, struct _u_
 
 int callback_angharad_auth_get (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * result;
+  time_t now;
   
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_auth_get - Error, user_data is NULL");
@@ -710,11 +711,15 @@ int callback_angharad_auth_get (const struct _u_request * request, struct _u_res
     result = auth_get((struct config_elements *)user_data, u_map_get(request->map_cookie, "ANGHARAD_SESSION_ID"));
     
     if (result != NULL && json_integer_value(json_object_get(result, "result")) == A_OK) {
-      response->json_body = json_copy(json_object_get(result, "session"));
-      ulfius_add_cookie_to_response(response, "ANGHARAD_SESSION_ID", json_string_value(json_object_get(json_object_get(result, "session"), "token")), NULL, json_integer_value(json_object_get(json_object_get(result, "session"), "validity")), NULL, "/", 0, 0);
+      if (auth_update_last_seen((struct config_elements *)user_data, u_map_get(request->map_cookie, "ANGHARAD_SESSION_ID")) == A_OK) {
+        time(&now);
+        response->json_body = json_copy(json_object_get(result, "session"));
+        ulfius_add_cookie_to_response(response, "ANGHARAD_SESSION_ID", json_string_value(json_object_get(json_object_get(result, "session"), "token")), NULL, (json_integer_value(json_object_get(json_object_get(result, "session"), "validity")) - now), NULL, "/", 0, 0);
+      } else {
+        response->status = 500;
+      }
     } else {
       response->status = 401;
-      ulfius_add_cookie_to_response(response, "ANGHARAD_SESSION_ID", "", NULL, 0, NULL, NULL, 0, 0);
     }
     
     json_decref(result);
@@ -724,8 +729,9 @@ int callback_angharad_auth_get (const struct _u_request * request, struct _u_res
 
 int callback_angharad_auth_check (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * result;
-  int validity = 0;
+  int cookie_max_age = 0, user_validity = 0;
   time_t now;
+  struct tm* tm;
   
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_auth_check - Error, user_data is NULL");
@@ -737,21 +743,43 @@ int callback_angharad_auth_check (const struct _u_request * request, struct _u_r
     response->json_body = json_pack("{ss}", "error", "Invalid parameters");
     return U_OK;
   } else {
+    time(&now);
+    if (json_integer_value(json_object_get(request->json_body, "validity")) < 60 || json_object_get(request->json_body, "validity") == NULL) {
+      // Session token
+      user_validity = 0;
+    } else if (json_integer_value(json_object_get(request->json_body, "validity")) <= (60*60)) {
+      // 1 hour session
+      user_validity = now + (60*60);
+    } else if (json_integer_value(json_object_get(request->json_body, "validity")) <= (12*60*60)) {
+      // 12 hour session
+      user_validity = now + (12*60*60);
+    } else if (json_integer_value(json_object_get(request->json_body, "validity")) <= (24*60*60)) {
+      // 1 day session
+      user_validity = now + (24*60*60);
+    } else if (json_integer_value(json_object_get(request->json_body, "validity")) <= (7*12*60*60)) {
+      // 1 week session
+      user_validity = now + (7*24*60*60);
+    } else {
+      // 10 years session
+      tm = localtime(&now);
+      tm->tm_year += 10;
+      user_validity = mktime(tm);
+    }
     result = auth_check((struct config_elements *)user_data,
                         json_string_value(json_object_get(request->json_body, "user")),
                         json_string_value(json_object_get(request->json_body, "password")),
-                        json_integer_value(json_object_get(request->json_body, "validity")));
+                        user_validity);
     if (result != NULL && json_integer_value(json_object_get(result, "result")) == A_OK) {
       response->json_body = json_copy(json_object_get(result, "session"));
       if (json_object_get(request->json_body, "validity") != NULL) {
-        time(&now);
         if (now < json_integer_value(json_object_get(request->json_body, "validity"))) {
-          validity = json_integer_value(json_object_get(request->json_body, "validity")) - now;
+          cookie_max_age = user_validity - now;
         }
       }
-      ulfius_add_cookie_to_response(response, "ANGHARAD_SESSION_ID", json_string_value(json_object_get(json_object_get(result, "session"), "token")), NULL, validity, NULL, "/", 0, 0);
+      ulfius_add_cookie_to_response(response, "ANGHARAD_SESSION_ID", json_string_value(json_object_get(json_object_get(result, "session"), "token")), NULL, cookie_max_age, NULL, "/", 0, 0);
     } else {
-      ulfius_add_cookie_to_response(response, "ANGHARAD_SESSION_ID", "", NULL, 0, NULL, NULL, 0, 0);
+      // Invalidate cookie
+      ulfius_add_cookie_to_response(response, "ANGHARAD_SESSION_ID", "deleted", "Thu, 01 Jan 1970 00:00:00 GMT", 0, NULL, "/", 0, 0);
       response->status = 401;
     }
     json_decref(result);
@@ -759,7 +787,53 @@ int callback_angharad_auth_check (const struct _u_request * request, struct _u_r
   }
 }
 
+// Invalidate session if exist
+int callback_angharad_auth_delete (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  json_t * result;
+  
+  if (user_data == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_auth_get - Error, user_data is NULL");
+    return U_ERROR_PARAMS;
+  } else {
+    result = auth_get((struct config_elements *)user_data, u_map_get(request->map_cookie, "ANGHARAD_SESSION_ID"));
+    
+    if (result != NULL && json_integer_value(json_object_get(result, "result")) == A_OK) {
+      if (auth_invalidate((struct config_elements *)user_data, u_map_get(request->map_cookie, "ANGHARAD_SESSION_ID")) != A_OK) {
+        response->status = 500;
+      } else {
+        ulfius_add_cookie_to_response(response, "ANGHARAD_SESSION_ID", "deleted", "Thu, 01 Jan 1970 00:00:00 GMT", 0, NULL, "/", 0, 0);
+      }
+    } else {
+      response->status = 401;
+    }
+    
+    json_decref(result);
+  }
+  return U_OK;
+}
+
 int callback_angharad_auth_function (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  json_t * result;
+  
+  if (user_data == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_auth_get - Error, user_data is NULL");
+    return U_ERROR_PARAMS;
+  } else {
+    result = auth_get((struct config_elements *)user_data, u_map_get(request->map_cookie, "ANGHARAD_SESSION_ID"));
+    
+    if (result != NULL && json_integer_value(json_object_get(result, "result")) == A_OK) {
+      json_decref(result);
+      if (auth_update_last_seen((struct config_elements *)user_data, u_map_get(request->map_cookie, "ANGHARAD_SESSION_ID")) == A_OK) {
+        return U_OK;
+      } else {
+        return U_ERROR_PARAMS;
+      }
+    } else {
+      json_decref(result);
+      return U_ERROR_UNAUTHORIZED;
+    }
+    
+  }
   return U_OK;
 }
 

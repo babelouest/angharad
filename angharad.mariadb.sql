@@ -233,7 +233,7 @@ CREATE TABLE `a_session` (
   `ass_session_token` VARCHAR(128) NOT NULL UNIQUE,
   `ass_enabled` TINYINT(1) DEFAULT 1,
   `ass_login` VARCHAR(64),
-  `ass_validity` TIMESTAMP, -- if 0, then session is expired when lastseen < 5 minutes
+  `ass_validity` TIMESTAMP,
   `ass_lastseen` TIMESTAMP
 );
 CREATE INDEX `session_uuid_idx` ON `a_session` (`ass_session_token`);

@@ -66,30 +66,15 @@ authentication_realm = "angharad"
 
 # Authentications methods available
 
-# No authentication
+# Authentication configuration
 authentication =
 {
-  type = "none"
-}
-
-# Database authentication
-# authentication =
-# {
+   type = "none"
 #   type = "database"
-#   table = "a_users"
-#   login_column = "au_login"
-#   password_column = "au_password"
-#   Below is the method name used to filter password, it will be used to generate the query
-#     for example: "SELECT * FROM a_users WHERE au_login = 'user' AND au_password = PASSWORD('password')
-#   password_filter = "PASSWORD"
-# }
-
-# LDAP authentication
-# authentication =
-# {
 #   type = "ldap"
-#   url = "ldap://localhost/ou=users,dc=example,dc=com?uid"
+#   url = "ldap://localhost/ou=users,dc=example,dc=com"
+#   login_property = "uid"
 #   bind_dn = "cn=operator,ou=users,dc=example,dc=com"
 #   bind_passwd = "password"
 #   filter = "o=angharad"
-# }
+}

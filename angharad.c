@@ -305,8 +305,7 @@ int build_config_from_file(struct config_elements * config) {
   config_setting_t * root, * database, * auth;
   const char * cur_prefix_angharad, * cur_prefix_benoic, * cur_prefix_carleon, * cur_prefix_gareth, * cur_log_mode, * cur_log_level, * cur_log_file = NULL, * one_log_mode, * carleon_services_path, * benoic_modules_path, * cur_allow_origin, * cur_static_files_prefix,
              * db_type, * db_sqlite_path, * db_mariadb_host = NULL, * db_mariadb_user = NULL, * db_mariadb_password = NULL, * db_mariadb_dbname = NULL, * cur_angharad_realm = NULL, * cur_static_files_path = NULL,
-             * cur_auth_type = NULL, * cur_auth_db_table = NULL, * cur_auth_db_login_column = NULL, * cur_auth_db_password_column = NULL, * cur_auth_db_password_filter = NULL,
-             * cur_auth_ldap_url = NULL, * cur_auth_ldap_bind_dn = NULL, * cur_auth_ldap_bind_passwd = NULL, * cur_auth_ldap_filter = NULL;
+             * cur_auth_type = NULL, * cur_auth_ldap_url = NULL, * cur_auth_ldap_bind_dn = NULL, * cur_auth_ldap_bind_passwd = NULL, * cur_auth_ldap_filter = NULL;
   int db_mariadb_port = 0;
   
   config_init(&cfg);
@@ -505,50 +504,9 @@ int build_config_from_file(struct config_elements * config) {
   if (auth != NULL) {
     if (config_setting_lookup_string(auth, "type", &cur_auth_type) == CONFIG_TRUE) {
       if (0 == nstrncmp(cur_auth_type, "database", strlen("database"))) {
-        config_setting_lookup_string(auth, "table", &cur_auth_db_table);
-        config_setting_lookup_string(auth, "login_column", &cur_auth_db_login_column);
-        config_setting_lookup_string(auth, "password_column", &cur_auth_db_password_column);
-        config_setting_lookup_string(auth, "password_filter", &cur_auth_db_password_filter);
-        if (cur_auth_db_table != NULL && cur_auth_db_login_column != NULL && cur_auth_db_password_column != NULL) {
-          config->auth_database = malloc(sizeof(struct _auth_database));
-          if (config->auth_database == NULL) {
-            config_destroy(&cfg);
-            fprintf(stderr, "Error allocating resources for config->auth_database\n");
-            return 0;
-          } else {
-            config->auth_database->table = nstrdup(cur_auth_db_table);
-            if (config->auth_database->table == NULL) {
-              config_destroy(&cfg);
-              fprintf(stderr, "Error allocating resources for config->auth_database->table\n");
-              return 0;
-            }
-            config->auth_database->login_column = nstrdup(cur_auth_db_login_column);
-            if (config->auth_database->login_column == NULL) {
-              config_destroy(&cfg);
-              fprintf(stderr, "Error allocating resources for config->auth_database->login_column\n");
-              return 0;
-            }
-            config->auth_database->password_column = nstrdup(cur_auth_db_password_column);
-            if (config->auth_database->password_column == NULL) {
-              config_destroy(&cfg);
-              fprintf(stderr, "Error allocating resources for config->auth_database->password_column\n");
-              return 0;
-            }
-            if (cur_auth_db_password_filter != NULL) {
-              config->auth_database->password_filter = nstrdup(cur_auth_db_password_filter);
-              if (config->auth_database->password_filter == NULL) {
-                config_destroy(&cfg);
-                fprintf(stderr, "Error allocating resources for config->auth_database->password_filter\n");
-                return 0;
-              }
-            }
-          }
-        } else {
-          config_destroy(&cfg);
-          fprintf(stderr, "Error, auth database error parameters\n");
-          return 0;
-        }
+        config->auth_type = ANGHARAD_AUTH_TYPE_DATABASE;
       } else if (0 == nstrncmp(cur_auth_type, "ldap", strlen("ldap"))) {
+        config->auth_type = ANGHARAD_AUTH_TYPE_LDAP;
         config_setting_lookup_string(auth, "url", &cur_auth_ldap_url);
         config_setting_lookup_string(auth, "bind_dn", &cur_auth_ldap_bind_dn);
         config_setting_lookup_string(auth, "bind_passwd", &cur_auth_ldap_bind_passwd);
@@ -749,7 +707,6 @@ int main(int argc, char ** argv) {
   config->log_file = NULL;
   config->angharad_status = ANGHARAD_STATUS_STOP;
   config->auth_type = ANGHARAD_AUTH_TYPE_NONE;
-  config->auth_database = NULL;
   config->auth_ldap = NULL;
   config->instance = malloc(sizeof(struct _u_instance));
   config->c_config = malloc(sizeof(struct _carleon_config));
@@ -1030,6 +987,7 @@ int init_angharad(struct config_elements * config) {
 
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/auth", &callback_angharad_no_auth_function, NULL, config->angharad_realm, &callback_angharad_auth_get, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/auth", &callback_angharad_no_auth_function, NULL, config->angharad_realm, &callback_angharad_auth_check, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/auth", &callback_angharad_no_auth_function, NULL, config->angharad_realm, &callback_angharad_auth_delete, (void*)config);
 
     ulfius_add_endpoint_by_val(config->instance, "GET", config->static_files_prefix, "*", &callback_angharad_no_auth_function, NULL, config->angharad_realm, &callback_angharad_static_file, (void*)config);
 
@@ -1110,6 +1068,7 @@ int close_angharad(struct config_elements * config) {
 
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/auth/");
     ulfius_remove_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/auth/");
+    ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/auth/");
 
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->static_files_prefix, "*");
     

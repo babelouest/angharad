@@ -99,6 +99,7 @@
 #define ANGHARAD_TABLE_TRIGGER          "a_trigger"
 #define ANGHARAD_TABLE_SCHEDULER_SCRIPT "a_scheduler_script"
 #define ANGHARAD_TABLE_TRIGGER_SCRIPT   "a_trigger_script"
+#define ANGHARAD_TABLE_USER             "a_user"
 
 #define ANGHARAD_AUTH_TYPE_NONE     0
 #define ANGHARAD_AUTH_TYPE_DATABASE 1
@@ -119,13 +120,6 @@
 #define TRIGGER_MESSAGE_MATCH_NOT_CONTAINS 4
 #define TRIGGER_MESSAGE_MATCH_EMPTY        5
 #define TRIGGER_MESSAGE_MATCH_NOT_EMPTY    6
-
-struct _auth_database {
-  char * table;
-  char * login_column;
-  char * password_column;
-  char * password_filter;
-};
 
 struct _auth_ldap {
   char * url;
@@ -154,7 +148,6 @@ struct config_elements {
   struct _carleon_config * c_config;
   unsigned int             angharad_status;
   unsigned int             auth_type;
-  struct _auth_database  * auth_database;
   struct _auth_ldap      * auth_ldap;
 };
 
@@ -222,6 +215,8 @@ int trigger_remove_tag(struct config_elements * config, const char * trigger_nam
 const char * get_filename_ext(const char *path);
 
 json_t * auth_get(struct config_elements * config, const char * session_id);
+int auth_invalidate(struct config_elements * config, const char * session_id);
+int auth_update_last_seen(struct config_elements * config, const char * session_id);
 json_t * auth_check(struct config_elements * config, const char * login, const char * password, const int validity);
 int auth_check_credentials(struct config_elements * config, const char * login, const char * password);
 int auth_check_credentials_database(struct config_elements * config, const char * login, const char * password);
@@ -276,6 +271,7 @@ int callback_angharad_default (const struct _u_request * request, struct _u_resp
 
 int callback_angharad_auth_get (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_auth_check (const struct _u_request * request, struct _u_response * response, void * user_data);
+int callback_angharad_auth_delete (const struct _u_request * request, struct _u_response * response, void * user_data);
 
 int callback_angharad_auth_function (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_no_auth_function (const struct _u_request * request, struct _u_response * response, void * user_data);
