@@ -120,10 +120,12 @@
 #define TRIGGER_MESSAGE_MATCH_NOT_EMPTY    6
 
 struct _auth_ldap {
-  char * url;
+  char * uri;
   char * bind_dn;
   char * bind_passwd;
   char * filter;
+  char * login_property;
+  char * base_search;
 };
 
 struct config_elements {

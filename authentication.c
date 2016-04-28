@@ -302,5 +302,57 @@ int auth_check_credentials_database(struct config_elements * config, const char 
 }
 
 int auth_check_credentials_ldap(struct config_elements * config, const char * login, const char * password) {
-  return A_ERROR_UNAUTHORIZED;
+  LDAP * ldap;
+  LDAPMessage * answer, * entry;
+  
+  int  result, result_login;
+  int  auth_method    = LDAP_AUTH_SIMPLE;
+  int  ldap_version   = LDAP_VERSION3;
+  int  scope          = LDAP_SCOPE_SUBTREE;
+  char * filter       = NULL;
+  char *attrs[]       = {"memberOf", NULL};
+  int  attrsonly      = 0;
+  char * user_dn      = NULL;
+
+  if (ldap_initialize(&ldap, config->auth_ldap->uri) != LDAP_SUCCESS) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "Error initializing ldap");
+    return A_ERROR_PARAM;
+  } else if (ldap_set_option(ldap, LDAP_OPT_PROTOCOL_VERSION, &ldap_version) != LDAP_OPT_SUCCESS) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "Error setting ldap protocol version");
+    return A_ERROR_PARAM;
+  } else if ((result = ldap_simple_bind_s(ldap, config->auth_ldap->bind_dn, config->auth_ldap->bind_passwd)) != LDAP_OPT_SUCCESS) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "Error binding to ldap server: %s", ldap_err2string(result));
+    return A_ERROR_PARAM;
+  } else {
+    // Connection successful, doing ldap search
+    filter = msprintf("(&(%s)(%s=%s))", config->auth_ldap->filter, config->auth_ldap->login_property, login);
+    
+    if (filter != NULL && (result = ldap_search_s(ldap, config->auth_ldap->base_search, scope, filter, attrs, attrsonly, &answer)) != LDAP_SUCCESS) {
+      y_log_message(Y_LOG_LEVEL_ERROR, "Error ldap search: %s", ldap_err2string(result));
+      return A_ERROR_PARAM;
+    } else if (ldap_count_entries(ldap, answer) == 0) {
+      y_log_message(Y_LOG_LEVEL_ERROR, "ldap search: No result found for login %s", login);
+      return A_ERROR_UNAUTHORIZED;
+    } else {
+      // ldap found some results, getting the first one
+      entry = ldap_first_entry(ldap, answer);
+      
+      if (entry == NULL) {
+        y_log_message(Y_LOG_LEVEL_ERROR, "ldap search: error getting first result");
+        return A_ERROR;
+      } else {
+        // Testing the first result to login with the given password
+        user_dn = ldap_get_dn(ldap, entry);
+        result_login = ldap_simple_bind_s(ldap, user_dn, password);
+        ldap_memfree(user_dn);
+        ldap_msgfree(answer);
+        ldap_unbind(ldap);
+        if (result != LDAP_SUCCESS) {
+          return A_OK;
+        } else {
+          return A_ERROR_UNAUTHORIZED;
+        }
+      }
+    }
+  }
 }

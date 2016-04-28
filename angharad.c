@@ -304,7 +304,7 @@ int build_config_from_file(struct config_elements * config) {
   config_setting_t * root, * database, * auth;
   const char * cur_prefix_angharad, * cur_prefix_benoic, * cur_prefix_carleon, * cur_prefix_gareth, * cur_log_mode, * cur_log_level, * cur_log_file = NULL, * one_log_mode, * carleon_services_path, * benoic_modules_path, * cur_allow_origin, * cur_static_files_prefix,
              * db_type, * db_sqlite_path, * db_mariadb_host = NULL, * db_mariadb_user = NULL, * db_mariadb_password = NULL, * db_mariadb_dbname = NULL, * cur_static_files_path = NULL,
-             * cur_auth_type = NULL, * cur_auth_ldap_url = NULL, * cur_auth_ldap_bind_dn = NULL, * cur_auth_ldap_bind_passwd = NULL, * cur_auth_ldap_filter = NULL;
+             * cur_auth_type = NULL, * cur_auth_ldap_uri = NULL, * cur_auth_ldap_bind_dn = NULL, * cur_auth_ldap_bind_passwd = NULL, * cur_auth_ldap_filter = NULL, * cur_auth_ldap_login_property = NULL, * cur_auth_ldap_base_search = NULL;
   int db_mariadb_port = 0;
   
   config_init(&cfg);
@@ -321,7 +321,7 @@ int build_config_from_file(struct config_elements * config) {
   }
   
   if (config->url_prefix_angharad == NULL) {
-    // Get prefix url
+    // Get prefix url for angharad
     if (config_lookup_string(&cfg, "url_prefix_angharad", &cur_prefix_angharad)) {
       config->url_prefix_angharad = nstrdup(cur_prefix_angharad);
       if (config->url_prefix_angharad == NULL) {
@@ -333,7 +333,7 @@ int build_config_from_file(struct config_elements * config) {
   }
 
   if (config->url_prefix_benoic == NULL) {
-    // Get prefix url
+    // Get prefix url for benoic
     if (config_lookup_string(&cfg, "url_prefix_benoic", &cur_prefix_benoic)) {
       config->url_prefix_benoic = nstrdup(cur_prefix_benoic);
       if (config->url_prefix_benoic == NULL) {
@@ -345,7 +345,7 @@ int build_config_from_file(struct config_elements * config) {
   }
 
   if (config->url_prefix_carleon == NULL) {
-    // Get prefix url
+    // Get prefix url for carleon
     if (config_lookup_string(&cfg, "url_prefix_carleon", &cur_prefix_carleon)) {
       config->url_prefix_carleon = nstrdup(cur_prefix_carleon);
       if (config->url_prefix_carleon == NULL) {
@@ -357,7 +357,7 @@ int build_config_from_file(struct config_elements * config) {
   }
 
   if (config->url_prefix_gareth == NULL) {
-    // Get prefix url
+    // Get prefix url for gareth
     if (config_lookup_string(&cfg, "url_prefix_gareth", &cur_prefix_gareth)) {
       config->url_prefix_gareth = nstrdup(cur_prefix_gareth);
       if (config->url_prefix_gareth == NULL) {
@@ -369,7 +369,7 @@ int build_config_from_file(struct config_elements * config) {
   }
 
   if (config->allow_origin == NULL) {
-    // Get prefix url
+    // Get allow-origin value for CORS
     if (config_lookup_string(&cfg, "allow_origin", &cur_allow_origin)) {
       config->allow_origin = nstrdup(cur_allow_origin);
       if (config->allow_origin == NULL) {
@@ -506,21 +506,23 @@ int build_config_from_file(struct config_elements * config) {
         config->auth_type = ANGHARAD_AUTH_TYPE_DATABASE;
       } else if (0 == nstrncmp(cur_auth_type, "ldap", strlen("ldap"))) {
         config->auth_type = ANGHARAD_AUTH_TYPE_LDAP;
-        config_setting_lookup_string(auth, "url", &cur_auth_ldap_url);
+        config_setting_lookup_string(auth, "uri", &cur_auth_ldap_uri);
         config_setting_lookup_string(auth, "bind_dn", &cur_auth_ldap_bind_dn);
         config_setting_lookup_string(auth, "bind_passwd", &cur_auth_ldap_bind_passwd);
         config_setting_lookup_string(auth, "filter", &cur_auth_ldap_filter);
-        if (cur_auth_ldap_url != NULL && cur_auth_ldap_bind_dn != NULL && cur_auth_ldap_bind_passwd != NULL && cur_auth_ldap_filter != NULL) {
+        config_setting_lookup_string(auth, "login_property", &cur_auth_ldap_login_property);
+        config_setting_lookup_string(auth, "base_search", &cur_auth_ldap_base_search);
+        if (cur_auth_ldap_uri != NULL && cur_auth_ldap_bind_dn != NULL && cur_auth_ldap_bind_passwd != NULL && cur_auth_ldap_filter != NULL && cur_auth_ldap_login_property != NULL && cur_auth_ldap_base_search != NULL) {
           config->auth_ldap = malloc(sizeof(struct _auth_ldap));
           if (config->auth_ldap == NULL) {
             config_destroy(&cfg);
             fprintf(stderr, "Error allocating resources for config->auth_ldap\n");
             return 0;
           } else {
-            config->auth_ldap->url = nstrdup(cur_auth_ldap_url);
-            if (config->auth_ldap->url == NULL) {
+            config->auth_ldap->uri = nstrdup(cur_auth_ldap_uri);
+            if (config->auth_ldap->uri == NULL) {
               config_destroy(&cfg);
-              fprintf(stderr, "Error allocating resources for config->auth_ldap->url\n");
+              fprintf(stderr, "Error allocating resources for config->auth_ldap->uri\n");
               return 0;
             }
             config->auth_ldap->bind_dn = nstrdup(cur_auth_ldap_bind_dn);
@@ -541,6 +543,18 @@ int build_config_from_file(struct config_elements * config) {
               fprintf(stderr, "Error allocating resources for config->auth_ldap->filter\n");
               return 0;
             }
+            config->auth_ldap->login_property = nstrdup(cur_auth_ldap_login_property);
+            if (config->auth_ldap->login_property == NULL) {
+              config_destroy(&cfg);
+              fprintf(stderr, "Error allocating resources for config->auth_ldap->login_property\n");
+              return 0;
+            }
+            config->auth_ldap->base_search = nstrdup(cur_auth_ldap_base_search);
+            if (config->auth_ldap->base_search == NULL) {
+              config_destroy(&cfg);
+              fprintf(stderr, "Error allocating resources for config->auth_ldap->base_search\n");
+              return 0;
+            }
           }
         } else {
           config_destroy(&cfg);
@@ -556,7 +570,7 @@ int build_config_from_file(struct config_elements * config) {
   }
   
   if (config->static_files_path == NULL) {
-    // Get prefix url
+    // Get path that serve static files
     if (config_lookup_string(&cfg, "static_files_path", &cur_static_files_path)) {
       config->static_files_path = nstrdup(cur_static_files_path);
       if (config->static_files_path == NULL) {

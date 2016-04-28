@@ -25,6 +25,9 @@ url_prefix_gareth="gareth"
 # path to static files for /static url
 static_files_path="/path/to/static/files"
 
+# static files prefix
+static_files_prefix = "sagremor"
+
 # access-control-allow-origin value
 allow_origin="*"
 
@@ -66,12 +69,15 @@ database =
 # Authentication configuration
 authentication =
 {
-   type = "none"
-#   type = "database"
-#   type = "ldap"
-#   url = "ldap://localhost/ou=users,dc=example,dc=com"
-#   login_property = "uid"
-#   bind_dn = "cn=operator,ou=users,dc=example,dc=com"
-#   bind_passwd = "password"
-#   filter = "o=angharad"
+#  type           = "none"
+
+#  type           = "database"
+  
+   type           = "ldap"
+   uri            = "ldap://localhost"
+   bind_dn        = "cn=admin,dc=example,dc=com"
+   bind_passwd    = "password"
+   base_search    = "ou=users,dc=example,dc=com"
+   login_property = "uid"
+   filter         = "o=angharad"
 }
