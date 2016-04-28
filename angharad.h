@@ -34,7 +34,6 @@
 #include <signal.h>
 #include <jansson.h>
 #include <math.h>
-#include <uuid/uuid.h>
 
 // Angharad libraries
 #include <ulfius.h>
@@ -58,7 +57,6 @@
 // Configuration management
 #define ANGHARAD_DEFAULT_PREFIX "angharad"
 #define ANGHARAD_DEFAULT_PORT   2473
-#define ANGHARAD_DEFAULT_REALM  "angharad"
 
 #define BENOIC_DEFAULT_PREFIX       "benoic"
 #define CARLEON_DEFAULT_PREFIX      "carleon"
@@ -134,7 +132,6 @@ struct config_elements {
   char *                   url_prefix_benoic;
   char *                   url_prefix_carleon;
   char *                   url_prefix_gareth;
-  char *                   angharad_realm;
   char *                   static_files_prefix;
   char *                   static_files_path;
   struct _u_map          * mime_types;

@@ -276,7 +276,6 @@ void exit_server(struct config_elements ** config, int exit_value) {
     free((*config)->static_files_path);
     free((*config)->static_files_prefix);
     u_map_clean_full((*config)->mime_types);
-    free((*config)->angharad_realm);
     free((*config)->allow_origin);
     free((*config)->log_file);
     y_close_logs();
@@ -304,7 +303,7 @@ int build_config_from_file(struct config_elements * config) {
   config_t cfg;
   config_setting_t * root, * database, * auth;
   const char * cur_prefix_angharad, * cur_prefix_benoic, * cur_prefix_carleon, * cur_prefix_gareth, * cur_log_mode, * cur_log_level, * cur_log_file = NULL, * one_log_mode, * carleon_services_path, * benoic_modules_path, * cur_allow_origin, * cur_static_files_prefix,
-             * db_type, * db_sqlite_path, * db_mariadb_host = NULL, * db_mariadb_user = NULL, * db_mariadb_password = NULL, * db_mariadb_dbname = NULL, * cur_angharad_realm = NULL, * cur_static_files_path = NULL,
+             * db_type, * db_sqlite_path, * db_mariadb_host = NULL, * db_mariadb_user = NULL, * db_mariadb_password = NULL, * db_mariadb_dbname = NULL, * cur_static_files_path = NULL,
              * cur_auth_type = NULL, * cur_auth_ldap_url = NULL, * cur_auth_ldap_bind_dn = NULL, * cur_auth_ldap_bind_passwd = NULL, * cur_auth_ldap_filter = NULL;
   int db_mariadb_port = 0;
   
@@ -556,18 +555,6 @@ int build_config_from_file(struct config_elements * config) {
     }
   }
   
-  if (config->angharad_realm == NULL) {
-    // Get prefix url
-    if (config_lookup_string(&cfg, "authentication_realm", &cur_angharad_realm)) {
-      config->angharad_realm = nstrdup(cur_angharad_realm);
-      if (config->angharad_realm == NULL) {
-        fprintf(stderr, "Error allocating config->angharad_realm, exiting\n");
-        config_destroy(&cfg);
-        return 0;
-      }
-    }
-  }
-  
   if (config->static_files_path == NULL) {
     // Get prefix url
     if (config_lookup_string(&cfg, "static_files_path", &cur_static_files_path)) {
@@ -698,7 +685,6 @@ int main(int argc, char ** argv) {
   config->url_prefix_benoic = NULL;
   config->url_prefix_carleon = NULL;
   config->url_prefix_gareth = NULL;
-  config->angharad_realm = NULL;
   config->static_files_path = NULL;
   config->static_files_prefix = NULL;
   config->allow_origin = NULL;
@@ -985,15 +971,15 @@ int init_angharad(struct config_elements * config) {
     ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/trigger/@trigger_name/@tag", NULL, NULL, NULL, &callback_angharad_trigger_add_tag, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/trigger/@trigger_name/@tag", NULL, NULL, NULL, &callback_angharad_trigger_remove_tag, (void*)config);
 
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/auth", &callback_angharad_no_auth_function, NULL, config->angharad_realm, &callback_angharad_auth_get, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/auth", &callback_angharad_no_auth_function, NULL, config->angharad_realm, &callback_angharad_auth_check, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/auth", &callback_angharad_no_auth_function, NULL, config->angharad_realm, &callback_angharad_auth_delete, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/auth", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_auth_get, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/auth", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_auth_check, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/auth", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_auth_delete, (void*)config);
 
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->static_files_prefix, "*", &callback_angharad_no_auth_function, NULL, config->angharad_realm, &callback_angharad_static_file, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->static_files_prefix, "*", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_static_file, (void*)config);
 
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/", &callback_angharad_no_auth_function, NULL, config->angharad_realm, &callback_angharad_root_url, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_root_url, (void*)config);
 
-    ulfius_set_default_auth_function(config->instance, &callback_angharad_auth_function, (void*)config, config->angharad_realm);
+    ulfius_set_default_auth_function(config->instance, &callback_angharad_auth_function, (void*)config, NULL);
     
     u_map_put(config->instance->default_headers, "access-control-allow-origin", config->allow_origin);
     

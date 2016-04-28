@@ -61,9 +61,6 @@ database =
 #    path = "/tmp/angharad.db";
 # };
 
-# Realm displayed in authentication header
-authentication_realm = "angharad"
-
 # Authentications methods available
 
 # Authentication configuration

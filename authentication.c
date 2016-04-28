@@ -26,6 +26,9 @@
  *
  */
 
+#include <uuid/uuid.h>
+#include <ldap.h>
+
 #include "angharad.h"
 
 /**
@@ -301,4 +304,3 @@ int auth_check_credentials_database(struct config_elements * config, const char 
 int auth_check_credentials_ldap(struct config_elements * config, const char * login, const char * password) {
   return A_ERROR_UNAUTHORIZED;
 }
-
