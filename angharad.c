@@ -660,6 +660,16 @@ int check_config(struct config_elements * config) {
   if (config->static_files_prefix == NULL) {
     config->static_files_prefix = nstrdup(STATIC_FILES_PREFIX_DEFAULT);
   }
+  
+  if (config->b_config->modules_path == NULL) {
+    fprintf(stderr, "Error, no modules path specified for benoic\n");
+    return 0;
+  }
+    
+  if (config->c_config->services_path == NULL) {
+    fprintf(stderr, "Error, no modules path specified for carleon\n");
+    return 0;
+  }
     
   return 1;
 }

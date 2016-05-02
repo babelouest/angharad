@@ -348,7 +348,7 @@ int auth_check_credentials_ldap(struct config_elements * config, const char * lo
         ldap_memfree(user_dn);
         ldap_msgfree(answer);
         ldap_unbind(ldap);
-        if (result_login != LDAP_SUCCESS) {
+        if (result_login == LDAP_SUCCESS) {
           return A_OK;
         } else {
           return A_ERROR_UNAUTHORIZED;

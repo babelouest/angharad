@@ -41,10 +41,10 @@ log_level="DEBUG"
 log_file="/path/to/angharad.log"
 
 # path to modules folder for carleon
-services_path="/path/to/carleon/modules"
+carleon_services_path="/path/to/carleon/modules"
 
 # path to modules folder for benoic
-modules_path="/path/to/benoic/modules"
+benoic_modules_path="/path/to/benoic/modules"
 
 # MariaDB/Mysql database connection
 database =
@@ -53,7 +53,7 @@ database =
   host = "localhost";
   user = "angharad";
   password = "angharad";
-  dbname = "angharad_dev";
+  dbname = "angharad";
   port = 0;
 };
 
