@@ -146,7 +146,8 @@ struct config_elements {
   struct _benoic_config  * b_config;
   struct _carleon_config * c_config;
   unsigned int             angharad_status;
-  unsigned int             auth_type;
+  unsigned int             has_auth_database;
+  unsigned int             has_auth_ldap;
   struct _auth_ldap      * auth_ldap;
 };
 

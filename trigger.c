@@ -317,18 +317,20 @@ json_t * is_trigger_valid(struct config_elements * config, json_t * j_trigger, c
       json_array_append_new(j_result, json_pack("{ss}", "message_match", "message_match parameter is mandatory must ba a string, maximum 64 characters"));
     }
     
-    j_options_valid = is_option_valid(json_object_get(j_trigger, "options"), BENOIC_ELEMENT_TYPE_NONE);
-    if (j_options_valid != NULL && json_array_size(j_options_valid) > 0) {
-      json_array_foreach(j_options_valid, index, j_element) {
-        json_array_append_new(j_result, json_copy(j_element));
+    if (json_object_get(j_trigger, "options") != NULL) {
+      j_options_valid = is_option_valid(json_object_get(j_trigger, "options"), BENOIC_ELEMENT_TYPE_NONE);
+      if (j_options_valid != NULL && json_array_size(j_options_valid) > 0) {
+        json_array_foreach(j_options_valid, index, j_element) {
+          json_array_append_new(j_result, json_copy(j_element));
+        }
+        json_decref(j_options_valid);
+      } else if(j_options_valid != NULL) {
+        json_decref(j_options_valid);
+      } else {
+        y_log_message(Y_LOG_LEVEL_ERROR, "is_trigger_valid - Error, is_options_valid returned NULL");
+        json_decref(j_result);
+        return NULL;
       }
-      json_decref(j_options_valid);
-    } else if(j_options_valid != NULL) {
-      json_decref(j_options_valid);
-    } else {
-      y_log_message(Y_LOG_LEVEL_ERROR, "is_trigger_valid - Error, is_options_valid returned NULL");
-      json_decref(j_result);
-      return NULL;
     }
 
     j_conditions_valid = is_condition_list_valid(config, json_object_get(j_trigger, "conditions"));
