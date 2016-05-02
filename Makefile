@@ -27,8 +27,8 @@
 # Environment variables
 PREFIX=/usr/local
 CC=gcc
-CFLAGS=-c -Wall -D_REENTRANT -I$(PREFIX)/include $(ADDITIONALFLAGS)
-LIBS=-L$(PREFIX)/lib -lc -lm -lpthread -ldl -luuid -ljansson -lulfius -lhoel -lyder -lorcania
+CFLAGS=-c -Wall -D_REENTRANT -DLDAP_DEPRECATED -I$(PREFIX)/include $(ADDITIONALFLAGS)
+LIBS=-L$(PREFIX)/lib -lc -lm -lpthread -ldl -luuid -lldap -ljansson -lulfius -lhoel -lyder -lorcania
 
 # subprojects locations
 GARETH_LOCATION=gareth

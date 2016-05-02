@@ -711,7 +711,7 @@ int callback_angharad_auth_get (const struct _u_request * request, struct _u_res
     result = auth_get((struct config_elements *)user_data, u_map_get(request->map_cookie, "ANGHARAD_SESSION_ID"));
     
     if (result != NULL && json_integer_value(json_object_get(result, "result")) == A_OK) {
-      if (auth_update_last_seen((struct config_elements *)user_data, u_map_get(request->map_cookie, "ANGHARAD_SESSION_ID")) == A_OK) {
+      if (auth_update_last_seen((struct config_elements *)user_data, json_string_value(json_object_get(json_object_get(result, "session"), "token"))) == A_OK) {
         time(&now);
         response->json_body = json_copy(json_object_get(result, "session"));
         ulfius_add_cookie_to_response(response, "ANGHARAD_SESSION_ID", json_string_value(json_object_get(json_object_get(result, "session"), "token")), NULL, (json_integer_value(json_object_get(json_object_get(result, "session"), "validity")) - now), NULL, "/", 0, 0);
@@ -736,7 +736,7 @@ int callback_angharad_auth_check (const struct _u_request * request, struct _u_r
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_auth_check - Error, user_data is NULL");
     return U_ERROR_PARAMS;
-  } else if (json_object_get(request->json_body, "user") == NULL || !json_is_string(json_object_get(request->json_body, "user")) ||
+  } else if (request->json_body == NULL || json_object_get(request->json_body, "user") == NULL || !json_is_string(json_object_get(request->json_body, "user")) ||
              json_object_get(request->json_body, "password") == NULL || !json_is_string(json_object_get(request->json_body, "password")) ||
              (json_object_get(request->json_body, "validity") != NULL && !json_is_integer(json_object_get(request->json_body, "validity")))) {
     response->status = 400;

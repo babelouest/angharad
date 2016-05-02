@@ -201,9 +201,11 @@ int auth_update_last_seen(struct config_elements * config, const char * session_
     if (res == H_OK) {
       return A_OK;
     } else {
+      y_log_message(Y_LOG_LEVEL_ERROR, "Error setting last_seen date in the database");
       return A_ERROR_DB;
     }
   } else {
+    y_log_message(Y_LOG_LEVEL_ERROR, "Error, no session provided");
     return A_ERROR_PARAM;
   }
 }
@@ -306,7 +308,6 @@ int auth_check_credentials_ldap(struct config_elements * config, const char * lo
   LDAPMessage * answer, * entry;
   
   int  result, result_login;
-  int  auth_method    = LDAP_AUTH_SIMPLE;
   int  ldap_version   = LDAP_VERSION3;
   int  scope          = LDAP_SCOPE_SUBTREE;
   char * filter       = NULL;
@@ -347,7 +348,7 @@ int auth_check_credentials_ldap(struct config_elements * config, const char * lo
         ldap_memfree(user_dn);
         ldap_msgfree(answer);
         ldap_unbind(ldap);
-        if (result != LDAP_SUCCESS) {
+        if (result_login != LDAP_SUCCESS) {
           return A_OK;
         } else {
           return A_ERROR_UNAUTHORIZED;
