@@ -703,12 +703,20 @@ int callback_angharad_static_file (const struct _u_request * request, struct _u_
 int callback_angharad_auth_get (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * result;
   time_t now;
+  const char * session_id;
   
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_auth_get - Error, user_data is NULL");
     return U_ERROR_PARAMS;
   } else {
-    result = auth_get((struct config_elements *)user_data, u_map_get(request->map_cookie, "ANGHARAD_SESSION_ID"));
+    session_id = u_map_get(request->map_cookie, "ANGHARAD_SESSION_ID");
+    if (session_id == NULL) {
+      session_id = u_map_get(request->map_header, "ANGHARAD_SESSION_ID");
+    }
+    
+    result = auth_get((struct config_elements *)user_data, session_id);
+    
+    //y_log_message(Y_LOG_LEVEL_DEBUG, "session is %s while result is %s", session_id, json_dumps(result, JSON_ENCODE_ANY));
     
     if (result != NULL && json_integer_value(json_object_get(result, "result")) == A_OK) {
       if (auth_update_last_seen((struct config_elements *)user_data, json_string_value(json_object_get(json_object_get(result, "session"), "token"))) == A_OK) {
@@ -790,15 +798,20 @@ int callback_angharad_auth_check (const struct _u_request * request, struct _u_r
 // Invalidate session if exist
 int callback_angharad_auth_delete (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * result;
+  const char * session_id;
   
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_auth_get - Error, user_data is NULL");
     return U_ERROR_PARAMS;
   } else {
-    result = auth_get((struct config_elements *)user_data, u_map_get(request->map_cookie, "ANGHARAD_SESSION_ID"));
+    session_id = u_map_get(request->map_cookie, "ANGHARAD_SESSION_ID");
+    if (session_id == NULL) {
+      session_id = u_map_get(request->map_header, "ANGHARAD_SESSION_ID");
+    }
+    result = auth_get((struct config_elements *)user_data, session_id);
     
     if (result != NULL && json_integer_value(json_object_get(result, "result")) == A_OK) {
-      if (auth_invalidate((struct config_elements *)user_data, u_map_get(request->map_cookie, "ANGHARAD_SESSION_ID")) != A_OK) {
+      if (auth_invalidate((struct config_elements *)user_data, session_id) != A_OK) {
         response->status = 500;
       } else {
         ulfius_add_cookie_to_response(response, "ANGHARAD_SESSION_ID", "deleted", "Thu, 01 Jan 1970 00:00:00 GMT", 0, NULL, "/", 0, 0);
@@ -814,16 +827,21 @@ int callback_angharad_auth_delete (const struct _u_request * request, struct _u_
 
 int callback_angharad_auth_function (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * result;
+  const char * session_id;
   
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_auth_get - Error, user_data is NULL");
     return U_ERROR_PARAMS;
   } else {
-    result = auth_get((struct config_elements *)user_data, u_map_get(request->map_cookie, "ANGHARAD_SESSION_ID"));
+    session_id = u_map_get(request->map_cookie, "ANGHARAD_SESSION_ID");
+    if (session_id == NULL) {
+      session_id = u_map_get(request->map_header, "ANGHARAD_SESSION_ID");
+    }
+    result = auth_get((struct config_elements *)user_data, session_id);
     
     if (result != NULL && json_integer_value(json_object_get(result, "result")) == A_OK) {
       json_decref(result);
-      if (auth_update_last_seen((struct config_elements *)user_data, u_map_get(request->map_cookie, "ANGHARAD_SESSION_ID")) == A_OK) {
+      if (auth_update_last_seen((struct config_elements *)user_data, session_id) == A_OK) {
         return U_OK;
       } else {
         return U_ERROR_PARAMS;
@@ -838,5 +856,12 @@ int callback_angharad_auth_function (const struct _u_request * request, struct _
 }
 
 int callback_angharad_no_auth_function (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  return U_OK;
+}
+
+int callback_angharad_options (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  u_map_put(response->map_header, "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  u_map_put(response->map_header, "Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, ANGHARAD_SESSION_ID");
+  u_map_put(response->map_header, "Access-Control-Max-Age", "1800");
   return U_OK;
 }
