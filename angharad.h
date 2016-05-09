@@ -146,7 +146,8 @@ struct config_elements {
   struct _benoic_config  * b_config;
   struct _carleon_config * c_config;
   unsigned int             angharad_status;
-  unsigned int             auth_type;
+  unsigned int             has_auth_database;
+  unsigned int             has_auth_ldap;
   struct _auth_ldap      * auth_ldap;
 };
 
@@ -263,6 +264,8 @@ int callback_angharad_trigger_add_tag (const struct _u_request * request, struct
 int callback_angharad_trigger_remove_tag (const struct _u_request * request, struct _u_response * response, void * user_data);
 
 int callback_angharad_static_file (const struct _u_request * request, struct _u_response * response, void * user_data);
+
+int callback_angharad_options (const struct _u_request * request, struct _u_response * response, void * user_data);
 
 int callback_angharad_root_url (const struct _u_request * request, struct _u_response * response, void * user_data);
 

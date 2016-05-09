@@ -278,6 +278,15 @@ void exit_server(struct config_elements ** config, int exit_value) {
     u_map_clean_full((*config)->mime_types);
     free((*config)->allow_origin);
     free((*config)->log_file);
+    if ((*config)->auth_ldap != NULL) {
+      free((*config)->auth_ldap->uri);
+      free((*config)->auth_ldap->bind_dn);
+      free((*config)->auth_ldap->bind_passwd);
+      free((*config)->auth_ldap->filter);
+      free((*config)->auth_ldap->login_property);
+      free((*config)->auth_ldap->base_search);
+      free((*config)->auth_ldap);
+    }
     y_close_logs();
 
     free(*config);
@@ -304,8 +313,9 @@ int build_config_from_file(struct config_elements * config) {
   config_setting_t * root, * database, * auth;
   const char * cur_prefix_angharad, * cur_prefix_benoic, * cur_prefix_carleon, * cur_prefix_gareth, * cur_log_mode, * cur_log_level, * cur_log_file = NULL, * one_log_mode, * carleon_services_path, * benoic_modules_path, * cur_allow_origin, * cur_static_files_prefix,
              * db_type, * db_sqlite_path, * db_mariadb_host = NULL, * db_mariadb_user = NULL, * db_mariadb_password = NULL, * db_mariadb_dbname = NULL, * cur_static_files_path = NULL,
-             * cur_auth_type = NULL, * cur_auth_ldap_uri = NULL, * cur_auth_ldap_bind_dn = NULL, * cur_auth_ldap_bind_passwd = NULL, * cur_auth_ldap_filter = NULL, * cur_auth_ldap_login_property = NULL, * cur_auth_ldap_base_search = NULL;
+             * cur_auth_ldap_uri = NULL, * cur_auth_ldap_bind_dn = NULL, * cur_auth_ldap_bind_passwd = NULL, * cur_auth_ldap_filter = NULL, * cur_auth_ldap_login_property = NULL, * cur_auth_ldap_base_search = NULL;
   int db_mariadb_port = 0;
+  int cur_database_auth = 0, cur_ldap_auth = 0;
   
   config_init(&cfg);
   
@@ -501,71 +511,67 @@ int build_config_from_file(struct config_elements * config) {
 
   auth = config_setting_get_member(root, "authentication");
   if (auth != NULL) {
-    if (config_setting_lookup_string(auth, "type", &cur_auth_type) == CONFIG_TRUE) {
-      if (0 == nstrncmp(cur_auth_type, "database", strlen("database"))) {
-        config->auth_type = ANGHARAD_AUTH_TYPE_DATABASE;
-      } else if (0 == nstrncmp(cur_auth_type, "ldap", strlen("ldap"))) {
-        config->auth_type = ANGHARAD_AUTH_TYPE_LDAP;
-        config_setting_lookup_string(auth, "uri", &cur_auth_ldap_uri);
-        config_setting_lookup_string(auth, "bind_dn", &cur_auth_ldap_bind_dn);
-        config_setting_lookup_string(auth, "bind_passwd", &cur_auth_ldap_bind_passwd);
-        config_setting_lookup_string(auth, "filter", &cur_auth_ldap_filter);
-        config_setting_lookup_string(auth, "login_property", &cur_auth_ldap_login_property);
-        config_setting_lookup_string(auth, "base_search", &cur_auth_ldap_base_search);
-        if (cur_auth_ldap_uri != NULL && cur_auth_ldap_bind_dn != NULL && cur_auth_ldap_bind_passwd != NULL && cur_auth_ldap_filter != NULL && cur_auth_ldap_login_property != NULL && cur_auth_ldap_base_search != NULL) {
-          config->auth_ldap = malloc(sizeof(struct _auth_ldap));
-          if (config->auth_ldap == NULL) {
-            config_destroy(&cfg);
-            fprintf(stderr, "Error allocating resources for config->auth_ldap\n");
-            return 0;
-          } else {
-            config->auth_ldap->uri = nstrdup(cur_auth_ldap_uri);
-            if (config->auth_ldap->uri == NULL) {
-              config_destroy(&cfg);
-              fprintf(stderr, "Error allocating resources for config->auth_ldap->uri\n");
-              return 0;
-            }
-            config->auth_ldap->bind_dn = nstrdup(cur_auth_ldap_bind_dn);
-            if (config->auth_ldap->bind_dn == NULL) {
-              config_destroy(&cfg);
-              fprintf(stderr, "Error allocating resources for config->auth_ldap->bind_dn\n");
-              return 0;
-            }
-            config->auth_ldap->bind_passwd = nstrdup(cur_auth_ldap_bind_passwd);
-            if (config->auth_ldap->bind_passwd == NULL) {
-              config_destroy(&cfg);
-              fprintf(stderr, "Error allocating resources for config->auth_ldap->bind_passwd\n");
-              return 0;
-            }
-            config->auth_ldap->filter = nstrdup(cur_auth_ldap_filter);
-            if (config->auth_ldap->filter == NULL) {
-              config_destroy(&cfg);
-              fprintf(stderr, "Error allocating resources for config->auth_ldap->filter\n");
-              return 0;
-            }
-            config->auth_ldap->login_property = nstrdup(cur_auth_ldap_login_property);
-            if (config->auth_ldap->login_property == NULL) {
-              config_destroy(&cfg);
-              fprintf(stderr, "Error allocating resources for config->auth_ldap->login_property\n");
-              return 0;
-            }
-            config->auth_ldap->base_search = nstrdup(cur_auth_ldap_base_search);
-            if (config->auth_ldap->base_search == NULL) {
-              config_destroy(&cfg);
-              fprintf(stderr, "Error allocating resources for config->auth_ldap->base_search\n");
-              return 0;
-            }
-          }
-        } else {
+    config_setting_lookup_bool(auth, "database_auth", &cur_database_auth);
+    config->has_auth_database = cur_database_auth;
+    config_setting_lookup_bool(auth, "ldap_auth", &cur_ldap_auth);
+    config->has_auth_ldap = cur_ldap_auth;
+    
+    if (config->has_auth_ldap) {
+      config_setting_lookup_string(auth, "uri", &cur_auth_ldap_uri);
+      config_setting_lookup_string(auth, "bind_dn", &cur_auth_ldap_bind_dn);
+      config_setting_lookup_string(auth, "bind_passwd", &cur_auth_ldap_bind_passwd);
+      config_setting_lookup_string(auth, "filter", &cur_auth_ldap_filter);
+      config_setting_lookup_string(auth, "login_property", &cur_auth_ldap_login_property);
+      config_setting_lookup_string(auth, "base_search", &cur_auth_ldap_base_search);
+      if (cur_auth_ldap_uri != NULL && cur_auth_ldap_bind_dn != NULL && cur_auth_ldap_bind_passwd != NULL && cur_auth_ldap_filter != NULL && cur_auth_ldap_login_property != NULL && cur_auth_ldap_base_search != NULL) {
+        config->auth_ldap = malloc(sizeof(struct _auth_ldap));
+        if (config->auth_ldap == NULL) {
           config_destroy(&cfg);
-          fprintf(stderr, "Error, auth ldap error parameters\n");
+          fprintf(stderr, "Error allocating resources for config->auth_ldap\n");
           return 0;
+        } else {
+          config->auth_ldap->uri = nstrdup(cur_auth_ldap_uri);
+          if (config->auth_ldap->uri == NULL) {
+            config_destroy(&cfg);
+            fprintf(stderr, "Error allocating resources for config->auth_ldap->uri\n");
+            return 0;
+          }
+          config->auth_ldap->bind_dn = nstrdup(cur_auth_ldap_bind_dn);
+          if (config->auth_ldap->bind_dn == NULL) {
+            config_destroy(&cfg);
+            fprintf(stderr, "Error allocating resources for config->auth_ldap->bind_dn\n");
+            return 0;
+          }
+          config->auth_ldap->bind_passwd = nstrdup(cur_auth_ldap_bind_passwd);
+          if (config->auth_ldap->bind_passwd == NULL) {
+            config_destroy(&cfg);
+            fprintf(stderr, "Error allocating resources for config->auth_ldap->bind_passwd\n");
+            return 0;
+          }
+          config->auth_ldap->filter = nstrdup(cur_auth_ldap_filter);
+          if (config->auth_ldap->filter == NULL) {
+            config_destroy(&cfg);
+            fprintf(stderr, "Error allocating resources for config->auth_ldap->filter\n");
+            return 0;
+          }
+          config->auth_ldap->login_property = nstrdup(cur_auth_ldap_login_property);
+          if (config->auth_ldap->login_property == NULL) {
+            config_destroy(&cfg);
+            fprintf(stderr, "Error allocating resources for config->auth_ldap->login_property\n");
+            return 0;
+          }
+          config->auth_ldap->base_search = nstrdup(cur_auth_ldap_base_search);
+          if (config->auth_ldap->base_search == NULL) {
+            config_destroy(&cfg);
+            fprintf(stderr, "Error allocating resources for config->auth_ldap->base_search\n");
+            return 0;
+          }
         }
+      } else {
+        config_destroy(&cfg);
+        fprintf(stderr, "Error, auth ldap error parameters\n");
+        return 0;
       }
-    } else {
-      config_destroy(&cfg);
-      fprintf(stderr, "Error, no authentication type found\n");
-      return 0;
     }
   }
   
@@ -716,7 +722,8 @@ int main(int argc, char ** argv) {
   config->log_level = Y_LOG_LEVEL_NONE;
   config->log_file = NULL;
   config->angharad_status = ANGHARAD_STATUS_STOP;
-  config->auth_type = ANGHARAD_AUTH_TYPE_NONE;
+  config->has_auth_database = 0;
+  config->has_auth_ldap = 0;
   config->auth_ldap = NULL;
   config->instance = malloc(sizeof(struct _u_instance));
   config->c_config = malloc(sizeof(struct _carleon_config));
@@ -1001,11 +1008,14 @@ int init_angharad(struct config_elements * config) {
 
     ulfius_add_endpoint_by_val(config->instance, "GET", config->static_files_prefix, "*", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_static_file, (void*)config);
 
+    ulfius_add_endpoint_by_val(config->instance, "OPTIONS", config->url_prefix_angharad, "*", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_options, (void*)config);
+
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_root_url, (void*)config);
 
     ulfius_set_default_auth_function(config->instance, &callback_angharad_auth_function, (void*)config, NULL);
     
-    u_map_put(config->instance->default_headers, "access-control-allow-origin", config->allow_origin);
+    u_map_put(config->instance->default_headers, "Access-Control-Allow-Origin", config->allow_origin);
+    u_map_put(config->instance->default_headers, "Access-Control-Allow-Credentials", "true");
     
     config->mime_types = malloc(sizeof(struct _u_map));
     if (config->mime_types == NULL) {

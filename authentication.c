@@ -86,7 +86,7 @@ json_t * auth_get(struct config_elements * config, const char * session_id) {
     }
     if (res_size == 0) {
       // No session or wrong session
-      if (config->auth_type == ANGHARAD_AUTH_TYPE_NONE) {
+      if (!config->has_auth_database && !config->has_auth_ldap) {
         // Generate new session
         tm = localtime(&now);
         tm->tm_year += 10;
@@ -135,7 +135,7 @@ json_t * auth_check(struct config_elements * config, const char * login, const c
   time_t now;
   struct tm* tm;
   
-  if (config->auth_type == ANGHARAD_AUTH_TYPE_NONE) {
+  if (!config->has_auth_database && !config->has_auth_ldap) {
     // Generate new session
     time(&now);
     tm = localtime(&now);
@@ -143,7 +143,8 @@ json_t * auth_check(struct config_elements * config, const char * login, const c
     j_return = auth_generate_new_token(config, NULL, mktime(tm));
   } else {
     if (auth_check_credentials(config, login, password) == A_OK) {
-      j_return = auth_generate_new_token(config, login, validity);
+      // if validity is 0 (session only), set it to 1 day, but the cookie will be session only
+      j_return = auth_generate_new_token(config, login, (validity?validity:(24*60*60)));
     } else {
       // Return unauthorized
       j_return = json_pack("{si}", "result", A_ERROR_UNAUTHORIZED);
@@ -210,16 +211,24 @@ int auth_update_last_seen(struct config_elements * config, const char * session_
   }
 }
 
+/**
+ * Authentication check
+ * 
+ */
 int auth_check_credentials(struct config_elements * config, const char * login, const char * password) {
-  if (config->auth_type == ANGHARAD_AUTH_TYPE_NONE) {
+  int res = A_ERROR_UNAUTHORIZED;
+  
+  if (!config->has_auth_database && !config->has_auth_ldap) {
     return A_OK;
-  } else if (config->auth_type == ANGHARAD_AUTH_TYPE_DATABASE) {
-    return auth_check_credentials_database(config, login, password);
-  } else if (config->auth_type == ANGHARAD_AUTH_TYPE_LDAP) {
-    return auth_check_credentials_ldap(config, login, password);
   } else {
-    return A_ERROR_PARAM;
+    if (config->has_auth_ldap) {
+      res = auth_check_credentials_ldap(config, login, password);
+    }
+    if (config->has_auth_database && res != A_OK) {
+      res = auth_check_credentials_database(config, login, password);
+    }
   }
+  return res;
 }
 
 json_t * auth_generate_new_token(struct config_elements * config, const char * login, int validity) {
@@ -314,46 +323,49 @@ int auth_check_credentials_ldap(struct config_elements * config, const char * lo
   char *attrs[]       = {"memberOf", NULL};
   int  attrsonly      = 0;
   char * user_dn      = NULL;
+  int res = A_ERROR;
 
   if (ldap_initialize(&ldap, config->auth_ldap->uri) != LDAP_SUCCESS) {
     y_log_message(Y_LOG_LEVEL_ERROR, "Error initializing ldap");
-    return A_ERROR_PARAM;
+    res = A_ERROR_PARAM;
   } else if (ldap_set_option(ldap, LDAP_OPT_PROTOCOL_VERSION, &ldap_version) != LDAP_OPT_SUCCESS) {
     y_log_message(Y_LOG_LEVEL_ERROR, "Error setting ldap protocol version");
-    return A_ERROR_PARAM;
+    res = A_ERROR_PARAM;
   } else if ((result = ldap_simple_bind_s(ldap, config->auth_ldap->bind_dn, config->auth_ldap->bind_passwd)) != LDAP_OPT_SUCCESS) {
     y_log_message(Y_LOG_LEVEL_ERROR, "Error binding to ldap server: %s", ldap_err2string(result));
-    return A_ERROR_PARAM;
+    res = A_ERROR_PARAM;
   } else {
     // Connection successful, doing ldap search
     filter = msprintf("(&(%s)(%s=%s))", config->auth_ldap->filter, config->auth_ldap->login_property, login);
     
     if (filter != NULL && (result = ldap_search_s(ldap, config->auth_ldap->base_search, scope, filter, attrs, attrsonly, &answer)) != LDAP_SUCCESS) {
       y_log_message(Y_LOG_LEVEL_ERROR, "Error ldap search: %s", ldap_err2string(result));
-      return A_ERROR_PARAM;
+      res = A_ERROR_PARAM;
     } else if (ldap_count_entries(ldap, answer) == 0) {
-      y_log_message(Y_LOG_LEVEL_ERROR, "ldap search: No result found for login %s", login);
-      return A_ERROR_UNAUTHORIZED;
+      // No result found for login
+      res = A_ERROR_UNAUTHORIZED;
     } else {
       // ldap found some results, getting the first one
       entry = ldap_first_entry(ldap, answer);
       
       if (entry == NULL) {
         y_log_message(Y_LOG_LEVEL_ERROR, "ldap search: error getting first result");
-        return A_ERROR;
+        res = A_ERROR;
       } else {
         // Testing the first result to login with the given password
         user_dn = ldap_get_dn(ldap, entry);
         result_login = ldap_simple_bind_s(ldap, user_dn, password);
         ldap_memfree(user_dn);
-        ldap_msgfree(answer);
-        ldap_unbind(ldap);
         if (result_login == LDAP_SUCCESS) {
-          return A_OK;
+          res = A_OK;
         } else {
-          return A_ERROR_UNAUTHORIZED;
+          res = A_ERROR_UNAUTHORIZED;
         }
       }
     }
+    free(filter);
+    ldap_msgfree(answer);
   }
+  ldap_unbind(ldap);
+  return res;
 }
