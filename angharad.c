@@ -1008,7 +1008,7 @@ int init_angharad(struct config_elements * config) {
 
     ulfius_add_endpoint_by_val(config->instance, "GET", config->static_files_prefix, "*", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_static_file, (void*)config);
 
-    ulfius_add_endpoint_by_val(config->instance, "OPTIONS", config->url_prefix_angharad, "*", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_options, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "OPTIONS", NULL, "*", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_options, (void*)config);
 
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_root_url, (void*)config);
 
