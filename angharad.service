@@ -12,4 +12,4 @@ Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
-Alias=angharad.service
+Alias=angharad
