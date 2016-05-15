@@ -87,10 +87,10 @@ json_t * auth_get(struct config_elements * config, const char * session_id) {
     if (res_size == 0) {
       // No session or wrong session
       if (!config->has_auth_database && !config->has_auth_ldap) {
-        // Generate new session
+        // Generate fake session
         tm = localtime(&now);
         tm->tm_year += 10;
-        j_return = auth_generate_new_token(config, NULL, mktime(tm));
+        j_return = json_pack("{sis{sssi}}", "result", A_OK, "session", "token", "00000000-0000-0000-0000-000000000000", "validity", mktime(tm));
       } else {
         // Return unauthorized
         j_return = json_pack("{si}", "result", A_ERROR_UNAUTHORIZED);
