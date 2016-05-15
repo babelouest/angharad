@@ -40,7 +40,7 @@ BENOIC_LIBS=$(BENOIC_LOCATION)/benoic.o $(BENOIC_LOCATION)/device.o $(BENOIC_LOC
 CARLEON_LIBS=$(CARLEON_LOCATION)/carleon.o $(CARLEON_LOCATION)/service.o $(CARLEON_LOCATION)/profile.o
 ANGHARAD_LIBS=angharad.o condition.o scheduler.o trigger.o script.o webservice.o authentication.o
 
-angharad: $(ANGHARAD_LIBS) | gareth.o benoic.o carleon.o
+angharad: $(ANGHARAD_LIBS) $(GARETH_LIBS) $(BENOIC_LIBS) $(CARLEON_LIBS)
 	$(CC) -o angharad $(ANGHARAD_LIBS) $(GARETH_LIBS) $(BENOIC_LIBS) $(CARLEON_LIBS) $(LIBS) -lconfig
 
 angharad.o: angharad.c angharad.h

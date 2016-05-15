@@ -41,7 +41,6 @@ CREATE TABLE `b_device_type` (
 CREATE TABLE `b_device` (
   `bd_id` INT(11) PRIMARY KEY AUTO_INCREMENT,
   `bd_name` VARCHAR(64) NOT NULL UNIQUE,
-  `bd_display` VARCHAR(128),
   `bd_description` VARCHAR(512),
   `bd_enabled` TINYINT(1) DEFAULT 1,
   `bd_connected` TINYINT(1) DEFAULT 0,

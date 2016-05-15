@@ -219,7 +219,11 @@ int scheduler_add(struct config_elements * config, json_t * j_scheduler) {
     return A_ERROR_MEMORY;
   }
   
-  str_next_time = msprintf("FROM_UNIXTIME(%d)", json_integer_value(json_object_get(j_scheduler, "next_time")));
+#ifdef JSON_INTEGER_IS_LONG_LONG
+  str_next_time = msprintf("FROM_UNIXTIME(%lld)", json_integer_value(json_object_get(j_scheduler, "next_time")));
+#else
+  str_next_time = msprintf("FROM_UNIXTIME(%ld)", json_integer_value(json_object_get(j_scheduler, "next_time")));
+#endif
   str_options = json_dumps(json_object_get(j_scheduler, "options"), JSON_COMPACT);
   str_conditions = json_dumps(json_object_get(j_scheduler, "conditions"), JSON_COMPACT);
   j_query = json_pack("{sss[{sssssisssss{ss}sisisi}]}",
@@ -368,7 +372,11 @@ int scheduler_modify(struct config_elements * config, const char * scheduler_nam
   if (res_cur_scheduler == A_OK) {
     str_options = json_dumps(json_object_get(j_scheduler, "options"), JSON_COMPACT);
     str_conditions = json_dumps(json_object_get(j_scheduler, "conditions"), JSON_COMPACT);
-    str_next_time = msprintf("FROM_UNIXTIME(%d)", json_integer_value(json_object_get(j_scheduler, "next_time")));
+#ifdef JSON_INTEGER_IS_LONG_LONG
+    str_next_time = msprintf("FROM_UNIXTIME(%lld)", json_integer_value(json_object_get(j_scheduler, "next_time")));
+#else
+    str_next_time = msprintf("FROM_UNIXTIME(%ld)", json_integer_value(json_object_get(j_scheduler, "next_time")));
+#endif
     j_query = json_pack("{sss{sssisssss{ss}sisisi}s{ss}}",
                         "table", ANGHARAD_TABLE_SCHEDULER,
                         "set",
