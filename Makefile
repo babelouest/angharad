@@ -40,7 +40,7 @@ BENOIC_LIBS=$(BENOIC_LOCATION)/benoic.o $(BENOIC_LOCATION)/device.o $(BENOIC_LOC
 CARLEON_LIBS=$(CARLEON_LOCATION)/carleon.o $(CARLEON_LOCATION)/service.o $(CARLEON_LOCATION)/profile.o
 ANGHARAD_LIBS=angharad.o condition.o scheduler.o trigger.o script.o webservice.o authentication.o
 
-angharad: $(ANGHARAD_LIBS) $(GARETH_LIBS) $(BENOIC_LIBS) $(CARLEON_LIBS)
+angharad: $(ANGHARAD_LIBS) $(GARETH_LIBS) $(BENOIC_LIBS) $(CARLEON_LIBS) | benoic-device-modules carleon-service-modules
 	$(CC) -o angharad $(ANGHARAD_LIBS) $(GARETH_LIBS) $(BENOIC_LIBS) $(CARLEON_LIBS) $(LIBS) -lconfig
 
 angharad.o: angharad.c angharad.h
@@ -64,14 +64,11 @@ webservice.o: webservice.c angharad.h
 authentication.o: authentication.c angharad.h
 	$(CC) $(CFLAGS) authentication.c
 
-gareth.o:
-	cd $(GARETH_LOCATION) && $(MAKE) $(DEBUGFLAG)
+benoic-device-modules:
+	cd $(BENOIC_LOCATION)/device-modules && $(MAKE) $(DEBUGFLAG)
 
-benoic.o:
-	cd $(BENOIC_LOCATION) && $(MAKE) $(DEBUGFLAG)
-
-carleon.o:
-	cd $(CARLEON_LOCATION) && $(MAKE) $(DEBUGFLAG)
+carleon-service-modules:
+	cd $(CARLEON_LOCATION)/service-modules && $(MAKE) $(DEBUGFLAG)
 
 all: release
 
