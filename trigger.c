@@ -229,7 +229,7 @@ int trigger_add(struct config_elements * config, json_t * j_trigger) {
   
   str_options = json_dumps(json_object_get(j_trigger, "options"), JSON_COMPACT);
   str_conditions = json_dumps(json_object_get(j_trigger, "conditions"), JSON_COMPACT);
-  j_query = json_pack("{sss[{sssssisssssssssssssi}]}",
+  j_query = json_pack("{sss[{sssssisssssssssssssI}]}",
                       "table", ANGHARAD_TABLE_TRIGGER,
                       "values",
                         "at_name", json_string_value(json_object_get(j_trigger, "name")),
@@ -380,7 +380,7 @@ int trigger_modify(struct config_elements * config, const char * trigger_name, j
   if (res_cur_trigger == A_OK) {
     str_options = json_dumps(json_object_get(j_trigger, "options"), JSON_COMPACT);
     str_conditions = json_dumps(json_object_get(j_trigger, "conditions"), JSON_COMPACT);
-    j_query = json_pack("{sss{sssisssssssssssssi}s{ss}}",
+    j_query = json_pack("{sss{sssisssssssssssssI}s{ss}}",
                         "table", ANGHARAD_TABLE_TRIGGER,
                         "set",
                           "at_description", json_string_value(json_object_get(j_trigger, "description")),

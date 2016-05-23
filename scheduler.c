@@ -226,7 +226,7 @@ int scheduler_add(struct config_elements * config, json_t * j_scheduler) {
 #endif
   str_options = json_dumps(json_object_get(j_scheduler, "options"), JSON_COMPACT);
   str_conditions = json_dumps(json_object_get(j_scheduler, "conditions"), JSON_COMPACT);
-  j_query = json_pack("{sss[{sssssisssss{ss}sisisi}]}",
+  j_query = json_pack("{sss[{sssssisssss{ss}sIsIsi}]}",
                       "table", ANGHARAD_TABLE_SCHEDULER,
                       "values",
                         "ash_name", json_string_value(json_object_get(j_scheduler, "name")),
@@ -377,7 +377,7 @@ int scheduler_modify(struct config_elements * config, const char * scheduler_nam
 #else
     str_next_time = msprintf("FROM_UNIXTIME(%ld)", json_integer_value(json_object_get(j_scheduler, "next_time")));
 #endif
-    j_query = json_pack("{sss{sssisssss{ss}sisisi}s{ss}}",
+    j_query = json_pack("{sss{sssisssss{ss}sIsIsi}s{ss}}",
                         "table", ANGHARAD_TABLE_SCHEDULER,
                         "set",
                           "ash_description", json_string_value(json_object_get(j_scheduler, "description")),

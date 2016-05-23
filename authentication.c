@@ -101,7 +101,7 @@ json_t * auth_get(struct config_elements * config, const char * session_id) {
       j_return = json_pack("{si}", "result", A_ERROR_DB);
     } else {
       // Session found, return it
-      j_return = json_pack("{sis{sssi}}", "result", A_OK, "session", "token", session_id, "validity", json_integer_value(json_object_get(json_array_get(j_result, 0), "validity")));
+      j_return = json_pack("{sis{sssI}}", "result", A_OK, "session", "token", session_id, "validity", json_integer_value(json_object_get(json_array_get(j_result, 0), "validity")));
     }
     json_decref(j_result);
   } else {
