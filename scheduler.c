@@ -95,7 +95,7 @@ json_t * scheduler_get(struct config_elements * config, const char * scheduler_n
   int res;
   size_t index;
   
-  j_query = json_pack("{sss[sssssssss]}", 
+  j_query = json_pack("{sss[ssssssss]}", 
                         "table", 
                           ANGHARAD_TABLE_SCHEDULER, 
                         "columns", 
@@ -104,10 +104,15 @@ json_t * scheduler_get(struct config_elements * config, const char * scheduler_n
                           "ash_enabled", 
                           "ash_options", 
                           "ash_conditions", 
-                          "UNIX_TIMESTAMP(ash_next_time) AS next_time", 
+//                          "UNIX_TIMESTAMP(ash_next_time) AS next_time", 
                           "ash_repeat AS s_repeat", 
                           "ash_repeat_value AS repeat_value", 
                           "ash_remove_after");
+  if (config->conn->type == HOEL_DB_TYPE_MARIADB) {
+    json_array_append_new(json_object_get(j_query, "columns"), json_string("UNIX_TIMESTAMP(ash_next_time) AS next_time"));
+  } else if (config->conn->type == HOEL_DB_TYPE_SQLITE) {
+    json_array_append_new(json_object_get(j_query, "columns"), json_string("ash_next_time AS next_time"));
+  }
   
   if (j_query == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_get - Error allocating resources for j_query");
@@ -124,7 +129,11 @@ json_t * scheduler_get(struct config_elements * config, const char * scheduler_n
   
   if (runnable) {
     json_object_set_new(json_object_get(j_query, "where"), "ash_enabled", json_integer(1));
-    json_object_set_new(json_object_get(j_query, "where"), "ash_next_time", json_pack("{ssss}", "operator", "raw", "value", "<= NOW()"));
+    if (config->conn->type == HOEL_DB_TYPE_MARIADB) {
+      json_object_set_new(json_object_get(j_query, "where"), "ash_next_time", json_pack("{ssss}", "operator", "raw", "value", "<= NOW()"));
+    } else if (config->conn->type == HOEL_DB_TYPE_SQLITE) {
+      json_object_set_new(json_object_get(j_query, "where"), "ash_next_time", json_pack("{ssss}", "operator", "raw", "value", "<= strftime('%%s','now')"));
+    }
   }
   
   res = h_select(config->conn, j_query, &j_result, NULL);
@@ -219,11 +228,20 @@ int scheduler_add(struct config_elements * config, json_t * j_scheduler) {
     return A_ERROR_MEMORY;
   }
   
+  if (config->conn->type == HOEL_DB_TYPE_MARIADB) {
 #ifdef JSON_INTEGER_IS_LONG_LONG
-  str_next_time = msprintf("FROM_UNIXTIME(%lld)", json_integer_value(json_object_get(j_scheduler, "next_time")));
+    str_next_time = msprintf("FROM_UNIXTIME(%lld)", json_integer_value(json_object_get(j_scheduler, "next_time")));
 #else
-  str_next_time = msprintf("FROM_UNIXTIME(%ld)", json_integer_value(json_object_get(j_scheduler, "next_time")));
+    str_next_time = msprintf("FROM_UNIXTIME(%ld)", json_integer_value(json_object_get(j_scheduler, "next_time")));
 #endif
+  } else if (config->conn->type == HOEL_DB_TYPE_SQLITE) {
+#ifdef JSON_INTEGER_IS_LONG_LONG
+    str_next_time = msprintf("%lld", json_integer_value(json_object_get(j_scheduler, "next_time")));
+#else
+    str_next_time = msprintf("%ld", json_integer_value(json_object_get(j_scheduler, "next_time")));
+#endif
+  }
+  
   str_options = json_dumps(json_object_get(j_scheduler, "options"), JSON_COMPACT);
   str_conditions = json_dumps(json_object_get(j_scheduler, "conditions"), JSON_COMPACT);
   j_query = json_pack("{sss[{sssssisssss{ss}sIsIsi}]}",
@@ -372,11 +390,19 @@ int scheduler_modify(struct config_elements * config, const char * scheduler_nam
   if (res_cur_scheduler == A_OK) {
     str_options = json_dumps(json_object_get(j_scheduler, "options"), JSON_COMPACT);
     str_conditions = json_dumps(json_object_get(j_scheduler, "conditions"), JSON_COMPACT);
+    if (config->conn->type == HOEL_DB_TYPE_MARIADB) {
 #ifdef JSON_INTEGER_IS_LONG_LONG
-    str_next_time = msprintf("FROM_UNIXTIME(%lld)", json_integer_value(json_object_get(j_scheduler, "next_time")));
+      str_next_time = msprintf("FROM_UNIXTIME(%lld)", json_integer_value(json_object_get(j_scheduler, "next_time")));
 #else
-    str_next_time = msprintf("FROM_UNIXTIME(%ld)", json_integer_value(json_object_get(j_scheduler, "next_time")));
+      str_next_time = msprintf("FROM_UNIXTIME(%ld)", json_integer_value(json_object_get(j_scheduler, "next_time")));
 #endif
+    } else if (config->conn->type == HOEL_DB_TYPE_SQLITE) {
+#ifdef JSON_INTEGER_IS_LONG_LONG
+      str_next_time = msprintf("%lld", json_integer_value(json_object_get(j_scheduler, "next_time")));
+#else
+      str_next_time = msprintf("%ld", json_integer_value(json_object_get(j_scheduler, "next_time")));
+#endif
+    }
     j_query = json_pack("{sss{sssisssss{ss}sIsIsi}s{ss}}",
                         "table", ANGHARAD_TABLE_SCHEDULER,
                         "set",

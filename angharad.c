@@ -470,8 +470,8 @@ int build_config_from_file(struct config_elements * config) {
     if (config_setting_lookup_string(database, "type", &db_type) == CONFIG_TRUE) {
       if (0 == nstrncmp(db_type, "sqlite3", strlen("sqlite3"))) {
         if (config_setting_lookup_string(database, "path", &db_sqlite_path) == CONFIG_TRUE) {
-          config->c_config->conn = h_connect_sqlite(db_sqlite_path);
-          if (config->c_config->conn == NULL) {
+          config->conn = h_connect_sqlite(db_sqlite_path);
+          if (config->conn == NULL) {
             config_destroy(&cfg);
             fprintf(stderr, "Error opening sqlite database %s\n", db_sqlite_path);
             return 0;
