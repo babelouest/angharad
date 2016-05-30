@@ -60,7 +60,7 @@ CREATE TABLE `b_element` (
   `be_enabled` TINYINT(1) DEFAULT 1,
   `be_options` BLOB,
   `be_monitored` TINYINT(1) DEFAULT 0,
-  `be_monitored_every` TINYINT(1) DEFAULT 0,
+  `be_monitored_every` INT(11) DEFAULT 0,
   `be_monitored_next` TIMESTAMP,
   CONSTRAINT `device_ibfk_1` FOREIGN KEY (`bd_name`) REFERENCES `b_device` (`bd_name`) ON DELETE CASCADE
 );
