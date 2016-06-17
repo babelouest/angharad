@@ -1,9 +1,9 @@
 [submodule "benoic"]
 	path = benoic
-	url = git@github.com:babelouest/benoic.git
+	url = https://github.com/babelouest/benoic.git
 [submodule "gareth"]
 	path = gareth
-	url = git@github.com:babelouest/gareth.git
+	url = https://github.com/babelouest/gareth.git
 [submodule "carleon"]
 	path = carleon
-	url = git@github.com:babelouest/carleon.git
+	url = https://github.com/babelouest/carleon.git
