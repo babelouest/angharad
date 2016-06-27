@@ -385,7 +385,7 @@ json_t * is_action_valid(struct config_elements * config, json_t * j_action) {
                       json_array_append_new(j_result, json_pack("{ss}", "action", "mode is invalid, must be 'off', 'auto', 'manual' or none"));
                     }
                     
-                    if (!json_is_real(j_command)) {
+                    if (!json_is_number(j_command)) {
                       json_array_append_new(j_result, json_pack("{ss}", "action", "command is invalid, must be a real number"));
                     }
                   }
@@ -412,7 +412,7 @@ json_t * is_action_valid(struct config_elements * config, json_t * j_action) {
         if (j_service == NULL || !json_is_string(j_service)) {
           json_array_append_new(j_result, json_pack("{ss}", "action", "service parameter is invalid"));
         } else {
-          cur_service = get_service_from_uid(config->c_config, json_string_value(j_service));
+          cur_service = get_service_from_name(config->c_config, json_string_value(j_service));
           if (cur_service == NULL) {
             json_array_append_new(j_result, json_pack("{ss}", "action", "service parameter is invalid"));
           } else {
@@ -654,7 +654,7 @@ int action_run(struct config_elements * config, json_t * j_action) {
     }
     json_decref(j_device);
   } else if (j_action != NULL && 0 == nstrcmp(json_string_value(json_object_get(j_action, "submodule")), "carleon")) {
-    cur_service = get_service_from_uid(config->c_config, json_string_value(json_object_get(json_object_get(j_action, "parameters"), "service")));
+    cur_service = get_service_from_name(config->c_config, json_string_value(json_object_get(json_object_get(j_action, "parameters"), "service")));
     if (cur_service != NULL) {
       j_result = service_exec(config->c_config, cur_service, json_string_value(json_object_get(j_action, "command")), json_string_value(json_object_get(j_action, "element")), json_object_get(j_action, "parameters"));
       if (j_result == NULL || json_integer_value(json_object_get(j_result, "result")) != WEBSERVICE_RESULT_OK) {

@@ -73,17 +73,16 @@ CREATE TABLE `b_monitor` (
 );
 
 CREATE TABLE `c_service` (
-  `cs_uid` VARCHAR(64) PRIMARY KEY NOT NULL,
-  `cs_enabled` TINYINT(1) DEFAULT 0,
-  `cs_name` VARCHAR(64) NOT NULL UNIQUE,
-  `cs_description` VARCHAR(512)
+  `cs_name` varchar(64) PRIMARY KEY,
+  `cs_enabled` tinyint(1) DEFAULT 0,
+  `cs_description` varchar(512)
 );
 
 CREATE TABLE `c_element` (
-  `cs_uid` VARCHAR(64),
+  `cs_name` VARCHAR(64),
   `ce_name` VARCHAR(64),
   `ce_tag` blob,
-  CONSTRAINT `service_ibfk_1` FOREIGN KEY (`cs_uid`) REFERENCES `c_service` (`cs_uid`)
+  CONSTRAINT `service_ibfk_1` FOREIGN KEY (`cs_name`) REFERENCES `c_service` (`cs_name`)
 );
 
 CREATE TABLE `c_profile` (

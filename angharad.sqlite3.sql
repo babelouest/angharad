@@ -67,14 +67,13 @@ CREATE TABLE `b_monitor` (
 );
 
 CREATE TABLE `c_service` (
-  `cs_uid` TEXT PRIMARY KEY NOT NULL,
+  `cs_name` TEXT PRIMARY KEY,
   `cs_enabled` INTEGER DEFAULT 0,
-  `cs_name` TEXT NOT NULL UNIQUE,
   `cs_description` TEXT
 );
 
 CREATE TABLE `c_element` (
-  `cs_uid` TEXT,
+  `cs_name` TEXT,
   `ce_name` TEXT,
   `ce_tag` TEXT
 );

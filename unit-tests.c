@@ -237,9 +237,9 @@ void run_script_tests() {
       {\
         \"submodule\": \"carleon\",\
         \"element\": \"mock1\",\
-        \"command\": \"exec\",\
+        \"command\": \"exec1\",\
         \"parameters\": {\
-          \"service\": \"00-00-00\",\
+          \"service\": \"mock-service\",\
           \"param1\": \"plop\",\
           \"param2\": 3,\
           \"param3\": 4.4\
@@ -266,9 +266,9 @@ void run_script_tests() {
       {\
         \"submodule\": \"carleon\",\
         \"element\": \"mock1\",\
-        \"command\": \"exec\",\
+        \"command\": \"exec1\",\
         \"parameters\": {\
-          \"service\": \"00-00-00\",\
+          \"service\": \"mock-service\",\
           \"param1\": \"plop\",\
           \"param2\": 3,\
           \"param3\": 4.4\
@@ -295,9 +295,9 @@ void run_script_tests() {
       {\
         \"submodule\": \"carleon\",\
         \"element\": \"mock1\",\
-        \"command\": \"exec\",\
+        \"command\": \"exec1\",\
         \"parameters\": {\
-          \"service\": \"00-00-00\",\
+          \"service\": \"mock-service\",\
           \"param1\": \"plop\",\
           \"param2\": 3,\
           \"param3\": 4.4\
@@ -371,9 +371,9 @@ void run_script_tests() {
       {\
         \"submodule\": \"carleon\",\
         \"element\": \"mock1\",\
-        \"command\": \"exec\",\
+        \"command\": \"exec1\",\
         \"parameters\": {\
-          \"service\": \"00-00-00\",\
+          \"service\": \"mock-service\",\
           \"param1\": \"plop\",\
           \"param2\": 3,\
           \"param3\": 4.4\
@@ -382,11 +382,10 @@ void run_script_tests() {
       {\
         \"submodule\": \"carleon\",\
         \"element\": \"mock1\",\
-        \"command\": \"exec\",\
+        \"command\": \"exec2\",\
         \"parameters\": {\
-          \"service\": \"00-00-00\",\
-          \"param1\": \"go\",\
-          \"param2\": 1\
+          \"service\": \"mock-service\",\
+          \"param1\": \"go\"\
         }\
       }\
     ]\
@@ -410,9 +409,9 @@ void run_script_tests() {
       {\
         \"submodule\": \"carleon\",\
         \"element\": \"mock1\",\
-        \"command\": \"exec\",\
+        \"command\": \"exec1\",\
         \"parameters\": {\
-          \"service\": \"00-00-00\",\
+          \"service\": \"mock-service\",\
           \"param1\": \"plop\",\
           \"param2\": 3,\
           \"param3\": 4.4\
@@ -439,9 +438,9 @@ void run_script_tests() {
       {\
         \"submodule\": \"carleon\",\
         \"element\": \"mock1\",\
-        \"command\": \"exec\",\
+        \"command\": \"exec1\",\
         \"parameters\": {\
-          \"service\": \"00-00-00\",\
+          \"service\": \"mock-service\",\
           \"param1\": \"plop\",\
           \"param2\": 3,\
           \"param3\": 4.4\
@@ -470,7 +469,7 @@ void run_script_tests() {
         \"element\": \"mock12\",\
         \"command\": \"exece\",\
         \"parameters\": {\
-          \"service\": \"00-00-00e\",\
+          \"service\": \"mock-servicee\",\
           \"param1\": \"plop\",\
           \"param2\": 3,\
           \"param3\": \"lolo\"\
@@ -554,9 +553,9 @@ void run_scheduler_tests() {
       {\
         \"submodule\": \"carleon\",\
         \"element\": \"mock1\",\
-        \"command\": \"exec\",\
+        \"command\": \"exec1\",\
         \"parameters\": {\
-          \"service\": \"00-00-00\",\
+          \"service\": \"mock-service\",\
           \"param1\": \"plop\",\
           \"param2\": 3,\
           \"param3\": 4.4\
@@ -605,9 +604,9 @@ void run_scheduler_tests() {
       {\
         \"submodule\": \"carleon\",\
         \"element\": \"mock1\",\
-        \"command\": \"exec\",\
+        \"command\": \"exec1\",\
         \"parameters\": {\
-          \"service\": \"00-00-00\",\
+          \"service\": \"mock-service\",\
           \"param1\": \"plop\",\
           \"param2\": 3,\
           \"param3\": 4.4\
@@ -652,9 +651,9 @@ void run_scheduler_tests() {
       {\
         \"submodule\": \"carleon\",\
         \"element\": \"mock1\",\
-        \"command\": \"exec\",\
+        \"command\": \"exec1\",\
         \"parameters\": {\
-          \"service\": \"00-00-00\",\
+          \"service\": \"mock-service\",\
           \"param1\": \"plop\",\
           \"param2\": 3,\
           \"param3\": 4.4\
@@ -681,9 +680,9 @@ void run_scheduler_tests() {
       {\
         \"submodule\": \"carleon\",\
         \"element\": \"mock1\",\
-        \"command\": \"exec\",\
+        \"command\": \"exec1\",\
         \"parameters\": {\
-          \"service\": \"00-00-00\",\
+          \"service\": \"mock-service\",\
           \"param1\": \"plop\",\
           \"param2\": 3,\
           \"param3\": 4.4\
@@ -732,9 +731,9 @@ void run_scheduler_tests() {
       {\
         \"submodule\": \"carleon\",\
         \"element\": \"mock1\",\
-        \"command\": \"exec\",\
+        \"command\": \"exec1\",\
         \"parameters\": {\
-          \"service\": \"00-00-00\",\
+          \"service\": \"mock-service\",\
           \"param1\": \"plop\",\
           \"param2\": 3,\
           \"param3\": 4.4\
@@ -810,9 +809,9 @@ void run_trigger_tests() {
       {\
         \"submodule\": \"carleon\",\
         \"element\": \"mock1\",\
-        \"command\": \"exec\",\
+        \"command\": \"exec1\",\
         \"parameters\": {\
-          \"service\": \"00-00-00\",\
+          \"service\": \"mock-service\",\
           \"param1\": \"plop\",\
           \"param2\": 3,\
           \"param3\": 4.4\
@@ -839,9 +838,9 @@ void run_trigger_tests() {
       {\
         \"submodule\": \"carleon\",\
         \"element\": \"mock1\",\
-        \"command\": \"exec\",\
+        \"command\": \"exec1\",\
         \"parameters\": {\
-          \"service\": \"00-00-00\",\
+          \"service\": \"mock-service\",\
           \"param1\": \"plop\",\
           \"param2\": 3,\
           \"param3\": 4.4\
@@ -897,9 +896,9 @@ void run_trigger_tests() {
       {\
         \"submodule\": \"carleon\",\
         \"element\": \"mock1\",\
-        \"command\": \"exec\",\
+        \"command\": \"exec1\",\
         \"parameters\": {\
-          \"service\": \"00-00-00\",\
+          \"service\": \"mock-service\",\
           \"param1\": \"plop\",\
           \"param2\": 3,\
           \"param3\": 4.4\
@@ -949,9 +948,9 @@ void run_trigger_tests() {
       {\
         \"submodule\": \"carleon\",\
         \"element\": \"mock1\",\
-        \"command\": \"exec\",\
+        \"command\": \"exec1\",\
         \"parameters\": {\
-          \"service\": \"00-00-00\",\
+          \"service\": \"mock-service\",\
           \"param1\": \"plop\",\
           \"param2\": 3,\
           \"param3\": 4.4\
@@ -1002,9 +1001,9 @@ void run_trigger_tests() {
       {\
         \"submodule\": \"carleon\",\
         \"element\": \"mock1\",\
-        \"command\": \"exec\",\
+        \"command\": \"exec1\",\
         \"parameters\": {\
-          \"service\": \"00-00-00\",\
+          \"service\": \"mock-service\",\
           \"param1\": \"plop\",\
           \"param2\": 3,\
           \"param3\": 4.4\
@@ -1080,9 +1079,9 @@ void run_scheduler_trigger_exec_tests() {
       {\
         \"submodule\": \"carleon\",\
         \"element\": \"mock1\",\
-        \"command\": \"exec\",\
+        \"command\": \"exec1\",\
         \"parameters\": {\
-          \"service\": \"00-00-00\",\
+          \"service\": \"mock-service\",\
           \"param1\": \"plop\",\
           \"param2\": 3,\
           \"param3\": 4.4\
@@ -1129,9 +1128,9 @@ void run_scheduler_trigger_exec_tests() {
       {\
         \"submodule\": \"carleon\",\
         \"element\": \"mock1\",\
-        \"command\": \"exec2\",\
+        \"command\": \"exec1\",\
         \"parameters\": {\
-          \"service\": \"00-00-00\",\
+          \"service\": \"mock-service\",\
           \"param1\": \"plop\",\
           \"param2\": 3,\
           \"param3\": 4.4\
@@ -1178,9 +1177,9 @@ void run_scheduler_trigger_exec_tests() {
       {\
         \"submodule\": \"carleon\",\
         \"element\": \"mock1\",\
-        \"command\": \"exec2\",\
+        \"command\": \"exec1\",\
         \"parameters\": {\
-          \"service\": \"00-00-00\",\
+          \"service\": \"mock-service\",\
           \"param1\": \"plop\",\
           \"param2\": 3,\
           \"param3\": 4.4\
@@ -1225,9 +1224,9 @@ void run_scheduler_trigger_exec_tests() {
       {\
         \"submodule\": \"carleon\",\
         \"element\": \"mock1\",\
-        \"command\": \"exec\",\
+        \"command\": \"exec1\",\
         \"parameters\": {\
-          \"service\": \"00-00-00\",\
+          \"service\": \"mock-service\",\
           \"param1\": \"plop\",\
           \"param2\": 3,\
           \"param3\": 4.4\
@@ -1254,9 +1253,9 @@ void run_scheduler_trigger_exec_tests() {
       {\
         \"submodule\": \"carleon\",\
         \"element\": \"mock1\",\
-        \"command\": \"exec\",\
+        \"command\": \"exec1\",\
         \"parameters\": {\
-          \"service\": \"00-00-00\",\
+          \"service\": \"mock-service\",\
           \"param1\": \"plop\",\
           \"param2\": 3,\
           \"param3\": 4.4\
@@ -1305,9 +1304,9 @@ void run_scheduler_trigger_exec_tests() {
       {\
         \"submodule\": \"carleon\",\
         \"element\": \"mock1\",\
-        \"command\": \"exec\",\
+        \"command\": \"exec1\",\
         \"parameters\": {\
-          \"service\": \"00-00-00\",\
+          \"service\": \"mock-service\",\
           \"param1\": \"plop\",\
           \"param2\": 3,\
           \"param3\": 4.4\
@@ -1355,9 +1354,9 @@ void run_scheduler_trigger_exec_tests() {
       {\
         \"submodule\": \"carleon\",\
         \"element\": \"mock1\",\
-        \"command\": \"exec2\",\
+        \"command\": \"exec1\",\
         \"parameters\": {\
-          \"service\": \"00-00-00\",\
+          \"service\": \"mock-service\",\
           \"param1\": \"plop\",\
           \"param2\": 3,\
           \"param3\": 4.4\
@@ -1405,9 +1404,9 @@ void run_scheduler_trigger_exec_tests() {
       {\
         \"submodule\": \"carleon\",\
         \"element\": \"mock1\",\
-        \"command\": \"exec2\",\
+        \"command\": \"exec1\",\
         \"parameters\": {\
-          \"service\": \"00-00-00\",\
+          \"service\": \"mock-service\",\
           \"param1\": \"plop\",\
           \"param2\": 3,\
           \"param3\": 4.4\

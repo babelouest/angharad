@@ -188,7 +188,7 @@ int condition_check(struct config_elements * config, json_t * j_condition) {
     }
     json_decref(j_device);
   } else if (j_condition != NULL && 0 == nstrcmp(json_string_value(json_object_get(j_condition, "submodule")), "carleon")) {
-    cur_service = get_service_from_uid(config->c_config, json_string_value(json_object_get(json_object_get(j_condition, "parameters"), "service")));
+    cur_service = get_service_from_name(config->c_config, json_string_value(json_object_get(json_object_get(j_condition, "parameters"), "service")));
     if (cur_service != NULL) {
       j_result = service_exec(config->c_config, cur_service, json_string_value(json_object_get(j_condition, "command")), json_string_value(json_object_get(j_condition, "element")), json_object_get(j_condition, "parameters"));
       if (j_result == NULL || json_integer_value(json_object_get(j_result, "result")) != WEBSERVICE_RESULT_OK) {
