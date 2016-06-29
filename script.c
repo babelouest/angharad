@@ -448,7 +448,7 @@ json_t * is_action_valid(struct config_elements * config, json_t * j_action) {
                       json_array_append_new(j_result, json_pack("{ss}", "action", "parameter must be a string"));
                     } else if (0 == nstrcmp("integer", json_string_value(json_object_get(j_cur_param, "type"))) && !json_is_integer(j_command_param)) {
                       json_array_append_new(j_result, json_pack("{ss}", "action", "parameter must be an integer"));
-                    } else if (0 == nstrcmp("real", json_string_value(json_object_get(j_cur_param, "type"))) && !json_is_real(j_command_param)) {
+                    } else if (0 == nstrcmp("real", json_string_value(json_object_get(j_cur_param, "type"))) && !json_is_number(j_command_param)) {
                       json_array_append_new(j_result, json_pack("{ss}", "action", "parameter must be an real"));
                     }
                   }
