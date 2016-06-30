@@ -1086,8 +1086,10 @@ void run_scheduler_trigger_exec_tests() {
           \"param2\": 3,\
           \"param3\": 4.4\
         },\
-        \"condition\":\">=\",\
-        \"value\":0\
+        \"condition\":\"contains\",\
+        \"value\":{\
+          \"value1\":1\
+        }\
       }\
     ]\
   }", (unsigned)time(NULL));
@@ -1135,8 +1137,10 @@ void run_scheduler_trigger_exec_tests() {
           \"param2\": 3,\
           \"param3\": 4.4\
         },\
-        \"condition\":\"!=\",\
-        \"value\":0\
+        \"condition\":\"not contains\",\
+        \"value\":{\
+          \"value1\":0\
+        }\
       }\
     ]\
   }", (unsigned)time(NULL));
@@ -1177,15 +1181,13 @@ void run_scheduler_trigger_exec_tests() {
       {\
         \"submodule\": \"carleon\",\
         \"element\": \"mock1\",\
-        \"command\": \"exec1\",\
+        \"command\": \"exec2\",\
         \"parameters\": {\
           \"service\": \"mock-service\",\
-          \"param1\": \"plop\",\
-          \"param2\": 3,\
-          \"param3\": 4.4\
+          \"param1\": \"plop\"\
         },\
-        \"condition\":\"<=\",\
-        \"value\":2\
+        \"condition\":\"==\",\
+        \"value\":\"plop\"\
       }\
     ]\
   }", (unsigned)time(NULL));
@@ -1304,15 +1306,13 @@ void run_scheduler_trigger_exec_tests() {
       {\
         \"submodule\": \"carleon\",\
         \"element\": \"mock1\",\
-        \"command\": \"exec1\",\
+        \"command\": \"exec2\",\
         \"parameters\": {\
           \"service\": \"mock-service\",\
-          \"param1\": \"plop\",\
-          \"param2\": 3,\
-          \"param3\": 4.4\
+          \"param1\": \"plop\"\
         },\
-        \"condition\":\">=\",\
-        \"value\":0\
+        \"condition\":\"contains\",\
+        \"value\":\"ok\"\
       }\
     ]\
   }", JSON_DECODE_ANY, NULL);
@@ -1361,8 +1361,10 @@ void run_scheduler_trigger_exec_tests() {
           \"param2\": 3,\
           \"param3\": 4.4\
         },\
-        \"condition\":\"!=\",\
-        \"value\":0\
+        \"condition\":\"contains\",\
+        \"value\":{\
+          \"value1\":1\
+        }\
       }\
     ]\
   }", JSON_DECODE_ANY, NULL);
@@ -1411,8 +1413,10 @@ void run_scheduler_trigger_exec_tests() {
           \"param2\": 3,\
           \"param3\": 4.4\
         },\
-        \"condition\":\"<=\",\
-        \"value\":2\
+        \"condition\":\"contains\",\
+        \"value\":{\
+          \"value1\":1\
+        }\
       }\
     ]\
   }", JSON_DECODE_ANY, NULL);

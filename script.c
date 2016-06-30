@@ -643,7 +643,7 @@ int action_run(struct config_elements * config, json_t * j_action) {
         } else {
           i_heater_mode = BENOIC_ELEMENT_HEATER_MODE_MANUAL;
         }
-        command_res = set_heater(config->b_config, j_device, json_string_value(element), json_real_value(command), i_heater_mode);
+        command_res = set_heater(config->b_config, j_device, json_string_value(element), json_number_value(command), i_heater_mode);
         if (command_res != B_OK) {
           y_log_message(Y_LOG_LEVEL_ERROR, "error in benoic command_res");
           res = A_ERROR;

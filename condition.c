@@ -93,8 +93,8 @@ json_t * is_condition_valid(struct config_elements * config, json_t * condition)
     }
   }
   
-  if (json_object_get(condition, "value") == NULL || (!json_is_string(json_object_get(condition, "value")) && !json_is_number(json_object_get(condition, "value")) && !json_is_boolean(json_object_get(condition, "value")))) {
-    json_array_append_new(j_valid, json_pack("{ss}", "value", "value is mandatory and must be a string, a number or a boolean"));
+  if (json_object_get(condition, "value") == NULL || (!json_is_string(json_object_get(condition, "value")) && !json_is_number(json_object_get(condition, "value")) && !json_is_boolean(json_object_get(condition, "value")) && !json_is_object(json_object_get(condition, "value")))) {
+    json_array_append_new(j_valid, json_pack("{ss}", "value", "value is mandatory and must be a string, a number, boolean or an object"));
   }
   
   if (json_array_size(j_valid) == 0) {
@@ -228,7 +228,7 @@ int compare_values(json_t * j_value1, json_t * j_value2, const char * operator) 
     if (json_is_integer(j_value1) && json_is_integer(j_value2)) {
       return json_integer_value(j_value1)>json_integer_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
     } else if (json_is_number(j_value1) && json_is_number(j_value2)) {
-      return json_real_value(j_value1)>json_real_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
+      return json_number_value(j_value1)>json_number_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
     } else {
       y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error values not the same type");
       return A_ERROR_PARAM;
@@ -237,7 +237,7 @@ int compare_values(json_t * j_value1, json_t * j_value2, const char * operator) 
     if (json_is_integer(j_value1) && json_is_integer(j_value2)) {
       return json_integer_value(j_value1)>=json_integer_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
     } else if (json_is_number(j_value1) && json_is_number(j_value2)) {
-      return json_real_value(j_value1)>json_real_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
+      return json_number_value(j_value1)>json_number_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
     } else {
       y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error values not the same type");
       return A_ERROR_PARAM;
@@ -246,7 +246,7 @@ int compare_values(json_t * j_value1, json_t * j_value2, const char * operator) 
     if (json_is_integer(j_value1) && json_is_integer(j_value2)) {
       return json_integer_value(j_value1)<json_integer_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
     } else if (json_is_number(j_value1) && json_is_number(j_value2)) {
-      return json_real_value(j_value1)>json_real_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
+      return json_number_value(j_value1)>json_number_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
     } else {
       y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error values not the same type");
       return A_ERROR_PARAM;
@@ -255,24 +255,28 @@ int compare_values(json_t * j_value1, json_t * j_value2, const char * operator) 
     if (json_is_integer(j_value1) && json_is_integer(j_value2)) {
       return json_integer_value(j_value1)<=json_integer_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
     } else if (json_is_number(j_value1) && json_is_number(j_value2)) {
-      return json_real_value(j_value1)>json_real_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
+      return json_number_value(j_value1)>json_number_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
     } else {
       y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error values not the same type");
       return A_ERROR_PARAM;
     }
   } else if (0 == nstrcmp(operator, "contains")) {
-    if (!json_is_string(j_value1) || !json_is_string(j_value2)) {
-      y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error values not string type with a contains operator");
-      return A_ERROR_PARAM;
+    if (json_is_string(j_value1) && json_is_string(j_value2)) {
+			return nstrstr(json_string_value(j_value1), json_string_value(j_value2))!=NULL?A_ERROR_TRUE:A_ERROR_FALSE;
+    } else if (json_is_object(j_value1) && json_is_object(j_value2)) {
+			return json_search(j_value1, j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
     } else {
-      return nstrstr(json_string_value(j_value1), json_string_value(j_value2))!=NULL?A_ERROR_TRUE:A_ERROR_FALSE;
+      y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error values not string or object type with a contains operator");
+      return A_ERROR_PARAM;
     }
   } else if (0 == nstrcmp(operator, "not contains")) {
-    if (!json_is_string(j_value1) || !json_is_string(j_value2)) {
-      y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error values not string type with a not contains operator");
-      return A_ERROR_PARAM;
+    if (json_is_string(j_value1) && json_is_string(j_value2)) {
+			return nstrstr(json_string_value(j_value1), json_string_value(j_value2))!=NULL?A_ERROR_TRUE:A_ERROR_FALSE;
+    } else if (json_is_object(j_value1) && json_is_object(j_value2)) {
+			return json_search(j_value1, j_value2)?A_ERROR_FALSE:A_ERROR_TRUE;
     } else {
-      return nstrstr(json_string_value(j_value1), json_string_value(j_value2))==NULL?A_ERROR_TRUE:A_ERROR_FALSE;
+      y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error values not string or object type with a not contains operator");
+      return A_ERROR_PARAM;
     }
   } else {
     y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error operator not found");
