@@ -291,7 +291,7 @@ json_t * is_actions_valid(struct config_elements * config, json_t * j_action_lis
   
   if (json_is_array(j_action_list) && json_array_size(j_action_list) > 0) {
     json_array_foreach(j_action_list, index, j_action) {
-      is_valid = is_action_valid(config, j_action);
+      is_valid = is_action_valid(config, j_action, 0);
       if (is_valid != NULL) {
         json_array_append_new(j_result, is_valid);
       }
@@ -314,17 +314,17 @@ json_t * is_actions_valid(struct config_elements * config, json_t * j_action_lis
  *   "parameters": {                  // Required for submodule benoic, depends on the element for submodule carleon
  *     "device": "device_name"        // Required for submodule benoic
  *     "element_type": "element_type" // Required for submodule benoic
- *     "service": "service_uid"       // Required for carleon
+ *     "service": "service_name"      // Required for carleon
  *     "param1": "value1",            // for a string value
  *     "param2": 2,                   // for an integer value
  *     "param3", 3.3                  // for a real value
  *   }
  * 
  */
-json_t * is_action_valid(struct config_elements * config, json_t * j_action) {
+json_t * is_action_valid(struct config_elements * config, json_t * j_action, const int is_condition) {
   json_t * j_result = json_array(), * j_submodule, * j_parameters, * j_command, * j_element,     // Common parameters
           * j_device, * j_element_type, * j_mode,                                                // Benoic parameters
-          * j_service, * j_command_list, * j_cur_command, * j_element_list, // Carleon parameters
+          * j_service, * j_command_list, * j_cur_command, * j_element_list, 										 // Carleon parameters
           * j_command_param, * j_cur_param, * j_cur_element;
   int i_element_type = BENOIC_ELEMENT_TYPE_NONE, found_element;
   struct _carleon_service * cur_service;
@@ -359,6 +359,8 @@ json_t * is_action_valid(struct config_elements * config, json_t * j_action) {
               i_element_type = BENOIC_ELEMENT_TYPE_DIMMER;
             } else if (0 == nstrcmp("heater", json_string_value(j_element_type))) {
               i_element_type = BENOIC_ELEMENT_TYPE_HEATER;
+            } else if (is_condition && 0 == nstrcmp("sensor", json_string_value(j_element_type))) {
+              i_element_type = BENOIC_ELEMENT_TYPE_SENSOR;
             }
             
             if (i_element_type == BENOIC_ELEMENT_TYPE_NONE) {
@@ -366,7 +368,7 @@ json_t * is_action_valid(struct config_elements * config, json_t * j_action) {
             } else {
               if (!has_element(config->b_config, j_device, i_element_type, json_string_value(json_object_get(j_action, "element")))) {
                 json_array_append_new(j_result, json_pack("{ss}", "action", "element invalid"));
-              } else {
+              } else if (!is_condition) {
                 j_command = json_object_get(j_action, "command");
                 if (j_command == NULL) {
                   json_array_append_new(j_result, json_pack("{ss}", "action", "command is mandatory"));
@@ -598,7 +600,7 @@ int script_run(struct config_elements * config, const char * script_name) {
  *   "parameters": {                  // Required for submodule benoic, depends on the element for submodule carleon
  *     "device": "device_name"        // Required for submodule benoic
  *     "element_type": "element_type" // Required for submodule benoic
- *     "service": "service_uid"       // Required for carleon
+ *     "service": "service_name"      // Required for carleon
  *     "param1": "value1",            // for a string value
  *     "param2": 2,                   // for an integer value
  *     "param3", 3.3                  // for a real value
@@ -611,7 +613,7 @@ int action_run(struct config_elements * config, json_t * j_action) {
   int i_element_type = BENOIC_ELEMENT_TYPE_NONE, i_heater_mode = BENOIC_ELEMENT_HEATER_MODE_CURRENT;
   struct _carleon_service * cur_service = NULL;
   
-  is_valid = is_action_valid(config, j_action);
+  is_valid = is_action_valid(config, j_action, 0);
   if (is_valid != NULL && json_is_array(is_valid) && json_array_size(is_valid) > 0) {
     y_log_message(Y_LOG_LEVEL_ERROR, "error in is_valid");
     res = A_ERROR;

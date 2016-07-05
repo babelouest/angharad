@@ -178,7 +178,7 @@ int script_delete(struct config_elements * config, const char * script_name);
 json_t * is_script_valid(struct config_elements * config, json_t * j_script, const int update);
 int script_run(struct config_elements * config, const char * script_name);
 json_t * is_actions_valid(struct config_elements * config, json_t * j_action_list);
-json_t * is_action_valid(struct config_elements * config, json_t * j_action);
+json_t * is_action_valid(struct config_elements * config, json_t * j_action, const int is_condition);
 int script_add_tag(struct config_elements * config, const char * script_name, const char * tag);
 int script_remove_tag(struct config_elements * config, const char * script_name, const char * tag);
 int action_run(struct config_elements * config, json_t * j_action);
@@ -192,6 +192,7 @@ int compare_values(json_t * value1, json_t * value2, const char * operator);
 json_t * is_script_list_valid(struct config_elements * config, json_t * script_list);
 
 json_t * scheduler_get(struct config_elements * config, const char * scheduler_name, const int runnable);
+int scheduler_enable(struct config_elements * config, json_t * j_scheduler, int enabled);
 json_t * scheduler_get_script_list(struct config_elements * config, const char * scheduler_name);
 int scheduler_add(struct config_elements * config, json_t * j_scheduler);
 int scheduler_set_script_list(struct config_elements * config, const char * scheduler_name, json_t * script_list);
@@ -203,6 +204,7 @@ int scheduler_remove_tag(struct config_elements * config, const char * scheduler
 time_t scheduler_calculate_next_time(time_t from, int schedule_type, unsigned int schedule_value);
 
 json_t * trigger_get(struct config_elements * config, const char * trigger_name);
+int trigger_enable(struct config_elements * config, json_t * j_trigger, int enabled);
 json_t * trigger_get_script_list(struct config_elements * config, const char * trigger_name);
 int trigger_add(struct config_elements * config, json_t * j_trigger);
 int trigger_set_script_list(struct config_elements * config, const char * trigger_name, json_t * script_list);
@@ -239,16 +241,9 @@ int callback_angharad_script_add_tag (const struct _u_request * request, struct 
 int callback_angharad_script_remove_tag (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_script_run (const struct _u_request * request, struct _u_response * response, void * user_data);
 
-int callback_angharad_event_list (const struct _u_request * request, struct _u_response * response, void * user_data);
-int callback_angharad_event_get (const struct _u_request * request, struct _u_response * response, void * user_data);
-int callback_angharad_event_add (const struct _u_request * request, struct _u_response * response, void * user_data);
-int callback_angharad_event_modify (const struct _u_request * request, struct _u_response * response, void * user_data);
-int callback_angharad_event_remove (const struct _u_request * request, struct _u_response * response, void * user_data);
-int callback_angharad_event_add_tag (const struct _u_request * request, struct _u_response * response, void * user_data);
-int callback_angharad_event_remove_tag (const struct _u_request * request, struct _u_response * response, void * user_data);
-
 int callback_angharad_scheduler_list (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_scheduler_get (const struct _u_request * request, struct _u_response * response, void * user_data);
+int callback_angharad_scheduler_enable (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_scheduler_add (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_scheduler_modify (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_scheduler_remove (const struct _u_request * request, struct _u_response * response, void * user_data);
@@ -257,6 +252,7 @@ int callback_angharad_scheduler_remove_tag (const struct _u_request * request, s
 
 int callback_angharad_trigger_list (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_trigger_get (const struct _u_request * request, struct _u_response * response, void * user_data);
+int callback_angharad_trigger_enable (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_trigger_add (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_trigger_modify (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_trigger_remove (const struct _u_request * request, struct _u_response * response, void * user_data);

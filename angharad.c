@@ -988,6 +988,7 @@ int init_angharad(struct config_elements * config) {
 
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/scheduler/", NULL, NULL, NULL, &callback_angharad_scheduler_list, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/scheduler/@scheduler_name", NULL, NULL, NULL, &callback_angharad_scheduler_get, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/scheduler/@scheduler_name/enable/@enabled", NULL, NULL, NULL, &callback_angharad_scheduler_enable, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/scheduler/", NULL, NULL, NULL, &callback_angharad_scheduler_add, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/scheduler/@scheduler_name", NULL, NULL, NULL, &callback_angharad_scheduler_modify, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/scheduler/@scheduler_name", NULL, NULL, NULL, &callback_angharad_scheduler_remove, (void*)config);
@@ -996,6 +997,7 @@ int init_angharad(struct config_elements * config) {
 
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/trigger/", NULL, NULL, NULL, &callback_angharad_trigger_list, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/trigger/@trigger_name", NULL, NULL, NULL, &callback_angharad_trigger_get, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/trigger/@trigger_name/enable/@enabled", NULL, NULL, NULL, &callback_angharad_trigger_enable, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/trigger/", NULL, NULL, NULL, &callback_angharad_trigger_add, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/trigger/@trigger_name", NULL, NULL, NULL, &callback_angharad_trigger_modify, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/trigger/@trigger_name", NULL, NULL, NULL, &callback_angharad_trigger_remove, (void*)config);

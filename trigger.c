@@ -217,6 +217,15 @@ json_t * trigger_get(struct config_elements * config, const char * trigger_name)
   }
 }
 
+int trigger_enable(struct config_elements * config, json_t * j_trigger, int enabled) {
+	if (j_trigger != NULL) {
+		json_object_set(j_trigger, "enabled", enabled?json_true():json_false());
+		return trigger_modify(config, json_string_value(json_object_get(j_trigger, "name")), j_trigger);
+	} else {
+		return A_ERROR_PARAM;
+	}
+}
+
 int trigger_add(struct config_elements * config, json_t * j_trigger) {
   json_t * j_query;
   int res;
@@ -227,8 +236,16 @@ int trigger_add(struct config_elements * config, json_t * j_trigger) {
     return A_ERROR_PARAM;
   }
   
-  str_options = json_dumps(json_object_get(j_trigger, "options"), JSON_COMPACT);
-  str_conditions = json_dumps(json_object_get(j_trigger, "conditions"), JSON_COMPACT);
+  if (json_object_get(j_trigger, "options") != NULL) {
+		str_options = json_dumps(json_object_get(j_trigger, "options"), JSON_COMPACT);
+	} else {
+		str_options = strdup("");
+	}
+	if (json_object_get(j_trigger, "conditions") != NULL) {
+		str_conditions = json_dumps(json_object_get(j_trigger, "conditions"), JSON_COMPACT);
+	} else {
+		str_conditions = strdup("");
+	}
   j_query = json_pack("{sss[{sssssisssssssssssssI}]}",
                       "table", ANGHARAD_TABLE_TRIGGER,
                       "values",
@@ -378,8 +395,16 @@ int trigger_modify(struct config_elements * config, const char * trigger_name, j
   res_cur_trigger = (cur_trigger != NULL?json_integer_value(json_object_get(cur_trigger, "result")):A_ERROR);
   json_decref(cur_trigger);
   if (res_cur_trigger == A_OK) {
-    str_options = json_dumps(json_object_get(j_trigger, "options"), JSON_COMPACT);
-    str_conditions = json_dumps(json_object_get(j_trigger, "conditions"), JSON_COMPACT);
+		if (json_object_get(j_trigger, "options") != NULL) {
+			str_options = json_dumps(json_object_get(j_trigger, "options"), JSON_COMPACT);
+		} else {
+			str_options = strdup("");
+		}
+		if (json_object_get(j_trigger, "conditions") != NULL) {
+			str_conditions = json_dumps(json_object_get(j_trigger, "conditions"), JSON_COMPACT);
+		} else {
+			str_conditions = strdup("");
+		}
     j_query = json_pack("{sss{sssisssssssssssssI}s{ss}}",
                         "table", ANGHARAD_TABLE_TRIGGER,
                         "set",

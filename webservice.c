@@ -338,6 +338,30 @@ int callback_angharad_scheduler_get (const struct _u_request * request, struct _
   }
 }
 
+int callback_angharad_scheduler_enable (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  json_t * j_scheduler;
+  if (user_data == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_scheduler_enable - Error, user_data is NULL");
+    return U_ERROR_PARAMS;
+  } else {
+    j_scheduler = scheduler_get((struct config_elements *)user_data, u_map_get(request->map_url, "scheduler_name"), 0);
+    if (j_scheduler == NULL || json_integer_value(json_object_get(j_scheduler, "result")) == A_ERROR) {
+      y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_scheduler_enable - Error getting scheduler, aborting");
+      response->status = 500;
+    } else if (json_integer_value(json_object_get(j_scheduler, "result")) == A_ERROR_NOT_FOUND) {
+      response->status = 404;
+    } else {
+      if (scheduler_enable((struct config_elements *)user_data, json_object_get(j_scheduler, "scheduler"), 0==nstrcmp(u_map_get(request->map_url, "enabled"), "1")?1:0) != A_OK) {
+		  y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_scheduler_enable - Error setting scheduler enabled");
+		  response->status = 500;
+	  }
+	  response->json_body = json_copy(json_object_get(j_scheduler, "scheduler"));
+    }
+    json_decref(j_scheduler);
+    return U_OK;
+  }
+}
+
 int callback_angharad_scheduler_add (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * valid;
   int res;
@@ -507,6 +531,30 @@ int callback_angharad_trigger_get (const struct _u_request * request, struct _u_
       response->status = 404;
     } else {
       response->json_body = json_copy(json_object_get(j_trigger, "trigger"));
+    }
+    json_decref(j_trigger);
+    return U_OK;
+  }
+}
+
+int callback_angharad_trigger_enable (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  json_t * j_trigger;
+  if (user_data == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_trigger_enable - Error, user_data is NULL");
+    return U_ERROR_PARAMS;
+  } else {
+    j_trigger = trigger_get((struct config_elements *)user_data, u_map_get(request->map_url, "trigger_name"));
+    if (j_trigger == NULL || json_integer_value(json_object_get(j_trigger, "result")) == A_ERROR) {
+      y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_trigger_enable - Error getting trigger, aborting");
+      response->status = 500;
+    } else if (json_integer_value(json_object_get(j_trigger, "result")) == A_ERROR_NOT_FOUND) {
+      response->status = 404;
+    } else {
+      if (trigger_enable((struct config_elements *)user_data, json_object_get(j_trigger, "trigger"), 0==nstrcmp(u_map_get(request->map_url, "enabled"), "1")?1:0) != A_OK) {
+		  y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_trigger_enable - Error setting trigger enabled");
+		  response->status = 500;
+	  }
+	  response->json_body = json_copy(json_object_get(j_trigger, "trigger"));
     }
     json_decref(j_trigger);
     return U_OK;

@@ -63,7 +63,7 @@ json_t * is_condition_list_valid(struct config_elements * config, json_t * condi
  * 
  */
 json_t * is_condition_valid(struct config_elements * config, json_t * condition) {
-  json_t * j_valid = is_action_valid(config, condition);
+  json_t * j_valid = is_action_valid(config, condition, 1);
   
   if (j_valid == NULL) {
     j_valid = json_array();
@@ -125,8 +125,6 @@ int condition_list_check(struct config_elements * config, json_t * condition_lis
 
 /**
  * 
- * action format:
- * 
  * condition format:
  * action (cf script) and
  * {
@@ -138,7 +136,7 @@ int condition_list_check(struct config_elements * config, json_t * condition_lis
  */
 int condition_check(struct config_elements * config, json_t * j_condition) {
   int res = A_ERROR_TRUE;
-  json_t * parameters, * device, * element_type, * element, * command, * j_device, * is_valid, * j_result = NULL, * j_value;
+  json_t * parameters, * device, * element_type, * element, * j_device, * is_valid, * j_result = NULL, * j_value;
   int i_element_type = BENOIC_ELEMENT_TYPE_NONE;
   struct _carleon_service * cur_service = NULL;
   
@@ -149,7 +147,6 @@ int condition_check(struct config_elements * config, json_t * j_condition) {
   } else if (0 == nstrcmp(json_string_value(json_object_get(j_condition, "submodule")), "benoic")) {
     parameters = json_object_get(j_condition, "parameters");
     element = json_object_get(j_condition, "element");
-    command = json_object_get(j_condition, "command");
     device = json_object_get(parameters, "device");
     element_type = json_object_get(parameters, "element_type");
     j_device = get_device(config->b_config, json_string_value(device));
@@ -162,11 +159,11 @@ int condition_check(struct config_elements * config, json_t * j_condition) {
         i_element_type = BENOIC_ELEMENT_TYPE_HEATER;
       }
       
-      if (i_element_type == BENOIC_ELEMENT_TYPE_SWITCH && json_is_integer(command)) {
+      if (i_element_type == BENOIC_ELEMENT_TYPE_SWITCH) {
         j_result = get_switch(config->b_config, j_device, json_string_value(element));
-      } else if (i_element_type == BENOIC_ELEMENT_TYPE_DIMMER && json_is_integer(command)) {
+      } else if (i_element_type == BENOIC_ELEMENT_TYPE_DIMMER) {
         j_result = get_dimmer(config->b_config, j_device, json_string_value(element));
-      } else if (i_element_type == BENOIC_ELEMENT_TYPE_HEATER && json_is_integer(command)) {
+      } else if (i_element_type == BENOIC_ELEMENT_TYPE_HEATER) {
         j_result = get_heater(config->b_config, j_device, json_string_value(element));
       }
       
