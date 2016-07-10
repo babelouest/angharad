@@ -1035,6 +1035,8 @@ int init_angharad(struct config_elements * config) {
     u_map_put(config->mime_types, ".ttf", "font/ttf");
     u_map_put(config->mime_types, ".woff", "font/woff");
     u_map_put(config->mime_types, ".woff2", "font/woff2");
+    u_map_put(config->mime_types, ".json", "application/json");
+    u_map_put(config->mime_types, ".map", "application/octet-stream");
     u_map_put(config->mime_types, "*", "application/octet-stream");
     
     // Start event thread
@@ -1116,5 +1118,8 @@ int close_angharad(struct config_elements * config) {
 const char * get_filename_ext(const char *path) {
     const char *dot = strrchr(path, '.');
     if(!dot || dot == path) return "*";
+    if (strchr(dot, '?') != NULL) {
+      *strchr(dot, '?') = '\0';
+    }
     return dot;
 }
