@@ -35,6 +35,9 @@ void * thread_scheduler_run(void * args) {
   json_t * scheduler_list, * scheduler, * script;
   size_t index, index_sc;
   
+  char * str_message_text;
+  json_t * j_message;
+  
   if (config != NULL) {
     while (config->angharad_status == ANGHARAD_STATUS_RUN) {
       // Run monitoring task every minute
@@ -50,6 +53,13 @@ void * thread_scheduler_run(void * args) {
             next_time = json_integer_value(json_object_get(scheduler, "next_time"));
             
             if (json_integer_value(json_object_get(scheduler, "next_time")) >= (now - 60) && condition_list_check(config, json_object_get(scheduler, "conditions"))) {
+              // Send a message via gareth submodule
+              str_message_text = msprintf("Running scripts from scheduler %s", json_string_value(json_object_get(scheduler, "name")));
+              j_message = json_pack("{sssssss[s]}", "priority", "LOW", "source", "angharad", "text", str_message_text, "tags", "scheduler");
+              add_message(config->conn, j_message);
+              json_decref(j_message);
+              free(str_message_text);
+        
               next_time = now;
               json_array_foreach(json_object_get(scheduler, "scripts"), index_sc, script) {
                 if (json_object_get(script, "enabled") == json_true() && json_is_string(json_object_get(script, "name"))) {
@@ -75,7 +85,7 @@ void * thread_scheduler_run(void * args) {
                   y_log_message(Y_LOG_LEVEL_ERROR, "Error updating scheduler %s", json_string_value(json_object_get(scheduler, "name")));
                 }
               }
-						}
+            }
           }
         }
         json_decref(scheduler_list);
@@ -212,27 +222,27 @@ json_t * scheduler_get(struct config_elements * config, const char * scheduler_n
 }
 
 int scheduler_enable(struct config_elements * config, json_t * j_scheduler, int enabled) {
-	time_t now, next_time;
-	
-	if (j_scheduler != NULL) {
-		json_object_set(j_scheduler, "enabled", enabled?json_true():json_false());
-		time(&now);
-		if (json_integer_value(json_object_get(j_scheduler, "repeat")) >= 0 && enabled && json_integer_value(json_object_get(j_scheduler, "next_time")) < now) {
-			next_time = scheduler_calculate_next_time(json_integer_value(json_object_get(j_scheduler, "next_time")), json_integer_value(json_object_get(j_scheduler, "repeat")), json_integer_value(json_object_get(j_scheduler, "repeat_value")));
-			while (next_time <= now) {
-				next_time = scheduler_calculate_next_time(next_time, json_integer_value(json_object_get(j_scheduler, "repeat")), json_integer_value(json_object_get(j_scheduler, "repeat_value")));
-			}
-			
-			if (next_time > 0) {
-				json_object_set_new(j_scheduler, "next_time", json_integer(next_time));
-			} else {
-				return A_ERROR_IO;
-			}
-		}
-		return scheduler_modify(config, json_string_value(json_object_get(j_scheduler, "name")), j_scheduler);
-	} else {
-		return A_ERROR_PARAM;
-	}
+  time_t now, next_time;
+  
+  if (j_scheduler != NULL) {
+    json_object_set(j_scheduler, "enabled", enabled?json_true():json_false());
+    time(&now);
+    if (json_integer_value(json_object_get(j_scheduler, "repeat")) >= 0 && enabled && json_integer_value(json_object_get(j_scheduler, "next_time")) < now) {
+      next_time = scheduler_calculate_next_time(json_integer_value(json_object_get(j_scheduler, "next_time")), json_integer_value(json_object_get(j_scheduler, "repeat")), json_integer_value(json_object_get(j_scheduler, "repeat_value")));
+      while (next_time <= now) {
+        next_time = scheduler_calculate_next_time(next_time, json_integer_value(json_object_get(j_scheduler, "repeat")), json_integer_value(json_object_get(j_scheduler, "repeat_value")));
+      }
+      
+      if (next_time > 0) {
+        json_object_set_new(j_scheduler, "next_time", json_integer(next_time));
+      } else {
+        return A_ERROR_IO;
+      }
+    }
+    return scheduler_modify(config, json_string_value(json_object_get(j_scheduler, "name")), j_scheduler);
+  } else {
+    return A_ERROR_PARAM;
+  }
 }
 
 int scheduler_add(struct config_elements * config, json_t * j_scheduler) {
@@ -261,15 +271,15 @@ int scheduler_add(struct config_elements * config, json_t * j_scheduler) {
   }
   
   if (json_object_get(j_scheduler, "options") != NULL) {
-		str_options = json_dumps(json_object_get(j_scheduler, "options"), JSON_COMPACT);
-	} else {
-		str_options = strdup("");
-	}
-	if (json_object_get(j_scheduler, "conditions") != NULL) {
-		str_conditions = json_dumps(json_object_get(j_scheduler, "conditions"), JSON_COMPACT);
-	} else {
-		str_conditions = strdup("");
-	}
+    str_options = json_dumps(json_object_get(j_scheduler, "options"), JSON_COMPACT);
+  } else {
+    str_options = strdup("");
+  }
+  if (json_object_get(j_scheduler, "conditions") != NULL) {
+    str_conditions = json_dumps(json_object_get(j_scheduler, "conditions"), JSON_COMPACT);
+  } else {
+    str_conditions = strdup("");
+  }
   j_query = json_pack("{sss[{sssssisssss{ss}sIsIsi}]}",
                       "table", ANGHARAD_TABLE_SCHEDULER,
                       "values",
@@ -414,16 +424,16 @@ int scheduler_modify(struct config_elements * config, const char * scheduler_nam
   res_cur_scheduler = (cur_scheduler != NULL?json_integer_value(json_object_get(cur_scheduler, "result")):A_ERROR);
   json_decref(cur_scheduler);
   if (res_cur_scheduler == A_OK) {
-		if (json_object_get(j_scheduler, "options") != NULL) {
-			str_options = json_dumps(json_object_get(j_scheduler, "options"), JSON_COMPACT);
-		} else {
-			str_options = strdup("");
-		}
-		if (json_object_get(j_scheduler, "conditions") != NULL) {
-			str_conditions = json_dumps(json_object_get(j_scheduler, "conditions"), JSON_COMPACT);
-		} else {
-			str_conditions = strdup("");
-		}
+    if (json_object_get(j_scheduler, "options") != NULL) {
+      str_options = json_dumps(json_object_get(j_scheduler, "options"), JSON_COMPACT);
+    } else {
+      str_options = strdup("");
+    }
+    if (json_object_get(j_scheduler, "conditions") != NULL) {
+      str_conditions = json_dumps(json_object_get(j_scheduler, "conditions"), JSON_COMPACT);
+    } else {
+      str_conditions = strdup("");
+    }
     if (config->conn->type == HOEL_DB_TYPE_MARIADB) {
 #ifdef JSON_INTEGER_IS_LONG_LONG
       str_next_time = msprintf("FROM_UNIXTIME(%lld)", json_integer_value(json_object_get(j_scheduler, "next_time")));

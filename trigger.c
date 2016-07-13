@@ -32,6 +32,9 @@ int alert_received(struct config_elements * config, const char * submodule_name,
   json_t * j_query, * j_result, * cur_trigger, * j_result_trigger, * j_trigger, * script;
   int res, message_match, message_match_check = A_ERROR_FALSE;
   size_t index, index_sc;
+  char * str_message_text;
+  json_t * j_message;
+
   
   j_query = json_pack("{sss[s]s{sissssss}}",
                       "table",
@@ -55,6 +58,12 @@ int alert_received(struct config_elements * config, const char * submodule_name,
   res = h_select(config->conn, j_query, &j_result, NULL);
   json_decref(j_query);
   if (res == H_OK) {
+    // Send a message via gareth submodule
+    str_message_text = msprintf("Receiving trigger %s - %s - %s - %s", submodule_name, source, element, message);
+    j_message = json_pack("{sssssss[s]}", "priority", "MEDIUM", "source", source, "text", str_message_text, "tags", "trigger");
+    add_message(config->conn, j_message);
+    json_decref(j_message);
+    free(str_message_text);
     
     json_array_foreach (j_result, index, cur_trigger) {
       j_result_trigger = trigger_get(config, json_string_value(json_object_get(cur_trigger, "at_name")));
