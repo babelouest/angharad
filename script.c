@@ -610,12 +610,13 @@ int script_run(struct config_elements * config, const char * script_name) {
 int action_run(struct config_elements * config, json_t * j_action) {
   int res = A_OK, command_res;
   json_t * parameters, * device, * element_type, * element, * command, * j_device, * is_valid, * j_result;
-  int i_element_type = BENOIC_ELEMENT_TYPE_NONE, i_heater_mode = BENOIC_ELEMENT_HEATER_MODE_CURRENT;
+  int i_element_type = BENOIC_ELEMENT_TYPE_NONE;
   struct _carleon_service * cur_service = NULL;
+  char * str_heater_mode;
   
   is_valid = is_action_valid(config, j_action, 0);
   if (is_valid != NULL && json_is_array(is_valid) && json_array_size(is_valid) > 0) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "error in is_valid");
+    y_log_message(Y_LOG_LEVEL_ERROR, "error in action is_valid");
     res = A_ERROR;
   } else if (0 == nstrcmp(json_string_value(json_object_get(j_action, "submodule")), "benoic")) {
     parameters = json_object_get(j_action, "parameters");
@@ -638,14 +639,8 @@ int action_run(struct config_elements * config, json_t * j_action) {
       } else if (i_element_type == BENOIC_ELEMENT_TYPE_DIMMER && json_is_integer(command)) {
         command_res = set_dimmer(config->b_config, j_device, json_string_value(element), json_integer_value(command));
       } else if (i_element_type == BENOIC_ELEMENT_TYPE_HEATER && json_is_integer(command)) {
-        if (0 == nstrcmp(json_string_value(json_object_get(parameters, "mode")), "off")) {
-          i_heater_mode = BENOIC_ELEMENT_HEATER_MODE_OFF;
-        } else if (0 == nstrcmp(json_string_value(json_object_get(parameters, "mode")), "auto")) {
-          i_heater_mode = BENOIC_ELEMENT_HEATER_MODE_AUTO;
-        } else {
-          i_heater_mode = BENOIC_ELEMENT_HEATER_MODE_MANUAL;
-        }
-        command_res = set_heater(config->b_config, j_device, json_string_value(element), json_number_value(command), i_heater_mode);
+		str_heater_mode = (char*)json_string_value(json_object_get(parameters, "mode"));
+        command_res = set_heater(config->b_config, j_device, json_string_value(element), str_heater_mode, json_number_value(command));
         if (command_res != B_OK) {
           y_log_message(Y_LOG_LEVEL_ERROR, "error in benoic command_res");
           res = A_ERROR;

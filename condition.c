@@ -142,7 +142,7 @@ int condition_check(struct config_elements * config, json_t * j_condition) {
   
   is_valid = is_condition_valid(config, j_condition);
   if (is_valid != NULL && json_is_array(is_valid) && json_array_size(is_valid) > 0) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "error in is_valid");
+    y_log_message(Y_LOG_LEVEL_ERROR, "error in condition is_valid");
     res = A_ERROR;
   } else if (0 == nstrcmp(json_string_value(json_object_get(j_condition, "submodule")), "benoic")) {
     parameters = json_object_get(j_condition, "parameters");
@@ -150,7 +150,7 @@ int condition_check(struct config_elements * config, json_t * j_condition) {
     device = json_object_get(parameters, "device");
     element_type = json_object_get(parameters, "element_type");
     j_device = get_device(config->b_config, json_string_value(device));
-    if (j_device != NULL) {
+    if (j_device != NULL && json_object_get(j_device, "enabled") == json_true() && json_object_get(j_device, "connected") == json_true()) {
       if (0 == nstrcmp("switch", json_string_value(element_type))) {
         i_element_type = BENOIC_ELEMENT_TYPE_SWITCH;
       } else if (0 == nstrcmp("dimmer", json_string_value(element_type))) {
