@@ -275,6 +275,7 @@ void exit_server(struct config_elements ** config, int exit_value) {
     free((*config)->url_prefix_gareth);
     free((*config)->static_files_path);
     free((*config)->static_files_prefix);
+    free((*config)->alert_url);
     u_map_clean_full((*config)->mime_types);
     free((*config)->allow_origin);
     free((*config)->log_file);
@@ -687,6 +688,25 @@ int callback_default (const struct _u_request * request, struct _u_response * re
 }
 
 /**
+ * Build the alert_url based oon the pattern: http://[hostname]:[port]/[angharad_prefix]/alert/@submodule_name/@source/@element/@message/
+ */
+char * get_alert_url(struct config_elements * config) {
+  char hostname[256];
+  
+  if (config == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "get_alert_url - Error config is NULL");
+    return NULL;
+  } else {
+    if (gethostname(hostname, 255) == 0) {
+      return msprintf("http://%s:%d/%s/alert/%%s/%%s/%%s/%%s/", hostname, config->instance->port, config->url_prefix_angharad);
+    } else {
+      y_log_message(Y_LOG_LEVEL_ERROR, "get_alert_url - Error gethostname");
+      return NULL;
+    }
+  }
+}
+
+/**
  * Main function
  * Benoic application entry point
  * Initialise the database connection
@@ -725,6 +745,7 @@ int main(int argc, char ** argv) {
   config->has_auth_database = 0;
   config->has_auth_ldap = 0;
   config->auth_ldap = NULL;
+  config->alert_url = NULL;
   config->instance = malloc(sizeof(struct _u_instance));
   config->c_config = malloc(sizeof(struct _carleon_config));
   config->b_config = malloc(sizeof(struct _benoic_config));
@@ -765,6 +786,9 @@ int main(int argc, char ** argv) {
   // Setting connection pointer for carleon and benoic
   config->b_config->conn = config->conn;
   config->c_config->conn = config->conn;
+  config->alert_url = get_alert_url(config);
+  config->b_config->alert_url = config->alert_url;
+  config->c_config->alert_url = config->alert_url;
   
   // Initialize benoic webservice if enabled
   submodule = submodule_get(config, ANGHARAD_SUBMODULE_BENOIC);
@@ -971,7 +995,7 @@ int init_angharad(struct config_elements * config) {
   int thread_scheduler_ret = 0, thread_scheduler_detach = 0;
 
   if (config != NULL && config->instance != NULL && config->url_prefix_angharad) {
-    ulfius_add_endpoint_by_val(config->instance, "GET", NULL, "/alert/@submodule_name/@source/@element/@message/", NULL, NULL, NULL, &callback_angharad_alert, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/alert/@submodule_name/@source/@element/@message/", NULL, NULL, NULL, &callback_angharad_alert, (void*)config);
     
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/", NULL, NULL, NULL, &callback_angharad_submodule_list, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/@submodule_name", NULL, NULL, NULL, &callback_angharad_submodule_get, (void*)config);

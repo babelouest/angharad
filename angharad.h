@@ -136,6 +136,7 @@ struct config_elements {
   char *                   url_prefix_gareth;
   char *                   static_files_prefix;
   char *                   static_files_path;
+  char *                   alert_url;
   struct _u_map          * mime_types;
   char *                   allow_origin;
   unsigned long            log_mode;
@@ -159,6 +160,7 @@ int  check_config(struct config_elements * config);
 void exit_handler(int handler);
 void exit_server(struct config_elements ** config, int exit_value);
 void print_help(FILE * output);
+char * get_alert_url(struct config_elements * config);
 
 json_t * submodule_get(struct config_elements * config, const char * submodule);
 int submodule_enable(struct config_elements * config, const char * submodule, int enabled);

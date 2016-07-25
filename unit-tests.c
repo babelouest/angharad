@@ -1432,9 +1432,9 @@ void run_scheduler_trigger_exec_tests() {
   run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/trigger/", trigger_checked2, 200, NULL);
   run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/trigger/", trigger_unchecked, 200, NULL);
   
-  run_simple_test("GET", SERVER_URL "/alert/benoic/dev1/sw1/plop", NULL, 200, NULL);
-  run_simple_test("GET", SERVER_URL "/alert/benoic/dev1/di1/plop", NULL, 200, NULL);
-  run_simple_test("GET", SERVER_URL "/alert/benoic/dev1/he1/plop", NULL, 200, NULL);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/alert/benoic/dev1/sw1/plop", NULL, 200, NULL);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/alert/benoic/dev1/di1/plop", NULL, 200, NULL);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/alert/benoic/dev1/he1/plop", NULL, 200, NULL);
   
   printf("Paused, press <enter> to continue tests\n");
   getchar();
