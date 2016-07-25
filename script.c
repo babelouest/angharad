@@ -106,7 +106,7 @@ int script_add(struct config_elements * config, json_t * j_script) {
                       "table", ANGHARAD_TABLE_SCRIPT,
                       "values",
                         "asc_name", json_string_value(json_object_get(j_script, "name")),
-                        "asc_description", json_string_value(json_object_get(j_script, "description")),
+                        "asc_description", (json_object_get(j_script, "description")!=NULL?json_string_value(json_object_get(j_script, "description")):""),
                         "asc_actions", str_actions,
                         "asc_options", str_options);
   free(str_actions);

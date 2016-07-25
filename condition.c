@@ -157,6 +157,8 @@ int condition_check(struct config_elements * config, json_t * j_condition) {
         i_element_type = BENOIC_ELEMENT_TYPE_DIMMER;
       } else if (0 == nstrcmp("heater", json_string_value(element_type))) {
         i_element_type = BENOIC_ELEMENT_TYPE_HEATER;
+      } else if (0 == nstrcmp("sensor", json_string_value(element_type))) {
+        i_element_type = BENOIC_ELEMENT_TYPE_SENSOR;
       }
       
       if (i_element_type == BENOIC_ELEMENT_TYPE_SWITCH) {
@@ -165,6 +167,8 @@ int condition_check(struct config_elements * config, json_t * j_condition) {
         j_result = get_dimmer(config->b_config, j_device, json_string_value(element));
       } else if (i_element_type == BENOIC_ELEMENT_TYPE_HEATER) {
         j_result = get_heater(config->b_config, j_device, json_string_value(element));
+      } else if (i_element_type == BENOIC_ELEMENT_TYPE_SENSOR) {
+        j_result = get_sensor(config->b_config, j_device, json_string_value(element));
       }
       
       if (j_result != NULL) {

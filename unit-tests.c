@@ -857,13 +857,6 @@ void run_trigger_tests() {
     \"element\":\"elt1\",\
     \"message\":\"hello\",\
     \"message_match\":1,\
-    \"options\":{\
-      \"tags\":[\
-        \"tag1\",\
-        \"tag2\",\
-        \"tag3\"\
-      ]\
-    },\
     \"scripts\":[\
       {\
         \"name\":\"script1\",\

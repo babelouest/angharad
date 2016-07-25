@@ -166,7 +166,7 @@ json_t * trigger_get(struct config_elements * config, const char * trigger_name)
         return json_pack("{si}", "result", A_ERROR_MEMORY);
       }
       json_array_foreach(j_result, index, j_trigger) {
-        j_bool = json_object_get(j_trigger, "ash_enabled");
+        j_bool = json_object_get(j_trigger, "at_enabled");
         json_object_set_new(j_trigger, "enabled", json_integer_value(j_bool)==1?json_true():json_false());
         json_object_del(j_trigger, "at_enabled");
         j_options = json_loads(json_string_value(json_object_get(j_trigger, "at_options")), JSON_DECODE_ANY, NULL);
@@ -266,8 +266,8 @@ int trigger_add(struct config_elements * config, json_t * j_trigger) {
                         "at_submodule", json_string_value(json_object_get(j_trigger, "submodule")),
                         "at_source", json_string_value(json_object_get(j_trigger, "source")),
                         "at_element", json_string_value(json_object_get(j_trigger, "element")),
-                        "at_message", json_string_value(json_object_get(j_trigger, "message")),
-                        "at_message_match", json_integer_value(json_object_get(j_trigger, "message_match")));
+                        "at_message", json_object_get(j_trigger, "message")!=NULL?json_string_value(json_object_get(j_trigger, "message")):"",
+                        "at_message_match", json_object_get(j_trigger, "message_match")!=NULL?json_integer_value(json_object_get(j_trigger, "message_match")):0);
   free(str_options);
   free(str_conditions);
   
@@ -334,13 +334,13 @@ json_t * is_trigger_valid(struct config_elements * config, json_t * j_trigger, c
     }
     
     j_element = json_object_get(j_trigger, "message");
-    if (j_element == NULL || !json_is_string(j_element) || json_string_length(j_element) > 64) {
-      json_array_append_new(j_result, json_pack("{ss}", "message", "message parameter is mandatory must ba a string, maximum 64 characters"));
+    if (j_element != NULL && (!json_is_string(j_element) || json_string_length(j_element) > 64)) {
+      json_array_append_new(j_result, json_pack("{ss}", "message", "message parameter must ba a string, maximum 64 characters"));
     }
     
     j_element = json_object_get(j_trigger, "message_match");
     if (j_element != NULL && (!json_is_integer(j_element) || json_integer_value(j_element) < 0 || json_integer_value(j_element) > 5)) {
-      json_array_append_new(j_result, json_pack("{ss}", "message_match", "message_match parameter is mandatory must ba a string, maximum 64 characters"));
+      json_array_append_new(j_result, json_pack("{ss}", "message_match", "message_match parameter must ba a string, maximum 64 characters"));
     }
     
     if (json_object_get(j_trigger, "options") != NULL) {
@@ -424,8 +424,8 @@ int trigger_modify(struct config_elements * config, const char * trigger_name, j
                           "at_submodule", json_string_value(json_object_get(j_trigger, "submodule")),
                           "at_source", json_string_value(json_object_get(j_trigger, "source")),
                           "at_element", json_string_value(json_object_get(j_trigger, "element")),
-                          "at_message", json_string_value(json_object_get(j_trigger, "message")),
-                          "at_message_match", json_integer_value(json_object_get(j_trigger, "message_match")),
+                          "at_message", json_object_get(j_trigger, "message")!=NULL?json_string_value(json_object_get(j_trigger, "message")):"",
+                          "at_message_match", json_object_get(j_trigger, "message_match")!=NULL?json_integer_value(json_object_get(j_trigger, "message_match")):0,
                         "where",
                           "at_name", trigger_name);
     free(str_options);

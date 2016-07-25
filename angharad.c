@@ -995,7 +995,7 @@ int init_angharad(struct config_elements * config) {
   int thread_scheduler_ret = 0, thread_scheduler_detach = 0;
 
   if (config != NULL && config->instance != NULL && config->url_prefix_angharad) {
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/alert/@submodule_name/@source/@element/@message/", NULL, NULL, NULL, &callback_angharad_alert, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/alert/@submodule_name/@source/@element/@message/", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_alert, (void*)config);
     
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/", NULL, NULL, NULL, &callback_angharad_submodule_list, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/@submodule_name", NULL, NULL, NULL, &callback_angharad_submodule_get, (void*)config);
