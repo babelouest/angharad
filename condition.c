@@ -226,39 +226,31 @@ int compare_values(json_t * j_value1, json_t * j_value2, const char * operator) 
   } else if (0 == nstrcmp(operator, "!=")) {
     return json_equal(j_value1, j_value2)?A_ERROR_FALSE:A_ERROR_TRUE;
   } else if (0 == nstrcmp(operator, ">")) {
-    if (json_is_integer(j_value1) && json_is_integer(j_value2)) {
-      return json_integer_value(j_value1)>json_integer_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
-    } else if (json_is_number(j_value1) && json_is_number(j_value2)) {
-      return json_number_value(j_value1)>json_number_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
+    if (json_is_number(j_value1) && json_is_number(j_value2)) {
+      return json_real_value(j_value1) > json_real_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
     } else {
-      y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error values not the same type");
+      y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error values not numeric");
       return A_ERROR_PARAM;
     }
   } else if (0 == nstrcmp(operator, ">=")) {
-    if (json_is_integer(j_value1) && json_is_integer(j_value2)) {
-      return json_integer_value(j_value1)>=json_integer_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
-    } else if (json_is_number(j_value1) && json_is_number(j_value2)) {
-      return json_number_value(j_value1)>json_number_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
+    if (json_is_number(j_value1) && json_is_number(j_value2)) {
+      return json_real_value(j_value1) >= json_real_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
     } else {
-      y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error values not the same type");
+      y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error values not numeric");
       return A_ERROR_PARAM;
     }
   } else if (0 == nstrcmp(operator, "<")) {
-    if (json_is_integer(j_value1) && json_is_integer(j_value2)) {
-      return json_integer_value(j_value1)<json_integer_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
-    } else if (json_is_number(j_value1) && json_is_number(j_value2)) {
-      return json_number_value(j_value1)>json_number_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
+    if (json_is_number(j_value1) && json_is_number(j_value2)) {
+      return json_real_value(j_value1) < json_real_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
     } else {
-      y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error values not the same type");
+      y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error values not numeric");
       return A_ERROR_PARAM;
     }
   } else if (0 == nstrcmp(operator, "<=")) {
-    if (json_is_integer(j_value1) && json_is_integer(j_value2)) {
-      return json_integer_value(j_value1)<=json_integer_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
-    } else if (json_is_number(j_value1) && json_is_number(j_value2)) {
-      return json_number_value(j_value1)>json_number_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
+    if (json_is_number(j_value1) && json_is_number(j_value2)) {
+      return json_real_value(j_value1) <= json_real_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
     } else {
-      y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error values not the same type");
+      y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error values not numeric");
       return A_ERROR_PARAM;
     }
   } else if (0 == nstrcmp(operator, "contains")) {
