@@ -194,6 +194,7 @@ int compare_values(json_t * value1, json_t * value2, const char * operator);
 json_t * is_script_list_valid(struct config_elements * config, json_t * script_list);
 
 json_t * scheduler_get(struct config_elements * config, const char * scheduler_name, const int runnable);
+json_t * scheduler_get_next_schedules(struct config_elements * config);
 int scheduler_enable(struct config_elements * config, json_t * j_scheduler, int enabled);
 json_t * scheduler_get_script_list(struct config_elements * config, const char * scheduler_name);
 int scheduler_add(struct config_elements * config, json_t * j_scheduler);

@@ -32,7 +32,7 @@ void * thread_scheduler_run(void * args) {
   struct config_elements * config = (struct config_elements *)args;
   time_t now, next_time;
   struct tm ts;
-  json_t * scheduler_list, * scheduler, * script;
+  json_t * scheduler_list_names, * scheduler_name, * scheduler, * scheduler_result, * script;
   size_t index, index_sc;
   
   char * str_message_text;
@@ -45,58 +45,99 @@ void * thread_scheduler_run(void * args) {
       ts = *localtime(&now);
       if (ts.tm_sec == 0) {
         // Check schedules and events
-        scheduler_list = scheduler_get(config, NULL, 1);
-        if (scheduler_list == NULL || json_integer_value(json_object_get(scheduler_list, "result")) != A_OK) {
-          y_log_message(Y_LOG_LEVEL_ERROR, "thread_scheduler_run - Error getting scheduler list");
-        } else {
-          json_array_foreach (json_object_get(scheduler_list, "schedulers"), index, scheduler) {
-            next_time = json_integer_value(json_object_get(scheduler, "next_time"));
-            
-            if (json_integer_value(json_object_get(scheduler, "next_time")) >= (now - 60) && condition_list_check(config, json_object_get(scheduler, "conditions"))) {
-              // Send a message via gareth submodule
-              str_message_text = msprintf("Running scripts from scheduler %s", json_string_value(json_object_get(scheduler, "name")));
-              j_message = json_pack("{sssssss[s]}", "priority", "LOW", "source", "angharad", "text", str_message_text, "tags", "scheduler");
-              add_message(config->conn, j_message);
-              json_decref(j_message);
-              free(str_message_text);
-        
-              next_time = now;
-              json_array_foreach(json_object_get(scheduler, "scripts"), index_sc, script) {
-                if (json_object_get(script, "enabled") == json_true() && json_is_string(json_object_get(script, "name"))) {
-                  y_log_message(Y_LOG_LEVEL_INFO, "thread_scheduler_run - run script %s", json_string_value(json_object_get(script, "name")));
-                  script_run(config, json_string_value(json_object_get(script, "name")));
+        scheduler_list_names = scheduler_get_next_schedules(config);
+        if (scheduler_list_names != NULL) {
+          json_array_foreach(scheduler_list_names, index, scheduler_name) {
+            scheduler_result = scheduler_get(config, json_string_value(json_object_get(scheduler_name, "name")), 1);
+            if (scheduler_result != NULL && json_integer_value(json_object_get(scheduler_result, "result")) == A_OK) {
+              scheduler = json_object_get(scheduler_result, "scheduler");
+              next_time = json_integer_value(json_object_get(scheduler, "next_time"));
+              
+              if (json_integer_value(json_object_get(scheduler, "next_time")) >= (now - 60) && condition_list_check(config, json_object_get(scheduler, "conditions"))) {
+                // Send a message via gareth submodule
+                str_message_text = msprintf("Running scripts from scheduler %s", json_string_value(json_object_get(scheduler, "name")));
+                j_message = json_pack("{sssssss[s]}", "priority", "LOW", "source", "angharad", "text", str_message_text, "tags", "scheduler");
+                add_message(config->conn, j_message);
+                json_decref(j_message);
+                free(str_message_text);
+          
+                next_time = now;
+                json_array_foreach(json_object_get(scheduler, "scripts"), index_sc, script) {
+                  if (json_object_get(script, "enabled") == json_true() && json_is_string(json_object_get(script, "name"))) {
+                    y_log_message(Y_LOG_LEVEL_INFO, "thread_scheduler_run - run script %s", json_string_value(json_object_get(script, "name")));
+                    script_run(config, json_string_value(json_object_get(script, "name")));
+                  }
                 }
               }
-            }
-            
-            // Calculate next time or remove scheduler if needed or disable it if it's in the past
-            if (json_object_get(scheduler, "remove_after") == json_true() && json_integer_value(json_object_get(scheduler, "repeat")) < 0) {
-              if (scheduler_delete(config, json_string_value(json_object_get(scheduler, "name"))) != A_OK) {
-                y_log_message(Y_LOG_LEVEL_ERROR, "Error removing scheduler %s", json_string_value(json_object_get(scheduler, "name")));
-              }
-            } else if (json_integer_value(json_object_get(scheduler, "repeat")) >= 0) {
-              while (next_time <= now) {
-                next_time = scheduler_calculate_next_time(next_time, json_integer_value(json_object_get(scheduler, "repeat")), json_integer_value(json_object_get(scheduler, "repeat_value")));
-              }
               
-              if (next_time > 0) {
-                json_object_set_new(scheduler, "next_time", json_integer(next_time));
+              // Calculate next time or remove scheduler if needed or disable it if it's in the past
+              if (json_object_get(scheduler, "remove_after") == json_true() && json_integer_value(json_object_get(scheduler, "repeat")) < 0) {
+                y_log_message(Y_LOG_LEVEL_DEBUG, "Remove scheduler %s", json_string_value(json_object_get(scheduler, "name")));
+                if (scheduler_delete(config, json_string_value(json_object_get(scheduler, "name"))) != A_OK) {
+                  y_log_message(Y_LOG_LEVEL_ERROR, "Error removing scheduler %s", json_string_value(json_object_get(scheduler, "name")));
+                }
+              } else if (json_integer_value(json_object_get(scheduler, "repeat")) >= 0) {
+                y_log_message(Y_LOG_LEVEL_DEBUG, "Calculate nex_time for scheduler scheduler %s", json_string_value(json_object_get(scheduler, "name")));
+                while (next_time <= now) {
+                  next_time = scheduler_calculate_next_time(next_time, json_integer_value(json_object_get(scheduler, "repeat")), json_integer_value(json_object_get(scheduler, "repeat_value")));
+                }
+                
+                if (next_time > 0) {
+                  json_object_set_new(scheduler, "next_time", json_integer(next_time));
+                  if (scheduler_modify(config, json_string_value(json_object_get(scheduler, "name")), scheduler) != A_OK) {
+                    y_log_message(Y_LOG_LEVEL_ERROR, "Error updating scheduler %s", json_string_value(json_object_get(scheduler, "name")));
+                  }
+                }
+              } else {
+                json_object_set_new(scheduler, "enabled", json_false());
                 if (scheduler_modify(config, json_string_value(json_object_get(scheduler, "name")), scheduler) != A_OK) {
                   y_log_message(Y_LOG_LEVEL_ERROR, "Error updating scheduler %s", json_string_value(json_object_get(scheduler, "name")));
                 }
               }
+            } else {
+              y_log_message(Y_LOG_LEVEL_ERROR, "thread_scheduler_run - Error getting scheduler '%s'", json_string_value(json_object_get(scheduler_name, "name")));
             }
+            json_decref(scheduler_result);
           }
+        } else {
+          y_log_message(Y_LOG_LEVEL_ERROR, "thread_scheduler_run - Error getting scheduler list");
         }
-        json_decref(scheduler_list);
+        json_decref(scheduler_list_names);
       }
-      
       sleep(1);
     }
     config->angharad_status = ANGHARAD_STATUS_STOP;
   }
-  
   return NULL;
+}
+
+json_t * scheduler_get_next_schedules(struct config_elements * config) {
+  int res;
+  json_t * j_result;
+  json_t * j_query = json_pack("{sss[s]s{s{ssss}si}}",
+                                "table", 
+                                  ANGHARAD_TABLE_SCHEDULER,
+                                "columns",
+                                  "ash_name AS name",
+                                "where",
+                                  "ash_next_time",
+                                    "operator",
+                                    "raw",
+                                    "value",
+                                    (config->conn->type == HOEL_DB_TYPE_MARIADB?"<= NOW()":"<= strftime('%s','now')"),
+                                  "ash_enabled",
+                                  1);
+  if (j_query == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_get - Error allocating resources for j_query");
+    return json_pack("{si}", "result", A_ERROR_MEMORY);
+  }
+  res = h_select(config->conn, j_query, &j_result, NULL);
+  json_decref(j_query);
+  if (res == H_OK) {
+    return j_result;
+  } else {
+    return NULL;
+  }
 }
 
 json_t * scheduler_get(struct config_elements * config, const char * scheduler_name, const int runnable) {
@@ -169,6 +210,7 @@ json_t * scheduler_get(struct config_elements * config, const char * scheduler_n
         if (json_integer_value(json_object_get(script_list, "result")) == A_OK) {
           json_object_set_new(j_scheduler, "scripts", json_copy(json_object_get(script_list, "scripts")));
         } else {
+          y_log_message(Y_LOG_LEVEL_ERROR, "Error getting script list for scheduler %s", json_string_value(json_object_get(j_scheduler, "name")));
           json_object_set_new(j_scheduler, "scripts", json_array());
         }
         json_decref(script_list);

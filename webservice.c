@@ -730,21 +730,22 @@ int callback_angharad_static_file (const struct _u_request * request, struct _u_
     }
 
     if (buffer) {
+      y_log_message(Y_LOG_LEVEL_INFO, "Static File Server - Serving file %s", file_requested);
       content_type = u_map_get_case(((struct config_elements *)user_data)->mime_types, get_filename_ext(file_requested));
       if (content_type == NULL) {
         content_type = u_map_get(((struct config_elements *)user_data)->mime_types, "*");
-        y_log_message(Y_LOG_LEVEL_WARNING, "Unknown mime type for extension %s", get_filename_ext(file_requested));
+        y_log_message(Y_LOG_LEVEL_WARNING, "Static File Server - Unknown mime type for extension %s", get_filename_ext(file_requested));
       }
       response->binary_body = buffer;
       response->binary_body_length = length;
       u_map_put(response->map_header, "Content-Type", content_type);
     } else {
-      y_log_message(Y_LOG_LEVEL_ERROR, "error in %s", request->http_url);
+      y_log_message(Y_LOG_LEVEL_ERROR, "Static File Server - Internal error in %s", request->http_url);
       response->json_body = json_pack("{ss}", "error", request->http_url);
       response->status = 500;
     }
   } else {
-    y_log_message(Y_LOG_LEVEL_ERROR, "%s not found", request->http_url);
+    y_log_message(Y_LOG_LEVEL_ERROR, "Static File Server - File %s not found", request->http_url);
     response->json_body = json_pack("{ss}", "not found", request->http_url);
     response->status = 404;
   }
