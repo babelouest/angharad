@@ -161,29 +161,33 @@ int condition_check(struct config_elements * config, json_t * j_condition) {
         i_element_type = BENOIC_ELEMENT_TYPE_SENSOR;
       }
       
-      if (i_element_type == BENOIC_ELEMENT_TYPE_SWITCH) {
-        j_result = get_switch(config->b_config, j_device, json_string_value(element));
-      } else if (i_element_type == BENOIC_ELEMENT_TYPE_DIMMER) {
-        j_result = get_dimmer(config->b_config, j_device, json_string_value(element));
-      } else if (i_element_type == BENOIC_ELEMENT_TYPE_HEATER) {
-        j_result = get_heater(config->b_config, j_device, json_string_value(element));
-      } else if (i_element_type == BENOIC_ELEMENT_TYPE_SENSOR) {
-        j_result = get_sensor(config->b_config, j_device, json_string_value(element));
-      }
-      
-      if (j_result != NULL) {
-        if (json_object_get(j_condition, "field") != NULL) {
-          j_value = json_object_get(j_result, json_string_value(json_object_get(j_condition, "field")));
-        } else {
-          j_value = json_object_get(j_result, "value");
+      if (has_element(config->b_config, j_device, i_element_type, json_string_value(element))) {
+        if (i_element_type == BENOIC_ELEMENT_TYPE_SWITCH) {
+          j_result = get_switch(config->b_config, j_device, json_string_value(element));
+        } else if (i_element_type == BENOIC_ELEMENT_TYPE_DIMMER) {
+          j_result = get_dimmer(config->b_config, j_device, json_string_value(element));
+        } else if (i_element_type == BENOIC_ELEMENT_TYPE_HEATER) {
+          j_result = get_heater(config->b_config, j_device, json_string_value(element));
+        } else if (i_element_type == BENOIC_ELEMENT_TYPE_SENSOR) {
+          j_result = get_sensor(config->b_config, j_device, json_string_value(element));
         }
         
-        res = compare_values(j_value, json_object_get(j_condition, "value"), json_string_value(json_object_get(j_condition, "condition")));
+        if (j_result != NULL) {
+          if (json_object_get(j_condition, "field") != NULL) {
+            j_value = json_object_get(j_result, json_string_value(json_object_get(j_condition, "field")));
+          } else {
+            j_value = json_object_get(j_result, "value");
+          }
+          
+          res = compare_values(j_value, json_object_get(j_condition, "value"), json_string_value(json_object_get(j_condition, "condition")));
+        } else {
+          y_log_message(Y_LOG_LEVEL_ERROR, "error in getting benoic element value");
+          res = A_ERROR;
+        }
+        json_decref(j_result);
       } else {
-        y_log_message(Y_LOG_LEVEL_ERROR, "error in getting benoic element value");
         res = A_ERROR;
       }
-      json_decref(j_result);
     } else {
       res = A_ERROR;
     }
