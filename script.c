@@ -147,7 +147,7 @@ int script_modify(struct config_elements * config, const char * script_name, jso
                         "table", ANGHARAD_TABLE_SCRIPT,
                         "set",
                           "asc_name", script_name,
-                          "asc_description", json_string_value(json_object_get(j_script, "description")),
+                          "asc_description", json_object_get(j_script, "description")!=NULL?json_string_value(json_object_get(j_script, "description")):"",
                           "asc_actions", str_actions,
                           "asc_options", str_options,
                         "where",
