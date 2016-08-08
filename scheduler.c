@@ -299,17 +299,9 @@ int scheduler_add(struct config_elements * config, json_t * j_scheduler) {
   }
   
   if (config->conn->type == HOEL_DB_TYPE_MARIADB) {
-#ifdef JSON_INTEGER_IS_LONG_LONG
-    str_next_time = msprintf("FROM_UNIXTIME(%lld)", json_integer_value(json_object_get(j_scheduler, "next_time")));
-#else
-    str_next_time = msprintf("FROM_UNIXTIME(%ld)", json_integer_value(json_object_get(j_scheduler, "next_time")));
-#endif
+    str_next_time = msprintf("FROM_UNIXTIME(%" JSON_INTEGER_FORMAT ")", json_integer_value(json_object_get(j_scheduler, "next_time")));
   } else if (config->conn->type == HOEL_DB_TYPE_SQLITE) {
-#ifdef JSON_INTEGER_IS_LONG_LONG
-    str_next_time = msprintf("%lld", json_integer_value(json_object_get(j_scheduler, "next_time")));
-#else
-    str_next_time = msprintf("%ld", json_integer_value(json_object_get(j_scheduler, "next_time")));
-#endif
+    str_next_time = msprintf("%" JSON_INTEGER_FORMAT, json_integer_value(json_object_get(j_scheduler, "next_time")));
   }
   
   if (json_object_get(j_scheduler, "options") != NULL) {
@@ -477,17 +469,9 @@ int scheduler_modify(struct config_elements * config, const char * scheduler_nam
       str_conditions = strdup("");
     }
     if (config->conn->type == HOEL_DB_TYPE_MARIADB) {
-#ifdef JSON_INTEGER_IS_LONG_LONG
-      str_next_time = msprintf("FROM_UNIXTIME(%lld)", json_integer_value(json_object_get(j_scheduler, "next_time")));
-#else
-      str_next_time = msprintf("FROM_UNIXTIME(%ld)", json_integer_value(json_object_get(j_scheduler, "next_time")));
-#endif
+      str_next_time = msprintf("FROM_UNIXTIME(%" JSON_INTEGER_FORMAT ")", json_integer_value(json_object_get(j_scheduler, "next_time")));
     } else if (config->conn->type == HOEL_DB_TYPE_SQLITE) {
-#ifdef JSON_INTEGER_IS_LONG_LONG
-      str_next_time = msprintf("%lld", json_integer_value(json_object_get(j_scheduler, "next_time")));
-#else
-      str_next_time = msprintf("%ld", json_integer_value(json_object_get(j_scheduler, "next_time")));
-#endif
+      str_next_time = msprintf("%" JSON_INTEGER_FORMAT, json_integer_value(json_object_get(j_scheduler, "next_time")));
     }
     j_query = json_pack("{sss{sssisssss{ss}sIsIsi}s{ss}}",
                         "table", ANGHARAD_TABLE_SCHEDULER,
