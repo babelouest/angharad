@@ -98,6 +98,6 @@ memcheck: debug
 	valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all ./angharad --config-file=angharad.conf 2>valgrind.txt
 
 install:
-	cd $(BENOIC_LOCATION) && $(MAKE) install_modules
-	cd $(CARLEON_LOCATION) && $(MAKE) install_modules
+	cd $(BENOIC_LOCATION)/device-modules && $(MAKE) install
+	cd $(CARLEON_LOCATION)/service-modules && $(MAKE) install
 	cp -f angharad $(PREFIX)/bin
