@@ -40,7 +40,7 @@ BENOIC_LIBS=$(BENOIC_LOCATION)/benoic.o $(BENOIC_LOCATION)/device.o $(BENOIC_LOC
 CARLEON_LIBS=$(CARLEON_LOCATION)/carleon.o $(CARLEON_LOCATION)/service.o
 ANGHARAD_LIBS=angharad.o condition.o scheduler.o trigger.o script.o profile.o webservice.o authentication.o
 
-angharad: $(ANGHARAD_LIBS) $(GARETH_LIBS) $(BENOIC_LIBS) $(CARLEON_LIBS) | benoic-device-modules carleon-service-modules
+angharad: $(ANGHARAD_LIBS) $(GARETH_LIBS) $(BENOIC_LIBS) $(CARLEON_LIBS)
 	$(CC) -o angharad $(ANGHARAD_LIBS) $(GARETH_LIBS) $(BENOIC_LIBS) $(CARLEON_LIBS) $(LIBS) -lconfig
 
 angharad.o: angharad.c angharad.h
@@ -73,17 +73,17 @@ benoic-device-modules:
 carleon-service-modules:
 	cd $(CARLEON_LOCATION)/service-modules && $(MAKE) $(DEBUGFLAG)
 
-all: release
+all: release benoic-device-modules carleon-service-modules
 
 debug: ADDITIONALFLAGS=-DDEBUG -g -O0
 
 debug: DEBUGFLAG=debug
 
-debug: angharad unit-tests
+debug: angharad unit-tests benoic-device-modules carleon-service-modules
 
 release: ADDITIONALFLAGS=-O3
 
-release: angharad unit-tests
+release: angharad benoic-device-modules carleon-service-modules
 
 clean:
 	rm -f *.o angharad unit-tests valgrind.txt
@@ -97,7 +97,7 @@ unit-tests: unit-tests.c
 memcheck: debug
 	valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all ./angharad --config-file=angharad.conf 2>valgrind.txt
 
-install: angharad
+install:
 	cd $(BENOIC_LOCATION) && $(MAKE) install_modules
 	cd $(CARLEON_LOCATION) && $(MAKE) install_modules
 	cp -f angharad $(PREFIX)/bin
