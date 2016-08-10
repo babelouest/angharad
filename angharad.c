@@ -1119,6 +1119,11 @@ int close_angharad(struct config_elements * config) {
     ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/trigger/@trigger_name/@tag");
     ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/trigger/@trigger_name/@tag");
 
+    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/profile");
+    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/profile/@profile_id");
+    ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/profile/@profile_id");
+    ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/profile/@profile_id");
+    
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/auth/");
     ulfius_remove_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/auth/");
     ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/auth/");
