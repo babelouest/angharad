@@ -698,6 +698,80 @@ int callback_angharad_trigger_remove_tag (const struct _u_request * request, str
   }
 }
 
+int callback_carleon_profile_list (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  json_t * j_list;
+  
+  if (user_data == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "callback_carleon_profile_list - Error, user_data is NULL");
+    return U_ERROR_PARAMS;
+  } else {
+    j_list = profile_list((struct config_elements *)user_data);
+    if (json_integer_value(json_object_get(j_list, "result")) != WEBSERVICE_RESULT_OK) {
+      response->status = 500;
+    } else {
+      response->json_body = json_copy(json_object_get(j_list, "list"));
+    }
+    json_decref(j_list);
+    return U_OK;
+  }
+}
+
+int callback_carleon_profile_get (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  json_t * j_profile;
+  
+  if (user_data == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "callback_carleon_profile_list - Error, user_data is NULL");
+    return U_ERROR_PARAMS;
+  } else {
+    j_profile = profile_get((struct config_elements *)user_data, u_map_get(request->map_url, "profile_id"));
+    if (json_integer_value(json_object_get(j_profile, "result")) == WEBSERVICE_RESULT_OK) {
+      response->json_body = json_copy(json_object_get(j_profile, "profile"));
+    } else if (json_integer_value(json_object_get(j_profile, "result")) == WEBSERVICE_RESULT_NOT_FOUND) {
+      response->status = 404;
+    } else {
+      response->status = 500;
+    }
+    json_decref(j_profile);
+    return U_OK;
+  }
+}
+
+int callback_carleon_profile_set (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  int res;
+  
+  if (user_data == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "callback_carleon_profile_list - Error, user_data is NULL");
+    return U_ERROR_PARAMS;
+  } else {
+    res = profile_modify((struct config_elements *)user_data, u_map_get(request->map_url, "profile_id"), request->json_body);
+    if (res == C_ERROR_PARAM) {
+      response->status = 400;
+    } else if (res != C_OK) {
+      response->status = 500;
+    }
+    return U_OK;
+  }
+}
+
+int callback_carleon_profile_remove (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  int res;
+  
+  if (user_data == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "callback_carleon_profile_list - Error, user_data is NULL");
+    return U_ERROR_PARAMS;
+  } else {
+    res = profile_delete((struct config_elements *)user_data, u_map_get(request->map_url, "profile_id"));
+    if (res == C_ERROR_PARAM) {
+      response->status = 400;
+    } else if (res == C_ERROR_NOT_FOUND) {
+      response->status = 404;
+    } else if (res != C_OK) {
+      response->status = 500;
+    }
+    return U_OK;
+  }
+}
+
 int callback_angharad_static_file (const struct _u_request * request, struct _u_response * response, void * user_data) {
   void * buffer = NULL;
   long length;

@@ -98,6 +98,7 @@
 #define ANGHARAD_TABLE_SCHEDULER_SCRIPT "a_scheduler_script"
 #define ANGHARAD_TABLE_TRIGGER_SCRIPT   "a_trigger_script"
 #define ANGHARAD_TABLE_USER             "a_user"
+#define ANGHARAD_TABLE_PROFILE 			    "a_profile"
 
 #define ANGHARAD_AUTH_TYPE_NONE     0
 #define ANGHARAD_AUTH_TYPE_DATABASE 1
@@ -217,6 +218,13 @@ int trigger_delete(struct config_elements * config, const char * trigger_name);
 int trigger_add_tag(struct config_elements * config, const char * trigger_name, const char * tag);
 int trigger_remove_tag(struct config_elements * config, const char * trigger_name, const char * tag);
 
+// profiles core functions
+json_t * profile_list(struct config_elements * config);
+json_t * profile_get(struct config_elements * config, const char * profile_id);
+int profile_add(struct config_elements * config, const char * profile_id, json_t * profile_data);
+int profile_modify(struct config_elements * config, const char * profile_id, json_t * profile_data);
+int profile_delete(struct config_elements * config, const char * profile_id);
+
 const char * get_filename_ext(const char *path);
 
 json_t * auth_get(struct config_elements * config, const char * session_id);
@@ -261,6 +269,12 @@ int callback_angharad_trigger_modify (const struct _u_request * request, struct 
 int callback_angharad_trigger_remove (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_trigger_add_tag (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_trigger_remove_tag (const struct _u_request * request, struct _u_response * response, void * user_data);
+
+int callback_carleon_profile_list (const struct _u_request * request, struct _u_response * response, void * user_data);
+int callback_carleon_profile_get (const struct _u_request * request, struct _u_response * response, void * user_data);
+int callback_carleon_profile_add (const struct _u_request * request, struct _u_response * response, void * user_data);
+int callback_carleon_profile_set (const struct _u_request * request, struct _u_response * response, void * user_data);
+int callback_carleon_profile_remove (const struct _u_request * request, struct _u_response * response, void * user_data);
 
 int callback_angharad_static_file (const struct _u_request * request, struct _u_response * response, void * user_data);
 

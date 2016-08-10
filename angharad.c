@@ -1028,6 +1028,11 @@ int init_angharad(struct config_elements * config) {
     ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/trigger/@trigger_name/@tag", NULL, NULL, NULL, &callback_angharad_trigger_add_tag, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/trigger/@trigger_name/@tag", NULL, NULL, NULL, &callback_angharad_trigger_remove_tag, (void*)config);
 
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/profile", NULL, NULL, NULL, &callback_carleon_profile_list, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/profile/@profile_id", NULL, NULL, NULL, &callback_carleon_profile_get, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/profile/@profile_id", NULL, NULL, NULL, &callback_carleon_profile_set, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/profile/@profile_id", NULL, NULL, NULL, &callback_carleon_profile_remove, (void*)config);
+    
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/auth", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_auth_get, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/auth", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_auth_check, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/auth", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_auth_delete, (void*)config);

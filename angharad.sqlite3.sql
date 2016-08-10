@@ -4,7 +4,6 @@ DROP TABLE IF EXISTS `b_element`;
 DROP TABLE IF EXISTS `b_device`;
 DROP TABLE IF EXISTS `b_device_type`;
 
-DROP TABLE IF EXISTS `c_profile`;
 DROP TABLE IF EXISTS `c_element`;
 DROP TABLE IF EXISTS `c_service`;
 
@@ -24,6 +23,7 @@ DROP TABLE IF EXISTS `a_trigger`;
 DROP TABLE IF EXISTS `a_scheduler`;
 DROP TABLE IF EXISTS `a_script`;
 DROP TABLE IF EXISTS `a_submodule`;
+DROP TABLE IF EXISTS `a_profile`;
 
 CREATE TABLE `b_device_type` (
   `bdt_uid` TEXT PRIMARY KEY NOT NULL,
@@ -76,12 +76,6 @@ CREATE TABLE `c_element` (
   `cs_name` TEXT,
   `ce_name` TEXT,
   `ce_tag` TEXT
-);
-
-CREATE TABLE `c_profile` (
-  `cp_id` INTEGER PRIMARY KEY AUTOINCREMENT,
-  `cp_name` TEXT NOT NULL UNIQUE,
-  `cp_data` TEXT
 );
 
 CREATE TABLE `g_alert_http` (
@@ -231,4 +225,10 @@ CREATE TABLE `a_user` (
   `au_login` TEXT PRIMARY KEY NOT NULL,
   `au_password` TEXT NOT NULL,
   `au_enabled` INTEGER DEFAULT 1
+);
+
+CREATE TABLE `a_profile` (
+  `ap_id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `ap_name` TEXT NOT NULL UNIQUE,
+  `ap_data` TEXT
 );

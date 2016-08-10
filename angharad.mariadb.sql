@@ -9,7 +9,6 @@ DROP TABLE IF EXISTS `b_element`;
 DROP TABLE IF EXISTS `b_device`;
 DROP TABLE IF EXISTS `b_device_type`;
 
-DROP TABLE IF EXISTS `c_profile`;
 DROP TABLE IF EXISTS `c_element`;
 DROP TABLE IF EXISTS `c_service`;
 
@@ -29,6 +28,7 @@ DROP TABLE IF EXISTS `a_trigger`;
 DROP TABLE IF EXISTS `a_scheduler`;
 DROP TABLE IF EXISTS `a_script`;
 DROP TABLE IF EXISTS `a_submodule`;
+DROP TABLE IF EXISTS `a_profile`;
 
 CREATE TABLE `b_device_type` (
   `bdt_uid` VARCHAR(64) PRIMARY KEY NOT NULL,
@@ -83,12 +83,6 @@ CREATE TABLE `c_element` (
   `ce_name` VARCHAR(64),
   `ce_tag` blob,
   CONSTRAINT `service_ibfk_1` FOREIGN KEY (`cs_name`) REFERENCES `c_service` (`cs_name`)
-);
-
-CREATE TABLE `c_profile` (
-  `cp_id` INT(11) PRIMARY KEY AUTO_INCREMENT,
-  `cp_name` VARCHAR(64) NOT NULL UNIQUE,
-  `cp_data` BLOB -- profile data, json in a blob for old mysql versions compatibility
 );
 
 CREATE TABLE `g_alert_http` (
@@ -241,4 +235,10 @@ CREATE TABLE `a_user` (
   `au_password` VARCHAR(128) NOT NULL,
   `au_enabled` TINYINT(1) DEFAULT 1,
   PRIMARY KEY (`au_login`)
+);
+
+CREATE TABLE `a_profile` (
+  `ap_id` INT(11) PRIMARY KEY AUTO_INCREMENT,
+  `ap_name` VARCHAR(64) NOT NULL UNIQUE,
+  `ap_data` BLOB -- profile data, json in a blob for old mysql versions compatibility
 );
