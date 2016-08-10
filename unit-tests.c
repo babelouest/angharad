@@ -1458,6 +1458,61 @@ void run_scheduler_trigger_exec_tests() {
   free(str_scheduler_unchecked);
 }
 
+void run_profile_tests() {
+  json_t * profile_valid1 = json_loads("{\
+    \"name\":\"profile1\",\
+    \"description\":\"Description for profile1\"\
+  }", JSON_DECODE_ANY, NULL);
+  json_t * profile_valid2 = json_loads("{\
+    \"name\":\"profile2\",\
+    \"description\":\"Description for profile2\"\
+  }", JSON_DECODE_ANY, NULL);
+  json_t * profile_valid3 = json_loads("{\
+    \"name\":\"profile1\",\
+    \"description\":\"Second description for profile1\"\
+  }", JSON_DECODE_ANY, NULL);
+  
+  struct _u_request req_list[] = {
+    {"GET", SERVER_URL_PREFIX "/profile/", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"PUT", SERVER_URL_PREFIX "/profile/profile1", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, profile_valid1, NULL, 0, NULL, 0}, // 200
+    {"PUT", SERVER_URL_PREFIX "/profile/profile2", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, profile_valid2, NULL, 0, NULL, 0}, // 200
+    {"GET", SERVER_URL_PREFIX "/profile/", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"GET", SERVER_URL_PREFIX "/profile/profile1", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"GET", SERVER_URL_PREFIX "/profile/profile2", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"GET", SERVER_URL_PREFIX "/profile/profile3", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 404
+    {"PUT", SERVER_URL_PREFIX "/profile/profile1", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, profile_valid3, NULL, 0, NULL, 0}, // 200
+    {"PUT", SERVER_URL_PREFIX "/profile/profile3", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 400
+    {"GET", SERVER_URL_PREFIX "/profile/profile3", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 404
+    {"GET", SERVER_URL_PREFIX "/profile/profile1", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"DELETE", SERVER_URL_PREFIX "/profile/profile1", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"DELETE", SERVER_URL_PREFIX "/profile/profile2", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"DELETE", SERVER_URL_PREFIX "/profile/profile3", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 404
+    {"GET", SERVER_URL_PREFIX "/profile/profile1", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 404
+    {"GET", SERVER_URL_PREFIX "/profile/", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+  };
+
+  test_request_status(&req_list[0], 200, NULL);
+  test_request_status(&req_list[1], 200, NULL);
+  test_request_status(&req_list[2], 200, NULL);
+  test_request_status(&req_list[3], 200, NULL);
+  test_request_status(&req_list[4], 200, profile_valid1);
+  test_request_status(&req_list[5], 200, profile_valid2);
+  test_request_status(&req_list[6], 404, NULL);
+  test_request_status(&req_list[7], 200, NULL);
+  test_request_status(&req_list[8], 400, NULL);
+  test_request_status(&req_list[9], 404, NULL);
+  test_request_status(&req_list[10], 200, profile_valid3);
+  test_request_status(&req_list[11], 200, NULL);
+  test_request_status(&req_list[12], 200, NULL);
+  test_request_status(&req_list[13], 404, NULL);
+  test_request_status(&req_list[14], 404, NULL);
+  test_request_status(&req_list[15], 200, NULL);
+  
+  json_decref(profile_valid1);
+  json_decref(profile_valid2);
+  json_decref(profile_valid3);
+}
+
 int main(void) {
   printf("Press <enter> to run submodule tests\n");
   getchar();
@@ -1474,5 +1529,8 @@ int main(void) {
   printf("Press <enter> to run scheduler and trigger execution tests\n");
   getchar();
   run_scheduler_trigger_exec_tests();
+  printf("Press <enter> to run profile tests\n");
+  getchar();
+  run_profile_tests();
   return 0;
 }
