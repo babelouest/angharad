@@ -127,7 +127,7 @@ Depending on your needs, you can use a sqlite3 database (single file, fast and r
 
 ### MySQL Installation
 
-Run the SQL script angharad.mariadb.sql file under an already existing database (Check the first commented lines if you don't know how to create a database and a user).
+Run the SQL script angharad.mariadb.sql file under an already existing database.
 
 ```shell
 mysql < angharad.mariadb.sql
