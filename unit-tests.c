@@ -1473,22 +1473,22 @@ void run_profile_tests() {
   }", JSON_DECODE_ANY, NULL);
   
   struct _u_request req_list[] = {
-    {"GET", SERVER_URL_PREFIX "/profile/", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"PUT", SERVER_URL_PREFIX "/profile/profile1", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, profile_valid1, NULL, 0, NULL, 0}, // 200
-    {"PUT", SERVER_URL_PREFIX "/profile/profile2", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, profile_valid2, NULL, 0, NULL, 0}, // 200
-    {"GET", SERVER_URL_PREFIX "/profile/", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"GET", SERVER_URL_PREFIX "/profile/profile1", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"GET", SERVER_URL_PREFIX "/profile/profile2", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"GET", SERVER_URL_PREFIX "/profile/profile3", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 404
-    {"PUT", SERVER_URL_PREFIX "/profile/profile1", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, profile_valid3, NULL, 0, NULL, 0}, // 200
-    {"PUT", SERVER_URL_PREFIX "/profile/profile3", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 400
-    {"GET", SERVER_URL_PREFIX "/profile/profile3", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 404
-    {"GET", SERVER_URL_PREFIX "/profile/profile1", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"DELETE", SERVER_URL_PREFIX "/profile/profile1", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"DELETE", SERVER_URL_PREFIX "/profile/profile2", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"DELETE", SERVER_URL_PREFIX "/profile/profile3", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 404
-    {"GET", SERVER_URL_PREFIX "/profile/profile1", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 404
-    {"GET", SERVER_URL_PREFIX "/profile/", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"GET", SERVER_URL PREFIX_ANGHARAD "/profile/", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"PUT", SERVER_URL PREFIX_ANGHARAD "/profile/profile1", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, profile_valid1, NULL, 0, NULL, 0}, // 200
+    {"PUT", SERVER_URL PREFIX_ANGHARAD "/profile/profile2", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, profile_valid2, NULL, 0, NULL, 0}, // 200
+    {"GET", SERVER_URL PREFIX_ANGHARAD "/profile/", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"GET", SERVER_URL PREFIX_ANGHARAD "/profile/profile1", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"GET", SERVER_URL PREFIX_ANGHARAD "/profile/profile2", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"GET", SERVER_URL PREFIX_ANGHARAD "/profile/profile3", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 404
+    {"PUT", SERVER_URL PREFIX_ANGHARAD "/profile/profile1", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, profile_valid3, NULL, 0, NULL, 0}, // 200
+    {"PUT", SERVER_URL PREFIX_ANGHARAD "/profile/profile3", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 400
+    {"GET", SERVER_URL PREFIX_ANGHARAD "/profile/profile3", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 404
+    {"GET", SERVER_URL PREFIX_ANGHARAD "/profile/profile1", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"DELETE", SERVER_URL PREFIX_ANGHARAD "/profile/profile1", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"DELETE", SERVER_URL PREFIX_ANGHARAD "/profile/profile2", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
+    {"DELETE", SERVER_URL PREFIX_ANGHARAD "/profile/profile3", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 404
+    {"GET", SERVER_URL PREFIX_ANGHARAD "/profile/profile1", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 404
+    {"GET", SERVER_URL PREFIX_ANGHARAD "/profile/", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
   };
 
   test_request_status(&req_list[0], 200, NULL);
