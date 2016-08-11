@@ -2,6 +2,7 @@
 
 House automation system API server
 
+![example snapshot](https://github.com/babelouest/sagremor/raw/master/snapshots/dashboard-filled.png)
 Central program and orchestrator of the following submodules:
 
 - [Benoic](https://github.com/babelouest/benoic): Command house automation devices as lights, heaters, sensors, switches, currently ZWave devices are supported
@@ -153,6 +154,10 @@ cp angharad.conf.sample /usr/local/etc/angharad.conf
 ## Static file server
 
 `static_files_path` and `static_files_prefix` are used for the static files server, in this case, [Sagremor](https://github.com/babelouest/sagremor) is the dedicated web application and can be hosted there.
+
+Beware that the static web server is not secured with SSL connection, so don't use it outside a trusted network. i.e., don't forward ports directly outside your network.
+
+If you want to access angharad in a secure connection, you can use apache `mod_proxy` for example, and embed angharad access in it.
 
 ## Database
 
