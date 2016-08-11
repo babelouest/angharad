@@ -28,6 +28,9 @@
 
 #include "angharad.h"
 
+/**
+ * Get the list of all profiles
+ */
 json_t * profile_list(struct config_elements * config) {
   json_t * j_query, * j_result, * profile, * to_return;
   int res;
@@ -68,6 +71,9 @@ json_t * profile_list(struct config_elements * config) {
   }
 }
 
+/**
+ * Get the specified profile
+ */
 json_t * profile_get(struct config_elements * config, const char * profile_id) {
   json_t * j_query, * j_result, * profile;
   int res;
@@ -107,6 +113,9 @@ json_t * profile_get(struct config_elements * config, const char * profile_id) {
   }
 }
 
+/**
+ * Update the specified profile
+ */
 int profile_modify(struct config_elements * config, const char * profile_id, json_t * profile_data) {
   json_t * profile = profile_get(config, profile_id), * j_query;
   char * str_data;
@@ -147,6 +156,9 @@ int profile_modify(struct config_elements * config, const char * profile_id, jso
   }
 }
 
+/**
+ * Delete the specified profile
+ */
 int profile_delete(struct config_elements * config, const char * profile_id) {
   json_t * profile = profile_get(config, profile_id), * j_query;
   int res;

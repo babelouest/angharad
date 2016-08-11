@@ -28,6 +28,9 @@
 
 #include "angharad.h"
 
+/**
+ * Get all scripts or the specified script
+ */
 json_t * script_get(struct config_elements * config, const char * script_name) {
   json_t * j_query, * j_result, * j_script, * j_actions, * j_options, * to_return;
   int res;
@@ -90,6 +93,9 @@ json_t * script_get(struct config_elements * config, const char * script_name) {
   }
 }
 
+/**
+ * Add a new script
+ */
 int script_add(struct config_elements * config, json_t * j_script) {
   json_t * j_query;
   int res;
@@ -127,6 +133,9 @@ int script_add(struct config_elements * config, json_t * j_script) {
   }
 }
 
+/**
+ * Update the specified script
+ */
 int script_modify(struct config_elements * config, const char * script_name, json_t * j_script) {
   json_t * j_query, * cur_script;
   int res, res_cur_script;
@@ -175,6 +184,9 @@ int script_modify(struct config_elements * config, const char * script_name, jso
   }
 }
 
+/**
+ * Remove the specified script
+ */
 int script_delete(struct config_elements * config, const char * script_name) {
   json_t * j_query, * cur_script;
   int res, res_cur_script;
@@ -214,6 +226,8 @@ int script_delete(struct config_elements * config, const char * script_name) {
 }
 
 /**
+ * 
+ * Check if the script is valid
  * 
  * script format must be:
  * {
@@ -280,6 +294,9 @@ json_t * is_script_valid(struct config_elements * config, json_t * j_script, con
   return j_result;
 }
 
+/**
+ * Check if all actions of the script are valid
+ */
 json_t * is_actions_valid(struct config_elements * config, json_t * j_action_list) {
   json_t * j_result = json_array(), * j_action, * is_valid;
   size_t index;
@@ -304,6 +321,8 @@ json_t * is_actions_valid(struct config_elements * config, json_t * j_action_lis
 }
 
 /**
+ * 
+ * Check if an action is valid
  * 
  * action format:
  * 
@@ -475,6 +494,9 @@ json_t * is_action_valid(struct config_elements * config, json_t * j_action, con
   }
 }
 
+/**
+ * Add a tag to the specified script
+ */
 int script_add_tag(struct config_elements * config, const char * script_name, const char * tag) {
   json_t * j_result = script_get(config, script_name), * j_script, * j_tags;
   int res;
@@ -507,6 +529,9 @@ int script_add_tag(struct config_elements * config, const char * script_name, co
   }
 }
 
+/**
+ * Remove the specified tag from the specified script
+ */
 int script_remove_tag(struct config_elements * config, const char * script_name, const char * tag) {
   json_t * j_result = script_get(config, script_name), * j_script, * j_tags;
   int i, res;
@@ -544,6 +569,9 @@ int script_remove_tag(struct config_elements * config, const char * script_name,
   }
 }
 
+/**
+ * Execute the specified script
+ */
 int script_run(struct config_elements * config, const char * script_name) {
   json_t * j_result = script_get(config, script_name), * j_script, * j_message, * j_action_list, * j_action;
   int res = A_OK;
@@ -590,6 +618,8 @@ int script_run(struct config_elements * config, const char * script_name) {
 }
 
 /**
+ * 
+ * Execute the specified action
  * 
  * action format:
  * 

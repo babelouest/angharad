@@ -28,6 +28,9 @@
 
 #include "angharad.h"
 
+/**
+ * Check if all the condtions in condition_list are valid
+ */
 json_t * is_condition_list_valid(struct config_elements * config, json_t * condition_list) {
   json_t * j_return = json_array(), * condition, * valid;
   size_t index;
@@ -221,6 +224,9 @@ int condition_check(struct config_elements * config, json_t * j_condition) {
   return res;
 }
 
+/**
+ * Compare 2 values depending on the specified operator
+ */
 int compare_values(json_t * j_value1, json_t * j_value2, const char * operator) {
   if (j_value1 == NULL || j_value2 == NULL || operator == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error input parameters");
@@ -281,6 +287,9 @@ int compare_values(json_t * j_value1, json_t * j_value2, const char * operator) 
   }
 }
 
+/**
+ * Check if script_list is a valid list of scripts
+ */
 json_t * is_script_list_valid(struct config_elements * config, json_t * script_list) {
   json_t * j_return = json_array(), * script, * j_script;
   size_t index;

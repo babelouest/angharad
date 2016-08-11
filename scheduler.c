@@ -28,6 +28,9 @@
 
 #include "angharad.h"
 
+/**
+ * thread that loop forever annd check every minute if there are schedulers to execute
+ */
 void * thread_scheduler_run(void * args) {
   struct config_elements * config = (struct config_elements *)args;
   time_t now, next_time;
@@ -111,6 +114,9 @@ void * thread_scheduler_run(void * args) {
   return NULL;
 }
 
+/**
+ * Return the schedulers that are due now
+ */
 json_t * scheduler_get_next_schedules(struct config_elements * config) {
   int res;
   json_t * j_result;
@@ -140,6 +146,9 @@ json_t * scheduler_get_next_schedules(struct config_elements * config) {
   }
 }
 
+/**
+ * Return the list of all schedulers or the sppecified scheduler
+ */
 json_t * scheduler_get(struct config_elements * config, const char * scheduler_name, const int runnable) {
   json_t * j_query, * j_result, * j_scheduler, * j_options, * j_conditions, * j_bool, * to_return, * j_repeat, * script_list;
   int res;
@@ -263,6 +272,9 @@ json_t * scheduler_get(struct config_elements * config, const char * scheduler_n
   }
 }
 
+/**
+ * Enable or disable the specified scheduler
+ */
 int scheduler_enable(struct config_elements * config, json_t * j_scheduler, int enabled) {
   time_t now, next_time;
   
@@ -287,6 +299,9 @@ int scheduler_enable(struct config_elements * config, json_t * j_scheduler, int 
   }
 }
 
+/**
+ * Creates a new scheduler
+ */
 int scheduler_add(struct config_elements * config, json_t * j_scheduler) {
   json_t * j_query;
   int res;
@@ -302,6 +317,9 @@ int scheduler_add(struct config_elements * config, json_t * j_scheduler) {
     str_next_time = msprintf("FROM_UNIXTIME(%" JSON_INTEGER_FORMAT ")", json_integer_value(json_object_get(j_scheduler, "next_time")));
   } else if (config->conn->type == HOEL_DB_TYPE_SQLITE) {
     str_next_time = msprintf("%" JSON_INTEGER_FORMAT, json_integer_value(json_object_get(j_scheduler, "next_time")));
+  } else {
+    // Should not happen, but I don't like gcc warnings
+    str_next_time = strdup("");
   }
   
   if (json_object_get(j_scheduler, "options") != NULL) {
@@ -346,7 +364,7 @@ int scheduler_add(struct config_elements * config, json_t * j_scheduler) {
 }
 
 /**
- * 
+ * Check if the spceified scheduler is valid
  */
 json_t * is_scheduler_valid(struct config_elements * config, json_t * j_scheduler, const int update) {
   json_t * j_result = json_array(), * j_element, * j_options_valid, * j_conditions_valid, * j_scripts_valid;
@@ -444,6 +462,9 @@ json_t * is_scheduler_valid(struct config_elements * config, json_t * j_schedule
   return j_result;
 }
 
+/**
+ * Updates the specfied scheduler
+ */
 int scheduler_modify(struct config_elements * config, const char * scheduler_name, json_t * j_scheduler) {
   json_t * j_query, * cur_scheduler;
   int res, res_cur_scheduler;
@@ -510,6 +531,9 @@ int scheduler_modify(struct config_elements * config, const char * scheduler_nam
   }
 }
 
+/**
+ * Deletes the specified scheduler
+ */
 int scheduler_delete(struct config_elements * config, const char * scheduler_name) {
   json_t * j_query, * cur_scheduler;
   int res, res_cur_scheduler;
@@ -548,6 +572,9 @@ int scheduler_delete(struct config_elements * config, const char * scheduler_nam
   }
 }
 
+/**
+ * add a new tag to the sspecified scheduler
+ */
 int scheduler_add_tag(struct config_elements * config, const char * scheduler_name, const char * tag) {
   json_t * j_result = scheduler_get(config, scheduler_name, 0), * j_scheduler, * j_tags;
   int res;
@@ -580,6 +607,9 @@ int scheduler_add_tag(struct config_elements * config, const char * scheduler_na
   }
 }
 
+/**
+ * Remove the specified tag from the specified scheduler
+ */
 int scheduler_remove_tag(struct config_elements * config, const char * scheduler_name, const char * tag) {
   json_t * j_result = scheduler_get(config, scheduler_name, 0), * j_scheduler, * j_tags;
   int i, res;
@@ -618,7 +648,7 @@ int scheduler_remove_tag(struct config_elements * config, const char * scheduler
 }
 
 /**
- * Calculate the next time
+ * Calculate the next time for a scheduler or a monitor
  */
 time_t scheduler_calculate_next_time(time_t from, int schedule_type, unsigned int schedule_value) {
   struct tm ts = *localtime(&from);
@@ -687,6 +717,9 @@ time_t scheduler_calculate_next_time(time_t from, int schedule_type, unsigned in
   return (to_return);
 }
 
+/**
+ * Get the list of script a scheduler has to run
+ */
 json_t * scheduler_get_script_list(struct config_elements * config, const char * scheduler_name) {
   char * escaped = h_escape_string(config->conn, scheduler_name),
         * query = msprintf("SELECT a_script.asc_name AS name, a_scheduler_script.ass_enabled AS i_enabled FROM a_script, a_scheduler_script WHERE a_scheduler_script.ash_id = (SELECT ash_id FROM a_scheduler WHERE ash_name = '%s') AND a_script.asc_id = a_scheduler_script.asc_id", scheduler_name);
@@ -714,6 +747,9 @@ json_t * scheduler_get_script_list(struct config_elements * config, const char *
   }
 }
 
+/**
+ * Updates the list of script a scheduler has to run
+ */
 int scheduler_set_script_list(struct config_elements * config, const char * scheduler_name, json_t * script_list) {
   json_t * j_query, * script;
   int res;

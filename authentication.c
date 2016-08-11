@@ -153,6 +153,9 @@ json_t * auth_check(struct config_elements * config, const char * login, const c
   return j_return;
 }
 
+/**
+ * Inalidates a session_id by setting its enabled flag to false
+ */
 int auth_invalidate(struct config_elements * config, const char * session_id) {
   json_t * j_query;
   int res;
@@ -179,6 +182,9 @@ int auth_invalidate(struct config_elements * config, const char * session_id) {
   }
 }
 
+/**
+ * Updates the last_seen value of the specified session
+ */
 int auth_update_last_seen(struct config_elements * config, const char * session_id) {
   json_t * j_query;
   int res;
@@ -231,6 +237,9 @@ int auth_check_credentials(struct config_elements * config, const char * login, 
   return res;
 }
 
+/**
+ * Generates a new token for the specified login and the specified validity
+ */
 json_t * auth_generate_new_token(struct config_elements * config, const char * login, int validity) {
   json_t * j_query, * j_login = login==NULL?json_null():json_string(login);
   uuid_t uuid;
@@ -266,6 +275,9 @@ json_t * auth_generate_new_token(struct config_elements * config, const char * l
   }
 }
 
+/**
+ * Check if the login and password specified are valid as a database user
+ */
 int auth_check_credentials_database(struct config_elements * config, const char * login, const char * password) {
   json_t * j_query, * j_result;
   char * escaped, * str_password;
@@ -312,6 +324,9 @@ int auth_check_credentials_database(struct config_elements * config, const char 
   }
 }
 
+/**
+ * Check if the login and password specified are valid as a LDAP user
+ */
 int auth_check_credentials_ldap(struct config_elements * config, const char * login, const char * password) {
   LDAP * ldap;
   LDAPMessage * answer, * entry;

@@ -28,6 +28,12 @@
 
 #include "angharad.h"
 
+/**
+ * Function executed when an alert is received
+ * 
+ * Store the alert in the database, and execute an alert if needed
+ * 
+ */
 int alert_received(struct config_elements * config, const char * submodule_name, const char * source, const char * element, const char * message) {
   json_t * j_query, * j_result, * cur_trigger, * j_result_trigger, * j_trigger, * script;
   int res, message_match, message_match_check = A_ERROR_FALSE;
@@ -127,6 +133,9 @@ int alert_received(struct config_elements * config, const char * submodule_name,
   return A_OK;
 }
 
+/**
+ * Get all triggers or the one specified by the name
+ */
 json_t * trigger_get(struct config_elements * config, const char * trigger_name) {
   json_t * j_query, * j_result, * j_trigger, * j_options, * j_conditions, * j_bool, * to_return, * script_list;
   int res;
@@ -226,6 +235,9 @@ json_t * trigger_get(struct config_elements * config, const char * trigger_name)
   }
 }
 
+/**
+ * Enable or disable a trigger
+ */
 int trigger_enable(struct config_elements * config, json_t * j_trigger, int enabled) {
 	if (j_trigger != NULL) {
 		json_object_set(j_trigger, "enabled", enabled?json_true():json_false());
@@ -235,6 +247,9 @@ int trigger_enable(struct config_elements * config, json_t * j_trigger, int enab
 	}
 }
 
+/**
+ * Create a new trigger
+ */
 int trigger_add(struct config_elements * config, json_t * j_trigger) {
   json_t * j_query;
   int res;
@@ -287,7 +302,7 @@ int trigger_add(struct config_elements * config, json_t * j_trigger) {
 }
 
 /**
- * 
+ * Check if the specified triger is valid
  */
 json_t * is_trigger_valid(struct config_elements * config, json_t * j_trigger, const int update) {
   json_t * j_result = json_array(), * j_element, * j_options_valid, * j_conditions_valid, * j_scripts_valid;
@@ -390,6 +405,9 @@ json_t * is_trigger_valid(struct config_elements * config, json_t * j_trigger, c
   return j_result;
 }
 
+/**
+ * Updates the specified trigger
+ */
 int trigger_modify(struct config_elements * config, const char * trigger_name, json_t * j_trigger) {
   json_t * j_query, * cur_trigger;
   int res, res_cur_trigger;
@@ -451,6 +469,9 @@ int trigger_modify(struct config_elements * config, const char * trigger_name, j
   }
 }
 
+/**
+ * Delete the specified trigger
+ */
 int trigger_delete(struct config_elements * config, const char * trigger_name) {
   json_t * j_query, * cur_trigger;
   int res, res_cur_trigger;
@@ -489,6 +510,9 @@ int trigger_delete(struct config_elements * config, const char * trigger_name) {
   }
 }
 
+/**
+ * Add a tag to the specified trigger
+ */
 int trigger_add_tag(struct config_elements * config, const char * trigger_name, const char * tag) {
   json_t * j_result = trigger_get(config, trigger_name), * j_trigger, * j_tags;
   int res;
@@ -521,6 +545,9 @@ int trigger_add_tag(struct config_elements * config, const char * trigger_name, 
   }
 }
 
+/**
+ * Remove the specified tag to the specified trigger
+ */
 int trigger_remove_tag(struct config_elements * config, const char * trigger_name, const char * tag) {
   json_t * j_result = trigger_get(config, trigger_name), * j_trigger, * j_tags;
   int i, res;
@@ -558,6 +585,9 @@ int trigger_remove_tag(struct config_elements * config, const char * trigger_nam
   }
 }
 
+/**
+ * Get the list of scripts the trigger has to run
+ */
 json_t * trigger_get_script_list(struct config_elements * config, const char * trigger_name) {
   
   char * escaped = h_escape_string(config->conn, trigger_name),
@@ -586,6 +616,9 @@ json_t * trigger_get_script_list(struct config_elements * config, const char * t
   }
 }
 
+/**
+ * Set the list of scripts the trigger has to run
+ */
 int trigger_set_script_list(struct config_elements * config, const char * trigger_name, json_t * script_list) {
   json_t * j_query, * script;
   int res;

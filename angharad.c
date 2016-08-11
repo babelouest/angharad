@@ -681,6 +681,10 @@ int check_config(struct config_elements * config) {
   return 1;
 }
 
+/**
+ * Default callback function
+ * return status 404
+ */
 int callback_default (const struct _u_request * request, struct _u_response * response, void * user_data) {
   response->json_body = json_pack("{ssssss}", "error", "page not found", "message", "The page can not be found, check documentation", "method", request->http_verb, "url", request->http_url);
   response->status = 404;
@@ -850,6 +854,9 @@ int main(int argc, char ** argv) {
   return 0;
 }
 
+/**
+ * Get all submodules or the specified submodule 
+ */
 json_t * submodule_get(struct config_elements * config, const char * submodule) {
   json_t * j_query, * j_result, * j_submodule;
   int res;
@@ -908,7 +915,9 @@ json_t * submodule_get(struct config_elements * config, const char * submodule) 
   }
 }
 
-// Set the db flag enabled to true or false, and init or close the specified submodule if the status has changed
+/**
+ * Set the db flag enabled to true or false, and init or close the specified submodule if the status has changed
+ */
 int submodule_enable(struct config_elements * config, const char * submodule, int enabled) {
   json_t * j_submodule = submodule_get(config, submodule), * j_query;
   int res;
@@ -990,6 +999,10 @@ int submodule_enable(struct config_elements * config, const char * submodule, in
   }
 }
 
+/**
+ * Initializes angharad server
+ * Create all the endpoints
+ */
 int init_angharad(struct config_elements * config) {
   pthread_t thread_scheduler;
   int thread_scheduler_ret = 0, thread_scheduler_detach = 0;
@@ -1087,6 +1100,10 @@ int init_angharad(struct config_elements * config) {
   }
 }
 
+/**
+ * Closes angharad server
+ * Close all the endpoints and send a stop signal to all threads
+ */
 int close_angharad(struct config_elements * config) {
   if (config != NULL && config->instance != NULL && config->url_prefix_angharad) {
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/alert/@submodule_name/@source/@element/@message/");
