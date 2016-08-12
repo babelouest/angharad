@@ -1059,6 +1059,9 @@ int init_angharad(struct config_elements * config) {
       ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/user/@user_name", NULL, NULL, NULL, &callback_angharad_user_remove, (void*)config);
     }
     
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/token/", NULL, NULL, NULL, &callback_angharad_token_list, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/token/", NULL, NULL, NULL, &callback_angharad_token_revoke, (void*)config);
+
     ulfius_add_endpoint_by_val(config->instance, "GET", config->static_files_prefix, "*", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_static_file, (void*)config);
 
     ulfius_add_endpoint_by_val(config->instance, "OPTIONS", NULL, "*", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_options, (void*)config);
@@ -1157,6 +1160,9 @@ int close_angharad(struct config_elements * config) {
       ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/user/@user_name");
       ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/user/@user_name");
     }
+
+    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/token/");
+    ulfius_remove_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/token/");
 
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/auth/");
     ulfius_remove_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/auth/");

@@ -910,6 +910,44 @@ int callback_angharad_user_remove (const struct _u_request * request, struct _u_
   }
 }
 
+int callback_angharad_token_list (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  json_t * j_token_list;
+  if (user_data == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_token_list - Error, user_data is NULL");
+    return U_ERROR_PARAMS;
+  } else {
+    j_token_list = token_get_list((struct config_elements *)user_data);
+    if (j_token_list == NULL || json_integer_value(json_object_get(j_token_list, "result")) == A_ERROR) {
+      y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_token_list - Error getting token list, aborting");
+      response->status = 500;
+    } else {
+      response->json_body = json_copy(json_object_get(j_token_list, "tokens"));
+    }
+    json_decref(j_token_list);
+    return U_OK;
+  }
+}
+
+int callback_angharad_token_revoke (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  int res;
+  
+  if (user_data == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_token_revoke - Error, user_data is NULL");
+    return U_ERROR_PARAMS;
+  } else if (request->json_body == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_token_revoke - Error, no json body");
+    return U_ERROR_PARAMS;
+  } else {
+    res = token_revoke((struct config_elements *)user_data, request->json_body);
+    if (res == A_ERROR_NOT_FOUND) {
+      response->status = 404;
+    } else if (res != A_OK) {
+      response->status = 500;
+    }
+    return U_OK;
+  }
+}
+
 int callback_angharad_static_file (const struct _u_request * request, struct _u_response * response, void * user_data) {
   void * buffer = NULL;
   long length;

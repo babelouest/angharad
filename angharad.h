@@ -231,6 +231,9 @@ int user_modify(struct config_elements * config, const char * user_name, json_t 
 int user_delete(struct config_elements * config, const char * user_name);
 json_t * is_user_valid(struct config_elements * config, json_t * j_user, const int update);
 
+json_t * token_get_list(struct config_elements * config);
+int token_revoke(struct config_elements * config, json_t * token);
+
 const char * get_filename_ext(const char *path);
 
 json_t * auth_get(struct config_elements * config, const char * session_id);
@@ -299,6 +302,9 @@ int callback_angharad_default (const struct _u_request * request, struct _u_resp
 int callback_angharad_auth_get (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_auth_check (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_auth_delete (const struct _u_request * request, struct _u_response * response, void * user_data);
+
+int callback_angharad_token_list (const struct _u_request * request, struct _u_response * response, void * user_data);
+int callback_angharad_token_revoke (const struct _u_request * request, struct _u_response * response, void * user_data);
 
 int callback_angharad_auth_function (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_no_auth_function (const struct _u_request * request, struct _u_response * response, void * user_data);

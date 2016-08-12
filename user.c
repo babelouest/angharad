@@ -77,7 +77,7 @@ json_t * user_get(struct config_elements * config, const char * user_name) {
       }
     }
   } else {
-    y_log_message(Y_LOG_LEVEL_ERROR, "user_get - Error allocating resources for j_query");
+    y_log_message(Y_LOG_LEVEL_ERROR, "user_get - Error executing j_query");
     return json_pack("{si}", "result", A_ERROR_MEMORY);
   }
 }
@@ -215,3 +215,55 @@ int user_delete(struct config_elements * config, const char * user_name) {
   }
 }
 
+json_t * token_get_list(struct config_elements * config) {
+  json_t * j_query, * j_result, * j_token;
+  int res;
+  size_t index;
+  
+  j_query = json_pack("{sss[sssss]}", "table", ANGHARAD_TABLE_SESSION, "columns", "ass_session_token AS token", "ass_enabled", "ass_login AS login", "ass_validity AS validity", "ass_lastseen");
+  
+  if (j_query == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "token_get_list - Error allocating resources for j_query");
+    return json_pack("{si}", "result", A_ERROR_MEMORY);
+  }
+  
+  res = h_select(config->conn, j_query, &j_result, NULL);
+  json_decref(j_query);
+  if (res == H_OK) {
+    json_array_foreach(j_result, index, j_token) {
+      json_object_set_new(j_token, "enabled", json_integer_value(json_object_get(j_token, "ass_enabled"))==1?json_true():json_false());
+      json_object_del(j_token, "ass_enabled");
+    }
+    return json_pack("{siso}", "result", A_OK, "tokens", j_result);
+  } else {
+    y_log_message(Y_LOG_LEVEL_ERROR, "token_get_list - Error executing j_query");
+    return json_pack("{si}", "result", A_ERROR_MEMORY);
+  }
+}
+
+int token_revoke(struct config_elements * config, json_t * token) {
+  json_t * j_query;
+  int res;
+  
+  if (token != NULL && json_is_object(token) && json_object_get(token, "token") != NULL && json_is_string(json_object_get(token, "token"))) {
+    j_query = json_pack("{sss{si}s{ss}}", 
+                        "table", 
+                        ANGHARAD_TABLE_SESSION, 
+                        "set",
+                          "ass_enabled",
+                          0,
+                        "where",
+                          "ass_session_token",
+                          json_string_value(json_object_get(token, "token")));
+    if (j_query == NULL) {
+      y_log_message(Y_LOG_LEVEL_ERROR, "token_revoke - Error allocating resources for j_query");
+      return A_ERROR_MEMORY;
+    } else {
+      res = h_update(config->conn, j_query, NULL);
+      json_decref(j_query);
+      return res==H_OK?A_OK:A_ERROR_DB;
+    }
+  } else {
+    return A_ERROR_PARAM;
+  }
+}
