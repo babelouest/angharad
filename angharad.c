@@ -1050,6 +1050,15 @@ int init_angharad(struct config_elements * config) {
     ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/auth", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_auth_check, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/auth", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_auth_delete, (void*)config);
 
+    // Enable user management endpoints only when database authetication is enabled
+    if (config->has_auth_database) {
+      ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/user/", NULL, NULL, NULL, &callback_angharad_user_list, (void*)config);
+      ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/user/@user_name", NULL, NULL, NULL, &callback_angharad_user_get, (void*)config);
+      ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/user/", NULL, NULL, NULL, &callback_angharad_user_add, (void*)config);
+      ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/user/@user_name", NULL, NULL, NULL, &callback_angharad_user_modify, (void*)config);
+      ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/user/@user_name", NULL, NULL, NULL, &callback_angharad_user_remove, (void*)config);
+    }
+    
     ulfius_add_endpoint_by_val(config->instance, "GET", config->static_files_prefix, "*", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_static_file, (void*)config);
 
     ulfius_add_endpoint_by_val(config->instance, "OPTIONS", NULL, "*", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_options, (void*)config);
@@ -1141,6 +1150,14 @@ int close_angharad(struct config_elements * config) {
     ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/profile/@profile_id");
     ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/profile/@profile_id");
     
+    if (config->has_auth_database) {
+      ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/user/");
+      ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/user/@user_name");
+      ulfius_remove_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/user/");
+      ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/user/@user_name");
+      ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/user/@user_name");
+    }
+
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/auth/");
     ulfius_remove_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/auth/");
     ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/auth/");

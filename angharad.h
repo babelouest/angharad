@@ -225,6 +225,12 @@ int profile_add(struct config_elements * config, const char * profile_id, json_t
 int profile_modify(struct config_elements * config, const char * profile_id, json_t * profile_data);
 int profile_delete(struct config_elements * config, const char * profile_id);
 
+json_t * user_get(struct config_elements * config, const char * user_name);
+int user_add(struct config_elements * config, json_t * j_user);
+int user_modify(struct config_elements * config, const char * user_name, json_t * j_user);
+int user_delete(struct config_elements * config, const char * user_name);
+json_t * is_user_valid(struct config_elements * config, json_t * j_user, const int update);
+
 const char * get_filename_ext(const char *path);
 
 json_t * auth_get(struct config_elements * config, const char * session_id);
@@ -275,6 +281,12 @@ int callback_carleon_profile_get (const struct _u_request * request, struct _u_r
 int callback_carleon_profile_add (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_carleon_profile_set (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_carleon_profile_remove (const struct _u_request * request, struct _u_response * response, void * user_data);
+
+int callback_angharad_user_list (const struct _u_request * request, struct _u_response * response, void * user_data);
+int callback_angharad_user_get (const struct _u_request * request, struct _u_response * response, void * user_data);
+int callback_angharad_user_add (const struct _u_request * request, struct _u_response * response, void * user_data);
+int callback_angharad_user_modify (const struct _u_request * request, struct _u_response * response, void * user_data);
+int callback_angharad_user_remove (const struct _u_request * request, struct _u_response * response, void * user_data);
 
 int callback_angharad_static_file (const struct _u_request * request, struct _u_response * response, void * user_data);
 

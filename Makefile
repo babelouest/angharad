@@ -38,7 +38,7 @@ CARLEON_LOCATION=carleon
 GARETH_LIBS=$(GARETH_LOCATION)/gareth.o $(GARETH_LOCATION)/alert.o $(GARETH_LOCATION)/filter.o $(GARETH_LOCATION)/message.o
 BENOIC_LIBS=$(BENOIC_LOCATION)/benoic.o $(BENOIC_LOCATION)/device.o $(BENOIC_LOCATION)/device-element.o
 CARLEON_LIBS=$(CARLEON_LOCATION)/carleon.o $(CARLEON_LOCATION)/service.o
-ANGHARAD_LIBS=angharad.o condition.o scheduler.o trigger.o script.o profile.o webservice.o authentication.o
+ANGHARAD_LIBS=angharad.o condition.o scheduler.o trigger.o script.o profile.o user.o webservice.o authentication.o
 
 angharad: $(ANGHARAD_LIBS) $(GARETH_LIBS) $(BENOIC_LIBS) $(CARLEON_LIBS)
 	$(CC) -o angharad $(ANGHARAD_LIBS) $(GARETH_LIBS) $(BENOIC_LIBS) $(CARLEON_LIBS) $(LIBS) -lconfig
@@ -60,6 +60,9 @@ script.o: script.c angharad.h
 
 profile.o: profile.c angharad.h
 	$(CC) $(CFLAGS) profile.c
+
+user.o: user.c angharad.h
+	$(CC) $(CFLAGS) user.c
 
 webservice.o: webservice.c angharad.h
 	$(CC) $(CFLAGS) webservice.c

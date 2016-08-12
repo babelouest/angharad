@@ -772,6 +772,144 @@ int callback_carleon_profile_remove (const struct _u_request * request, struct _
   }
 }
 
+int callback_angharad_user_list (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  json_t * j_user;
+  if (user_data == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_user_list - Error, user_data is NULL");
+    return U_ERROR_PARAMS;
+  } else {
+    j_user = user_get((struct config_elements *)user_data, NULL);
+    if (j_user == NULL || json_integer_value(json_object_get(j_user, "result")) == A_ERROR) {
+      y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_user_list - Error getting user list, aborting");
+      response->status = 500;
+    } else {
+      response->json_body = json_copy(json_object_get(j_user, "users"));
+    }
+    json_decref(j_user);
+    return U_OK;
+  }
+}
+
+int callback_angharad_user_get (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  json_t * j_user;
+  if (user_data == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_user_get - Error, user_data is NULL");
+    return U_ERROR_PARAMS;
+  } else {
+    j_user = user_get((struct config_elements *)user_data, u_map_get(request->map_url, "user_name"));
+    if (j_user == NULL || json_integer_value(json_object_get(j_user, "result")) == A_ERROR) {
+      y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_user_get - Error getting user, aborting");
+      response->status = 500;
+    } else if (json_integer_value(json_object_get(j_user, "result")) == A_ERROR_NOT_FOUND) {
+      response->status = 404;
+    } else {
+      response->json_body = json_copy(json_object_get(j_user, "user"));
+    }
+    json_decref(j_user);
+    return U_OK;
+  }
+}
+
+int callback_angharad_user_add (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  json_t * valid;
+  int res;
+  
+  if (user_data == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_user_get - Error, user_data is NULL");
+    return U_ERROR_PARAMS;
+  } else {
+    valid = is_user_valid((struct config_elements *)user_data, request->json_body, 0);
+    if (valid != NULL && json_array_size(valid) == 0) {
+      json_decref(valid);
+      valid = user_get((struct config_elements *)user_data, json_string_value(json_object_get(request->json_body, "login")));
+      if (valid == NULL || json_integer_value(json_object_get(valid, "result")) == A_ERROR) {
+        response->status = 500;
+      } else if (json_integer_value(json_object_get(valid, "result")) == A_ERROR_NOT_FOUND) {
+        json_decref(valid);
+        res = user_add((struct config_elements *)user_data, request->json_body);
+        if (res == A_ERROR) {
+          response->status = 500;
+        }
+      } else {
+        json_decref(valid);
+        response->status = 400;
+        response->json_body = json_pack("{ss}", "error", "login already exist");
+      }
+    } else if (valid != NULL) {
+      response->json_body = valid;
+      response->status = 400;
+    } else {
+      response->status = 500;
+    }
+    return U_OK;
+  }
+}
+
+int callback_angharad_user_modify (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  json_t * valid, * user;
+  int res;
+  
+  if (user_data == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_user_modify - Error, user_data is NULL");
+    return U_ERROR_PARAMS;
+  } else {
+    user = user_get((struct config_elements *)user_data, u_map_get(request->map_url, "user_name"));
+    if (user == NULL) {
+    } else if (json_integer_value(json_object_get(user, "result")) == A_ERROR_NOT_FOUND) {
+      response->status = 404;
+    } else if (json_integer_value(json_object_get(user, "result")) == A_OK) {
+      valid = is_user_valid((struct config_elements *)user_data, request->json_body, 1);
+      if (valid != NULL && json_array_size(valid) == 0) {
+        json_decref(valid);
+        res = user_modify((struct config_elements *)user_data, u_map_get(request->map_url, "user_name"), request->json_body);
+        if (res == A_OK) {
+          response->status = 200;
+        } else {
+          response->status = 500;
+        }
+      } else if (valid != NULL) {
+        response->json_body = valid;
+        response->status = 400;
+      } else {
+        response->status = 500;
+      }
+    } else {
+      response->status = 500;
+    }
+    json_decref(user);
+    return U_OK;
+  }
+}
+
+int callback_angharad_user_remove (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  int res;
+  json_t * user;
+  
+  if (user_data == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_user_remove - Error, user_data is NULL");
+    return U_ERROR_PARAMS;
+  } else {
+    user = user_get((struct config_elements *)user_data, u_map_get(request->map_url, "user_name"));
+    if (user == NULL) {
+    } else if (json_integer_value(json_object_get(user, "result")) == A_ERROR_NOT_FOUND) {
+      response->status = 404;
+    } else if (json_integer_value(json_object_get(user, "result")) == A_OK) {
+      res = user_delete((struct config_elements *)user_data, u_map_get(request->map_url, "user_name"));
+      if (res == A_OK) {
+        response->status = 200;
+      } else if (res == A_ERROR_NOT_FOUND) {
+        response->status = 404;
+      } else {
+        response->status = 500;
+      }
+    } else {
+      response->status = 500;
+    }
+    json_decref(user);
+    return U_OK;
+  }
+}
+
 int callback_angharad_static_file (const struct _u_request * request, struct _u_response * response, void * user_data) {
   void * buffer = NULL;
   long length;
