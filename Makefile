@@ -40,6 +40,10 @@ BENOIC_LIBS=$(BENOIC_LOCATION)/benoic.o $(BENOIC_LOCATION)/device.o $(BENOIC_LOC
 CARLEON_LIBS=$(CARLEON_LOCATION)/carleon.o $(CARLEON_LOCATION)/service.o
 ANGHARAD_LIBS=angharad.o condition.o scheduler.o trigger.o script.o profile.o user.o webservice.o authentication.o
 
+all: release
+	cd $(BENOIC_LOCATION)/device-modules && $(MAKE)
+	cd $(CARLEON_LOCATION)/service-modules && $(MAKE)
+
 angharad: $(ANGHARAD_LIBS) $(GARETH_LIBS) $(BENOIC_LIBS) $(CARLEON_LIBS)
 	$(CC) -o angharad $(ANGHARAD_LIBS) $(GARETH_LIBS) $(BENOIC_LIBS) $(CARLEON_LIBS) $(LIBS) -lconfig
 
@@ -70,23 +74,19 @@ webservice.o: webservice.c angharad.h
 authentication.o: authentication.c angharad.h
 	$(CC) $(CFLAGS) authentication.c
 
-benoic-device-modules:
-	cd $(BENOIC_LOCATION)/device-modules && $(MAKE) $(DEBUGFLAG)
-
-carleon-service-modules:
-	cd $(CARLEON_LOCATION)/service-modules && $(MAKE) $(DEBUGFLAG)
-
-all: release benoic-device-modules carleon-service-modules
-
 debug: ADDITIONALFLAGS=-DDEBUG -g -O0
 
 debug: DEBUGFLAG=debug
 
-debug: angharad unit-tests benoic-device-modules carleon-service-modules
+debug: angharad unit-tests
+	cd $(BENOIC_LOCATION)/device-modules && $(MAKE) debug
+	cd $(CARLEON_LOCATION)/service-modules && $(MAKE) debug
 
 release: ADDITIONALFLAGS=-O3
 
-release: angharad benoic-device-modules carleon-service-modules
+release: angharad
+	cd $(BENOIC_LOCATION)/device-modules && $(MAKE)
+	cd $(CARLEON_LOCATION)/service-modules && $(MAKE)
 
 clean:
 	rm -f *.o angharad unit-tests valgrind.txt
