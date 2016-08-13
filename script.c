@@ -347,7 +347,7 @@ json_t * is_action_valid(struct config_elements * config, json_t * j_action, con
           * j_command_param, * j_cur_param, * j_cur_element;
   int i_element_type = BENOIC_ELEMENT_TYPE_NONE, found_element;
   struct _carleon_service * cur_service;
-  char * str_param;
+  const char * str_param;
   size_t index;
 
   if (j_result == NULL) {

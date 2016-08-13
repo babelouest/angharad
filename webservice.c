@@ -950,7 +950,7 @@ int callback_angharad_token_revoke (const struct _u_request * request, struct _u
 
 int callback_angharad_static_file (const struct _u_request * request, struct _u_response * response, void * user_data) {
   void * buffer = NULL;
-  long length;
+  size_t length, res;
   FILE * f;
   char * file_requested = request->http_url + strlen(((struct config_elements *)user_data)->static_files_prefix) + 1;
   char * file_path;
@@ -974,7 +974,10 @@ int callback_angharad_static_file (const struct _u_request * request, struct _u_
       fseek (f, 0, SEEK_SET);
       buffer = malloc(length*sizeof(void));
       if (buffer) {
-        fread (buffer, 1, length, f);
+        res = fread (buffer, 1, length, f);
+        if (res != length) {
+          y_log_message(Y_LOG_LEVEL_WARNING, "callback_angharad_static_file - fread warning, reading %ld while expecting %ld", res, length);
+        }
       }
       fclose (f);
     }

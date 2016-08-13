@@ -493,6 +493,9 @@ int scheduler_modify(struct config_elements * config, const char * scheduler_nam
       str_next_time = msprintf("FROM_UNIXTIME(%" JSON_INTEGER_FORMAT ")", json_integer_value(json_object_get(j_scheduler, "next_time")));
     } else if (config->conn->type == HOEL_DB_TYPE_SQLITE) {
       str_next_time = msprintf("%" JSON_INTEGER_FORMAT, json_integer_value(json_object_get(j_scheduler, "next_time")));
+    } else {
+      // Should not happen
+      str_next_time = strdup("");
     }
     j_query = json_pack("{sss{sssisssss{ss}sIsIsi}s{ss}}",
                         "table", ANGHARAD_TABLE_SCHEDULER,
