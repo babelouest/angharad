@@ -231,7 +231,7 @@ int user_modify(struct config_elements * config, const char * user_name, json_t 
 int user_delete(struct config_elements * config, const char * user_name);
 json_t * is_user_valid(struct config_elements * config, json_t * j_user, const int update);
 
-json_t * token_get_list(struct config_elements * config);
+json_t * token_get_list(struct config_elements * config, const char * login, const char * enabled);
 int token_revoke(struct config_elements * config, json_t * token);
 
 const char * get_filename_ext(const char *path);

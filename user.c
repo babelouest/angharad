@@ -95,11 +95,11 @@ json_t * is_user_valid(struct config_elements * config, json_t * j_user, const i
         if (element == NULL || !json_is_string(element) || json_string_length(element) > 128 || json_string_length(element) == 0) {
           json_array_append_new(to_return, json_pack("{ss}", "login", "login is mandatory and must be a string up to 128 characters"));
         }
-      }
-      
-      element = json_object_get(j_user, "password");
-      if (element == NULL || !json_is_string(element) || json_string_length(element) > 128 || json_string_length(element) == 0) {
-        json_array_append_new(to_return, json_pack("{ss}", "password", "password is mandatory and must be a string up to 128 characters"));
+        
+        element = json_object_get(j_user, "password");
+        if (element == NULL || !json_is_string(element) || json_string_length(element) > 128 || json_string_length(element) == 0) {
+          json_array_append_new(to_return, json_pack("{ss}", "password", "password is mandatory and must be a string up to 128 characters"));
+        }
       }
       
       element = json_object_get(j_user, "enabled");
@@ -151,29 +151,30 @@ int user_add(struct config_elements * config, json_t * j_user) {
 int user_modify(struct config_elements * config, const char * user_name, json_t * j_user) {
   json_t * j_query;
   int res;
-  char * escaped_password = h_escape_string(config->conn, json_string_value(json_object_get(j_user, "password"))), 
-       * str_password = escaped_password!=NULL?msprintf("PASSWORD('%s')", escaped_password):NULL;
   
   if (j_user == NULL || user_name == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "user_modify - Error j_user or user_name is NULL");
     return A_ERROR_MEMORY;
   }
   
-  j_query = json_pack("{sss{s{ss}si}s{ss}}",
+  j_query = json_pack("{sss{si}s{ss}}",
                       "table", ANGHARAD_TABLE_USER,
                       "set",
-                        "au_password",
-                          "raw",
-                          str_password,
                         "au_enabled", json_object_get(j_user, "enabled")==json_false()?0:1,
                       "where",
                         "au_login", user_name);
-  free(escaped_password);
-  free(str_password);
   
   if (j_query == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "user_modify - Error Allocating resources for j_query");
     return A_ERROR_MEMORY;
+  }
+  
+  if (json_object_get(j_user, "password") != NULL) {
+    char * escaped_password = h_escape_string(config->conn, json_string_value(json_object_get(j_user, "password"))), 
+         * str_password = escaped_password!=NULL?msprintf("PASSWORD('%s')", escaped_password):NULL;
+    json_object_set_new(json_object_get(j_query, "set"), "au_password", json_pack("{ss}", "raw", str_password));
+    free(escaped_password);
+    free(str_password);
   }
   
   res = h_update(config->conn, j_query, NULL);
@@ -215,12 +216,28 @@ int user_delete(struct config_elements * config, const char * user_name) {
   }
 }
 
-json_t * token_get_list(struct config_elements * config) {
+json_t * token_get_list(struct config_elements * config, const char * login, const char * enabled) {
   json_t * j_query, * j_result, * j_token;
   int res;
   size_t index;
   
-  j_query = json_pack("{sss[sssss]}", "table", ANGHARAD_TABLE_SESSION, "columns", "ass_session_token AS token", "ass_enabled", "ass_login AS login", "ass_validity AS validity", "ass_lastseen");
+  j_query = json_pack("{sss[sssss]}", "table", ANGHARAD_TABLE_SESSION, "columns", "ass_session_token AS token", "ass_enabled", "ass_login AS login", "ass_validity AS validity", "ass_lastseen AS last_seen");
+  
+  if (login != NULL && strcmp(login, "") != 0) {
+    json_object_set_new(j_query, "where", json_pack("{ss}", "ass_login", login));
+  }
+  
+  if (enabled != NULL) {
+    if (json_object_get(j_query, "where") == NULL) {
+      json_object_set_new(j_query, "where", json_object());
+    }
+    
+    if (strcmp("true", enabled) == 0) {
+      json_object_set_new(json_object_get(j_query, "where"), "ass_enabled", json_integer(1));
+    } else {
+      json_object_set_new(json_object_get(j_query, "where"), "ass_enabled", json_integer(0));
+    }
+  }
   
   if (j_query == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "token_get_list - Error allocating resources for j_query");
