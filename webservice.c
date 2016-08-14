@@ -916,7 +916,7 @@ int callback_angharad_token_list (const struct _u_request * request, struct _u_r
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_token_list - Error, user_data is NULL");
     return U_ERROR_PARAMS;
   } else {
-    j_token_list = token_get_list((struct config_elements *)user_data);
+    j_token_list = token_get_list((struct config_elements *)user_data, u_map_get(request->map_url, "login"), u_map_get(request->map_url, "enabled"));
     if (j_token_list == NULL || json_integer_value(json_object_get(j_token_list, "result")) == A_ERROR) {
       y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_token_list - Error getting token list, aborting");
       response->status = 500;
