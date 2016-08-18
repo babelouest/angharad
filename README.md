@@ -188,3 +188,12 @@ yyyy-mm-dd hh:mm:ss - Angharad INFO: Start angharad on port 2473
 ```
 
 Now you can access Angharad API via a third party application like [Sagremor](https://github.com/babelouest/sagremor).
+
+# API Documentation
+
+The full API Documentation can be found in the files `API.md` (except for Gareth who is a loner):
+
+- [Angharad API](API.md)
+- [Benoic API](benoic/API.md)
+- [Carleon API](carleon/API.md)
+- [Gareth API](gareth/README.md)
