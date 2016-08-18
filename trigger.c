@@ -530,7 +530,12 @@ int trigger_add_tag(struct config_elements * config, const char * trigger_name, 
       if (j_tags == NULL) {
         json_object_set_new(json_object_get(j_trigger, "options"), "tags", json_pack("[s]", tag));
       } else if (json_is_array(j_tags)) {
-        json_array_append_new(json_object_get(json_object_get(j_trigger, "options"), "tags"), json_string(tag));
+        if (json_array_size(j_tags) < 128) {
+          json_array_append_new(json_object_get(json_object_get(j_trigger, "options"), "tags"), json_string(tag));
+        } else {
+          json_decref(j_result);
+          return A_ERROR;
+        }
       } else {
         json_decref(j_result);
         return A_ERROR;
