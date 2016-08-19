@@ -69,7 +69,9 @@ And finally, Angharad depends on the following libraries:
 
 ## Benoic modules prerequisites
 
-Benoic implements a ZWave module to control ZWave nodes. It's based on the [OpenZwave library](http://www.openzwave.net/). You must download and install this library before installing benoic zwave device module, version 1.2 or above, preferably a stable version.
+Benoic implements a ZWave module to control ZWave nodes and a [Taulas](https://github.com/babelouest/taulas) module.
+
+The Benoic module is based on the [OpenZwave library](http://www.openzwave.net/). You must download and install this library before installing benoic zwave device module, version 1.2 or above, preferably a stable version.
 
 ## Carleon modules prerequisites
 
@@ -100,7 +102,8 @@ Go to Benoic modules directory, then compile the modules you need. If you don't 
 
 ```shell
 cd benoic/device-modules
-make libdevzwave.so
+make libdevzwave.so # For ZWave device
+make libdevtaulas.so # For Taulas device
 ```
 
 ## Carleon modules compilation
@@ -165,11 +168,7 @@ Specify the database parameters in the `database {}` block, depending on your da
 
 ## Authentication
 
-Currently, 2 types of authentication are supported, database users or LDAP authentication. If you use database authentication, you must add users directly in the database, for example:
-
-```sql
-insert into a_user (au_login, au_password, au_enabled) values ('user_login', PASSWORD('password'), 1);
-```
+Currently, 2 types of authentication are supported, database users or LDAP authentication. If you use database authentication, you can manage users with the dedicated API.
 
 Please note that users and profile are not linked, any authenticated user can use any profile.
 
