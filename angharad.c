@@ -33,7 +33,7 @@
  */
 int build_config_from_args(int argc, char ** argv, struct config_elements * config) {
   int next_option;
-  const char * short_options = "c::p::u::m::l::f::h::b::s";
+  const char * short_options = "c::p::u::v::w::x::m::l::f::h::b::s";
   char * tmp = NULL, * to_free = NULL, * one_log_mode = NULL;
   static const struct option long_options[]= {
     {"config-file", optional_argument,NULL, 'c'},
@@ -1066,7 +1066,7 @@ int init_angharad(struct config_elements * config) {
 
     ulfius_add_endpoint_by_val(config->instance, "OPTIONS", NULL, "*", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_options, (void*)config);
 
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_root_url, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", NULL, "/", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_root_url, (void*)config);
 
     ulfius_set_default_auth_function(config->instance, &callback_angharad_auth_function, (void*)config, NULL);
     
@@ -1168,9 +1168,9 @@ int close_angharad(struct config_elements * config) {
     ulfius_remove_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/auth/");
     ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/auth/");
 
-    ulfius_remove_endpoint_by_val(config->instance, "GET", config->static_files_prefix, "*");
+    ulfius_remove_endpoint_by_val(config->instance, "GET", NULL, "*");
     
-    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/");
+    ulfius_remove_endpoint_by_val(config->instance, "GET", NULL, "/");
 
     if (config->angharad_status == ANGHARAD_STATUS_RUN) {
       config->angharad_status = ANGHARAD_STATUS_STOPPING;
