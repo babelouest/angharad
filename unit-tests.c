@@ -479,6 +479,7 @@ void run_script_tests() {
   }", JSON_DECODE_ANY, NULL);
   
   run_simple_test("POST", SERVER_URL PREFIX_BENOIC "/device/", device_valid, 200, NULL);
+  run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/script/", script_valid, 400, NULL);
   run_simple_test("GET", SERVER_URL PREFIX_BENOIC "/device/dev1/connect", NULL, 200, NULL);
   run_simple_test("POST", SERVER_URL PREFIX_CARLEON "/mock-service/", mock_valid, 200, NULL);
   run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/script/", script_valid, 200, NULL);
@@ -745,6 +746,8 @@ void run_scheduler_tests() {
   }", JSON_DECODE_ANY, NULL);
   
   run_simple_test("POST", SERVER_URL PREFIX_BENOIC "/device/", benoic_device_valid, 200, NULL);
+  run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/script/", script_valid, 400, NULL);
+  run_simple_test("GET", SERVER_URL PREFIX_BENOIC "/device/dev1/connect", NULL, 200, NULL);
   run_simple_test("POST", SERVER_URL PREFIX_CARLEON "/mock-service/", carleon_mock_valid, 200, NULL);
   run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/script/", script_valid, 200, NULL);
   run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/script/", script_valid2, 200, NULL);
@@ -1008,6 +1011,8 @@ void run_trigger_tests() {
   }", JSON_DECODE_ANY, NULL);
   
   run_simple_test("POST", SERVER_URL PREFIX_BENOIC "/device/", benoic_device_valid, 200, NULL);
+  run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/script/", script_valid, 400, NULL);
+  run_simple_test("GET", SERVER_URL PREFIX_BENOIC "/device/dev1/connect", NULL, 200, NULL);
   run_simple_test("POST", SERVER_URL PREFIX_CARLEON "/mock-service/", carleon_mock_valid, 200, NULL);
   run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/script/", script_valid, 200, NULL);
   run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/script/", script_valid2, 200, NULL);
@@ -1415,6 +1420,8 @@ void run_scheduler_trigger_exec_tests() {
   }", JSON_DECODE_ANY, NULL);
   
   run_simple_test("POST", SERVER_URL PREFIX_BENOIC "/device/", benoic_device, 200, NULL);
+  run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/script/", script1, 400, NULL);
+  run_simple_test("GET", SERVER_URL PREFIX_BENOIC "/device/dev1/connect", NULL, 200, NULL);
   run_simple_test("POST", SERVER_URL PREFIX_CARLEON "/mock-service/", carleon_service, 200, NULL);
   run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/script/", script1, 200, NULL);
   run_simple_test("POST", SERVER_URL PREFIX_ANGHARAD "/script/", script2, 200, NULL);
@@ -1472,41 +1479,22 @@ void run_profile_tests() {
     \"description\":\"Second description for profile1\"\
   }", JSON_DECODE_ANY, NULL);
   
-  struct _u_request req_list[] = {
-    {"GET", SERVER_URL PREFIX_ANGHARAD "/profile/", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"PUT", SERVER_URL PREFIX_ANGHARAD "/profile/profile1", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, profile_valid1, NULL, 0, NULL, 0}, // 200
-    {"PUT", SERVER_URL PREFIX_ANGHARAD "/profile/profile2", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, profile_valid2, NULL, 0, NULL, 0}, // 200
-    {"GET", SERVER_URL PREFIX_ANGHARAD "/profile/", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"GET", SERVER_URL PREFIX_ANGHARAD "/profile/profile1", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"GET", SERVER_URL PREFIX_ANGHARAD "/profile/profile2", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"GET", SERVER_URL PREFIX_ANGHARAD "/profile/profile3", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 404
-    {"PUT", SERVER_URL PREFIX_ANGHARAD "/profile/profile1", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, profile_valid3, NULL, 0, NULL, 0}, // 200
-    {"PUT", SERVER_URL PREFIX_ANGHARAD "/profile/profile3", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 400
-    {"GET", SERVER_URL PREFIX_ANGHARAD "/profile/profile3", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 404
-    {"GET", SERVER_URL PREFIX_ANGHARAD "/profile/profile1", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"DELETE", SERVER_URL PREFIX_ANGHARAD "/profile/profile1", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"DELETE", SERVER_URL PREFIX_ANGHARAD "/profile/profile2", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-    {"DELETE", SERVER_URL PREFIX_ANGHARAD "/profile/profile3", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 404
-    {"GET", SERVER_URL PREFIX_ANGHARAD "/profile/profile1", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 404
-    {"GET", SERVER_URL PREFIX_ANGHARAD "/profile/", 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 0}, // 200
-  };
-
-  test_request_status(&req_list[0], 200, NULL);
-  test_request_status(&req_list[1], 200, NULL);
-  test_request_status(&req_list[2], 200, NULL);
-  test_request_status(&req_list[3], 200, NULL);
-  test_request_status(&req_list[4], 200, profile_valid1);
-  test_request_status(&req_list[5], 200, profile_valid2);
-  test_request_status(&req_list[6], 404, NULL);
-  test_request_status(&req_list[7], 200, NULL);
-  test_request_status(&req_list[8], 400, NULL);
-  test_request_status(&req_list[9], 404, NULL);
-  test_request_status(&req_list[10], 200, profile_valid3);
-  test_request_status(&req_list[11], 200, NULL);
-  test_request_status(&req_list[12], 200, NULL);
-  test_request_status(&req_list[13], 404, NULL);
-  test_request_status(&req_list[14], 404, NULL);
-  test_request_status(&req_list[15], 200, NULL);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/profile/", NULL, 200, NULL);
+  run_simple_test("PUT", SERVER_URL PREFIX_ANGHARAD "/profile/profile1", profile_valid1, 200, NULL);
+  run_simple_test("PUT", SERVER_URL PREFIX_ANGHARAD "/profile/profile2", profile_valid2, 200, NULL);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/profile/", NULL, 200, NULL);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/profile/profile1", NULL, 200, profile_valid1);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/profile/profile2", NULL, 200, profile_valid2);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/profile/profile3", NULL, 404, NULL);
+  run_simple_test("PUT", SERVER_URL PREFIX_ANGHARAD "/profile/profile1", profile_valid3, 200, NULL);
+  run_simple_test("PUT", SERVER_URL PREFIX_ANGHARAD "/profile/profile3", NULL, 400, NULL);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/profile/profile3", NULL, 404, NULL);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/profile/profile1", NULL, 200, profile_valid3);
+  run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/profile/profile1", NULL, 200, NULL);
+  run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/profile/profile2", NULL, 200, NULL);
+  run_simple_test("DELETE", SERVER_URL PREFIX_ANGHARAD "/profile/profile3", NULL, 404, NULL);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/profile/profile1", NULL, 404, NULL);
+  run_simple_test("GET", SERVER_URL PREFIX_ANGHARAD "/profile/", NULL, 200, NULL);
   
   json_decref(profile_valid1);
   json_decref(profile_valid2);
