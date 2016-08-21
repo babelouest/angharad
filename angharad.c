@@ -259,7 +259,7 @@ void exit_server(struct config_elements ** config, int exit_value) {
     // Cleaning data
 
     close_benoic((*config)->instance, (*config)->url_prefix_benoic, (*config)->b_config);
-    close_carleon((*config)->instance, (*config)->url_prefix_carleon, (*config)->c_config);
+    close_carleon((*config)->c_config);
     close_angharad((*config));
     h_close_db((*config)->conn);
     h_clean_connection((*config)->conn);
@@ -793,6 +793,8 @@ int main(int argc, char ** argv) {
   config->alert_url = get_alert_url(config);
   config->b_config->alert_url = config->alert_url;
   config->c_config->alert_url = config->alert_url;
+  config->c_config->url_prefix = config->url_prefix_carleon;
+  config->c_config->instance = config->instance;
   
   // Initialize benoic webservice if enabled
   submodule = submodule_get(config, ANGHARAD_SUBMODULE_BENOIC);
@@ -809,7 +811,7 @@ int main(int argc, char ** argv) {
   // Initialize benoic webservice if enabled
   submodule = submodule_get(config, ANGHARAD_SUBMODULE_CARLEON);
   if (submodule != NULL && json_integer_value(json_object_get(submodule, "result")) == A_OK && json_object_get(json_object_get(submodule, "submodule"), "enabled") == json_true()) {
-    res = init_carleon(config->instance, config->url_prefix_carleon, config->c_config);
+    res = init_carleon(config->c_config);
     if (res != C_OK) {
       y_log_message(Y_LOG_LEVEL_ERROR, "Error initializing carleon webservice: %d", res);
       json_decref(submodule);
@@ -937,7 +939,7 @@ int submodule_enable(struct config_elements * config, const char * submodule, in
           }
           return A_OK;
         } else if (0 == nstrcmp(submodule, ANGHARAD_SUBMODULE_CARLEON)) {
-          if (init_carleon(config->instance, config->url_prefix_carleon, config->c_config) != C_OK) {
+          if (init_carleon(config->c_config) != C_OK) {
             y_log_message(Y_LOG_LEVEL_ERROR, "submodule_enable - Error init carleon");
             return A_ERROR;
           }
@@ -970,7 +972,7 @@ int submodule_enable(struct config_elements * config, const char * submodule, in
           }
           return A_OK;
         } else if (0 == nstrcmp(submodule, ANGHARAD_SUBMODULE_CARLEON)) {
-          if (close_carleon(config->instance, config->url_prefix_carleon, config->c_config) != C_OK) {
+          if (close_carleon(config->c_config) != C_OK) {
             y_log_message(Y_LOG_LEVEL_ERROR, "submodule_enable - Error closing carleon");
             return A_ERROR;
           }
