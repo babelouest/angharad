@@ -864,6 +864,7 @@ json_t * submodule_get(struct config_elements * config, const char * submodule) 
   int res;
   size_t index;
   
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (config == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "submodule_get - Error config is NULL");
     return NULL;
@@ -924,6 +925,7 @@ int submodule_enable(struct config_elements * config, const char * submodule, in
   json_t * j_submodule = submodule_get(config, submodule), * j_query;
   int res;
   
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (j_submodule != NULL && json_integer_value(json_object_get(j_submodule, "result")) == A_OK) {
     if (enabled && json_object_get(json_object_get(j_submodule, "submodule"), "enabled") == json_false()) {
       json_decref(j_submodule);
@@ -1009,6 +1011,7 @@ int init_angharad(struct config_elements * config) {
   pthread_t thread_scheduler;
   int thread_scheduler_ret = 0, thread_scheduler_detach = 0;
 
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (config != NULL && config->instance != NULL && config->url_prefix_angharad) {
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/alert/@submodule_name/@source/@element/@message/", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_alert, (void*)config);
     
@@ -1119,6 +1122,7 @@ int init_angharad(struct config_elements * config) {
  * Close all the endpoints and send a stop signal to all threads
  */
 int close_angharad(struct config_elements * config) {
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (config != NULL && config->instance != NULL && config->url_prefix_angharad) {
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/alert/@submodule_name/@source/@element/@message/");
     

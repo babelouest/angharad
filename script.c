@@ -36,6 +36,7 @@ json_t * script_get(struct config_elements * config, const char * script_name) {
   int res;
   size_t index;
   
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   j_query = json_pack("{sss[ssss]}", "table", ANGHARAD_TABLE_SCRIPT, "columns", "asc_name AS name", "asc_description AS description", "asc_actions", "asc_options");
   
   if (j_query == NULL) {
@@ -101,6 +102,7 @@ int script_add(struct config_elements * config, json_t * j_script) {
   int res;
   char * str_actions, * str_options;
   
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (j_script == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "script_add - Error j_script is NULL");
     return A_ERROR_MEMORY;
@@ -141,6 +143,7 @@ int script_modify(struct config_elements * config, const char * script_name, jso
   int res, res_cur_script;
   char * str_actions, * str_options;
   
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (j_script == NULL || script_name == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "script_modify - Error j_script or script_name is NULL");
     return A_ERROR_MEMORY;
@@ -191,6 +194,7 @@ int script_delete(struct config_elements * config, const char * script_name) {
   json_t * j_query, * cur_script;
   int res, res_cur_script;
   
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (script_name == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "script_modify - Error script_name is NULL");
     return A_ERROR_MEMORY;
@@ -241,6 +245,7 @@ json_t * is_script_valid(struct config_elements * config, json_t * j_script, con
   json_t * j_result = json_array(), * j_element, * j_actions_valid, * j_options_valid;
   size_t index;
   
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (j_result == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "is_script_valid - Error allocating resources for j_result");
     return NULL;
@@ -301,6 +306,7 @@ json_t * is_actions_valid(struct config_elements * config, json_t * j_action_lis
   json_t * j_result = json_array(), * j_action, * is_valid;
   size_t index;
   
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (j_result == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "is_actions_valid - Error allocating resources for j_result");
     return NULL;
@@ -350,6 +356,7 @@ json_t * is_action_valid(struct config_elements * config, json_t * j_action, con
   const char * str_param;
   size_t index;
 
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (j_result == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "is_action_valid - Error allocating resources for j_result");
     return NULL;
@@ -501,6 +508,7 @@ int script_add_tag(struct config_elements * config, const char * script_name, co
   json_t * j_result = script_get(config, script_name), * j_script, * j_tags;
   int res;
   
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (j_result == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "script_add_tag - Error getting script");
     return A_ERROR;
@@ -539,6 +547,7 @@ int script_remove_tag(struct config_elements * config, const char * script_name,
   json_t * j_result = script_get(config, script_name), * j_script, * j_tags;
   int i, res;
   
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (j_result == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "script_remove_tag - Error getting script");
     return A_ERROR;
@@ -581,6 +590,7 @@ int script_run(struct config_elements * config, const char * script_name) {
   char * str_message_text;
   size_t index;
   
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (config == NULL || script_name == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "script_run - Error input parameters");
     res = A_ERROR_PARAM;
@@ -647,6 +657,7 @@ int action_run(struct config_elements * config, json_t * j_action) {
   struct _carleon_service * cur_service = NULL;
   char * str_heater_mode;
   
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   is_valid = is_action_valid(config, j_action, 0);
   if (is_valid != NULL && json_is_array(is_valid) && json_array_size(is_valid) > 0) {
     y_log_message(Y_LOG_LEVEL_ERROR, "error in action is_valid");

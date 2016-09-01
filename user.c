@@ -33,6 +33,7 @@ json_t * user_get(struct config_elements * config, const char * user_name) {
   int res;
   size_t index;
   
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   j_query = json_pack("{sss[ss]}", "table", ANGHARAD_TABLE_USER, "columns", "au_login AS login", "au_enabled");
   
   if (j_query == NULL) {
@@ -84,6 +85,8 @@ json_t * user_get(struct config_elements * config, const char * user_name) {
 
 json_t * is_user_valid(struct config_elements * config, json_t * j_user, const int update) {
   json_t * to_return = json_array(), * element;
+  
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (to_return == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "is_user_valid - Error allocating resources for to_return");
   } else {
@@ -117,6 +120,7 @@ int user_add(struct config_elements * config, json_t * j_user) {
   char * escaped_password = h_escape_string(config->conn, json_string_value(json_object_get(j_user, "password"))), 
        * str_password = escaped_password!=NULL?msprintf("PASSWORD('%s')", escaped_password):NULL;
   
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (j_user == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "user_add - Error j_user is NULL");
     return A_ERROR_MEMORY;
@@ -152,6 +156,7 @@ int user_modify(struct config_elements * config, const char * user_name, json_t 
   json_t * j_query;
   int res;
   
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (j_user == NULL || user_name == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "user_modify - Error j_user or user_name is NULL");
     return A_ERROR_MEMORY;
@@ -191,6 +196,7 @@ int user_delete(struct config_elements * config, const char * user_name) {
   json_t * j_query;
   int res;
   
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_name == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "user_delete - Error user_name is NULL");
     return A_ERROR_MEMORY;
@@ -221,6 +227,7 @@ json_t * token_get_list(struct config_elements * config, const char * login, con
   int res;
   size_t index;
   
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   j_query = json_pack("{sss[sssss]}", "table", ANGHARAD_TABLE_SESSION, "columns", "ass_session_token AS token", "ass_enabled", "ass_login AS login", "ass_validity AS validity", "ass_lastseen AS last_seen");
   
   if (login != NULL && strcmp(login, "") != 0) {
@@ -262,6 +269,7 @@ int token_revoke(struct config_elements * config, json_t * token) {
   json_t * j_query;
   int res;
   
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (token != NULL && json_is_object(token) && json_object_get(token, "token") != NULL && json_is_string(json_object_get(token, "token"))) {
     j_query = json_pack("{sss{si}s{ss}}", 
                         "table", 

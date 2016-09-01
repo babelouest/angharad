@@ -41,7 +41,7 @@ int alert_received(struct config_elements * config, const char * submodule_name,
   char * str_message_text;
   json_t * j_message;
 
-  
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   j_query = json_pack("{sss[s]s{sissssss}}",
                       "table",
                       ANGHARAD_TABLE_TRIGGER,
@@ -141,6 +141,7 @@ json_t * trigger_get(struct config_elements * config, const char * trigger_name)
   int res;
   size_t index;
   
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   j_query = json_pack("{sss[ssssssssss]}",
                         "table",
                           ANGHARAD_TABLE_TRIGGER,
@@ -239,7 +240,8 @@ json_t * trigger_get(struct config_elements * config, const char * trigger_name)
  * Enable or disable a trigger
  */
 int trigger_enable(struct config_elements * config, json_t * j_trigger, int enabled) {
-	if (j_trigger != NULL) {
+	y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
+  if (j_trigger != NULL) {
 		json_object_set(j_trigger, "enabled", enabled?json_true():json_false());
 		return trigger_modify(config, json_string_value(json_object_get(j_trigger, "name")), j_trigger);
 	} else {
@@ -255,6 +257,7 @@ int trigger_add(struct config_elements * config, json_t * j_trigger) {
   int res;
   char * str_options, * str_conditions;
   
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (j_trigger == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "trigger_add - Error j_trigger is NULL");
     return A_ERROR_PARAM;
@@ -308,6 +311,7 @@ json_t * is_trigger_valid(struct config_elements * config, json_t * j_trigger, c
   json_t * j_result = json_array(), * j_element, * j_options_valid, * j_conditions_valid, * j_scripts_valid;
   size_t index;
   
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (j_result == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "is_trigger_valid - Error allocating resources for j_result");
     return NULL;
@@ -413,6 +417,7 @@ int trigger_modify(struct config_elements * config, const char * trigger_name, j
   int res, res_cur_trigger;
   char * str_options, * str_conditions;
   
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (j_trigger == NULL || trigger_name == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "trigger_modify - Error j_trigger or trigger_name is NULL");
     return A_ERROR_PARAM;
@@ -476,6 +481,7 @@ int trigger_delete(struct config_elements * config, const char * trigger_name) {
   json_t * j_query, * cur_trigger;
   int res, res_cur_trigger;
   
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (trigger_name == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "trigger_modify - Error trigger_name is NULL");
     return A_ERROR_PARAM;
@@ -517,6 +523,7 @@ int trigger_add_tag(struct config_elements * config, const char * trigger_name, 
   json_t * j_result = trigger_get(config, trigger_name), * j_trigger, * j_tags;
   int res;
   
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (j_result == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "trigger_add_tag - Error getting trigger");
     return A_ERROR;
@@ -557,6 +564,7 @@ int trigger_remove_tag(struct config_elements * config, const char * trigger_nam
   json_t * j_result = trigger_get(config, trigger_name), * j_trigger, * j_tags;
   int i, res;
   
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (j_result == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "trigger_remove_tag - Error getting trigger");
     return A_ERROR;
@@ -601,6 +609,7 @@ json_t * trigger_get_script_list(struct config_elements * config, const char * t
   json_t * j_result, * j_trigger;
   size_t index;
   
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   res = h_query_select_json(config->conn, query, &j_result);
   free(escaped);
   free(query);
@@ -630,6 +639,7 @@ int trigger_set_script_list(struct config_elements * config, const char * trigge
   size_t index;
   char * t_escaped = h_escape_string(config->conn, trigger_name), * t_clause = msprintf("(SELECT at_id FROM a_trigger WHERE at_name = '%s')", t_escaped), * tmp = msprintf("= %s", t_clause), * sc_escaped, * sc_clause;
   
+  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   j_query = json_pack("{sss{s{ssss}}}",
                       "table",
                         ANGHARAD_TABLE_TRIGGER_SCRIPT,
