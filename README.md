@@ -76,7 +76,7 @@ The Benoic module is based on the [OpenZwave library](http://www.openzwave.net/)
 ## Carleon modules prerequisites
 
 Carleon modules available are the following:
-- Motion control, to view pictures and real-time streams of a motion application, depends on [MagickCore](http://www.imagemagick.org/script/magick-core.php) library (`apt-get install libmagickcore-dev`)
+- Motion control, to view pictures and real-time streams of a motion application
 - MPD Control, for basic control of a MPD instance: volume, play/pause/stop and playlist loading, depends on [libmpdclient](https://www.musicpd.org/libs/libmpdclient/) (`apt-get install libmpdclient-dev`)
 
 ## Other modules
