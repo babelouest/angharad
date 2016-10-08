@@ -5,7 +5,7 @@ House automation system API server
 ![example snapshot](https://github.com/babelouest/sagremor/raw/master/snapshots/dashboard-filled.png)
 Central program and orchestrator of the following submodules:
 
-- [Benoic](https://github.com/babelouest/benoic): Command house automation devices as lights, heaters, sensors, switches, currently ZWave devices are supported
+- [Benoic](https://github.com/babelouest/benoic): Command house automation devices as lights, heaters, sensors, switches. Currently [ZWave](http://www.z-wave.com/) and [Taulas](https://github.com/babelouest/taulas) devices are supported
 - [Carleon](https://github.com/babelouest/carleon): Command house automation side services (music, camera, etc)
 - [Gareth](https://github.com/babelouest/gareth): Logs and messenger service
 
@@ -78,10 +78,7 @@ The Benoic module is based on the [OpenZwave library](http://www.openzwave.net/)
 Carleon modules available are the following:
 - Motion control, to view pictures and real-time streams of a motion application
 - MPD Control, for basic control of a MPD instance: volume, play/pause/stop and playlist loading, depends on [libmpdclient](https://www.musicpd.org/libs/libmpdclient/) (`apt-get install libmpdclient-dev`)
-
-## Other modules
-
-Other modules are in the roadmap, such as [Taulas](https://github.com/babelouest/taulas) devices control for benoic, [Liquidsoap](http://savonet.sourceforge.net/) control, or an open weather api client for Carleon.
+- Liquidsoap Control, for basic control of a [liquidsoap](http://liquidsoap.fm/) based webradio: play/stop/next and view the 10 last played songs
 
 # Installation
 
@@ -96,25 +93,7 @@ git submodule update --init
 make
 ```
 
-## Benoic modules compilation
-
-Go to Benoic modules directory, then compile the modules you need. If you don't need/have a zwave dongle, you can skip this part.
-
-```shell
-cd benoic/device-modules
-make libdevzwave.so # For ZWave device
-make libdevtaulas.so # For Taulas device
-```
-
-## Carleon modules compilation
-
-Go to Carleon modules directory, then compile the modules you need.
-
-```shell
-cd carleon/service-modules/
-make libservicemotion.so # For Motion service
-make libservicempd.so # For MPD service
-```
+This will compile angharad program, and all device-modules for Benoic and services for Carleon.
 
 ## Full system installation
 
@@ -123,6 +102,35 @@ Go back to angharad source folder, then as root, run `make install`:
 ```shell
 cd angharad
 sudo make install
+```
+
+## Benoic modules
+
+Benoic modules are located in the folder `benoic/device-modules`. If you want to adapt or change the modules for your needs, you can manually compile them.
+
+The module named `device-mock.c` is a mock device that is used to test the behaviour of a module with benoic and angharad systems. A mock device doesn't control any real hardware, but simulates the behaviour of a device. You can use it to help you write your own device module.
+
+```shell
+cd benoic/device-modules
+make libdevzwave.so # For ZWave device
+make libdevtaulas.so # For Taulas device
+make libdevmock.so # For mock device
+sudo make install # to install compiled devices in $PREFIX/lib/angharad/benoic directory
+```
+
+## Carleon modules
+
+Carleon service are located in the folder `carleon/service-modules/`.
+
+The service named `service-mock.c` is a mock service that is used to test the behaviour of a service with carleon and angharad systems. A mock service doesn't control any real service, but simulates one. You can use it to help you write your own service.
+
+```shell
+cd carleon/service-modules/
+make libservicemotion.so # For Motion service
+make libservicempd.so # For MPD service
+make libserviceliquidsoap.so # For MPD service
+make libservicemock.so # For mock service
+sudo make install # to install compiled devices in $PREFIX/lib/angharad/carleon directory
 ```
 
 ## Database installation
@@ -160,7 +168,7 @@ cp angharad.conf.sample /usr/local/etc/angharad.conf
 
 Beware that the static web server is not secured with SSL connection, so don't use it outside a trusted network. i.e., don't forward ports directly outside your network.
 
-If you want to access angharad in a secure connection, you can use apache `mod_proxy` for example, and embed angharad access in it.
+If you want to access angharad in a secure connection, you can use apache `mod_proxy` and an https instance for example, and embed angharad access in it.
 
 ## Database
 
@@ -193,6 +201,6 @@ Now you can access Angharad API via a third party application like [Sagremor](ht
 The full API Documentation can be found in the files `API.md` (except for Gareth who is a loner):
 
 - [Angharad API](API.md)
-- [Benoic API](benoic/API.md)
-- [Carleon API](carleon/API.md)
-- [Gareth API](gareth/README.md)
+- [Benoic API](https://github.com/babelouest/benoic/blob/master/API.md)
+- [Carleon API](https://github.com/babelouest/carleon/blob/master/API.md)
+- [Gareth API](https://github.com/babelouest/gareth)
