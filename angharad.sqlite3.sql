@@ -67,12 +67,14 @@ CREATE TABLE `b_monitor` (
 );
 
 CREATE TABLE `c_service` (
-  `cs_name` TEXT PRIMARY KEY,
+  `cs_id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `cs_name` TEXT,
   `cs_enabled` INTEGER DEFAULT 0,
   `cs_description` TEXT
 );
 
 CREATE TABLE `c_element` (
+  `ce_id` INTEGER PRIMARY KEY AUTOINCREMENT,
   `cs_name` TEXT,
   `ce_name` TEXT,
   `ce_tag` TEXT
@@ -132,7 +134,7 @@ CREATE TABLE `g_filter_clause` (
 CREATE INDEX `i_filter_clause` ON `g_filter_clause`(`fc_id`);
 
 CREATE TABLE `g_filter_alert` (
-  `f_id` INTEGER,
+  `f_id` INTEGER PRIMARY KEY AUTOINCREMENT,
   `ah_name` TEXT NULL,
   `as_name` TEXT NULL,
   FOREIGN KEY(f_id) REFERENCES g_filter(f_id),
@@ -197,6 +199,7 @@ CREATE TABLE `a_trigger` (
 );
 
 CREATE TABLE `a_scheduler_script` (
+  `ass_id` INTEGER PRIMARY KEY AUTOINCREMENT,
   `ash_id` INTEGER,
   `asc_id` INTEGER,
   `ass_enabled` INTEGER DEFAULT 1,
@@ -205,6 +208,7 @@ CREATE TABLE `a_scheduler_script` (
 );
 
 CREATE TABLE `a_trigger_script` (
+  `ats_id` INTEGER PRIMARY KEY AUTOINCREMENT,
   `at_id` INTEGER,
   `asc_id` INTEGER,
   `ats_enabled` INTEGER DEFAULT 1,
@@ -222,7 +226,8 @@ CREATE TABLE `a_session` (
 CREATE INDEX `session_uuid_idx` ON `a_session` (`ass_session_token`);
 
 CREATE TABLE `a_user` (
-  `au_login` TEXT PRIMARY KEY NOT NULL,
+  `au_id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `au_login` TEXT NOT NULL,
   `au_password` TEXT NOT NULL,
   `au_enabled` INTEGER DEFAULT 1
 );

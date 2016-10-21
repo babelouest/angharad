@@ -79,6 +79,7 @@ CREATE TABLE `c_service` (
 );
 
 CREATE TABLE `c_element` (
+  `ce_id` INT(11) PRIMARY KEY AUTO_INCREMENT,
   `cs_name` VARCHAR(64),
   `ce_name` VARCHAR(64),
   `ce_tag` blob,
@@ -86,26 +87,24 @@ CREATE TABLE `c_element` (
 );
 
 CREATE TABLE `g_alert_http` (
-  `ah_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `ah_id` INT(11) PRIMARY KEY AUTO_INCREMENT,
   `ah_name` VARCHAR(64) NOT NULL UNIQUE,
   `ah_method` VARCHAR(16),
   `ah_url` VARCHAR(128) NOT NULL,
-  `ah_body` VARCHAR(512),
-  PRIMARY KEY (`ah_id`)
+  `ah_body` VARCHAR(512)
 );
 
 CREATE TABLE `g_alert_http_header` (
-  `ahh_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `ahh_id` INT(11) PRIMARY KEY AUTO_INCREMENT,
   `ah_id` INT(11) NOT NULL,
   `ahh_key` VARCHAR(64) NOT NULL,
   `ahh_value` VARCHAR(128) DEFAULT NULL,
-  PRIMARY KEY (`ahh_id`),
   KEY `ah_id` (`ah_id`),
   CONSTRAINT `alert_http_header_ibfk_1` FOREIGN KEY (`ah_id`) REFERENCES `g_alert_http` (`ah_id`) ON DELETE CASCADE
 );
 
 CREATE TABLE `g_alert_smtp` (
-  `as_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `as_id` INT(11) PRIMARY KEY AUTO_INCREMENT,
   `as_name` VARCHAR(64) NOT NULL UNIQUE,
   `as_host` VARCHAR(128) NOT NULL,
   `as_port` INT(5) DEFAULT 0 NOT NULL,
@@ -118,29 +117,26 @@ CREATE TABLE `g_alert_smtp` (
   `as_cc` VARCHAR(128) DEFAULT NULL,
   `as_bcc` VARCHAR(128) DEFAULT NULL,
   `as_subject` VARCHAR(128) NOT NULL,
-  `as_body` VARCHAR(512) NOT NULL,
-  PRIMARY KEY (`as_id`)
+  `as_body` VARCHAR(512) NOT NULL
 );
 
 CREATE TABLE `g_filter` (
-  `f_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `f_id` INT(11) PRIMARY KEY AUTO_INCREMENT,
   `f_name` VARCHAR(64) NOT NULL UNIQUE,
-  `f_description` VARCHAR(128),
-  PRIMARY KEY (`f_id`)
+  `f_description` VARCHAR(128)
 );
 
 CREATE TABLE `g_filter_clause` (
-  `fc_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `fc_id` INT(11) PRIMARY KEY AUTO_INCREMENT,
   `f_id` INT(11) NOT NULL,
   `fc_element` INT(2) NOT NULL,
   `fc_operator` INT(1) DEFAULT 0,
   `fc_value` VARCHAR(128),
-  PRIMARY KEY (`fc_id`),
   CONSTRAINT `filter_condition_ibfk_1` FOREIGN KEY (`f_id`) REFERENCES `g_filter` (`f_id`) ON DELETE CASCADE
 );
 
 CREATE TABLE `g_filter_alert` (
-  `f_id` INT(11) NOT NULL,
+  `f_id` INT(11) PRIMARY KEY AUTO_INCREMENT,
   `ah_name` VARCHAR(64) NULL,
   `as_name` VARCHAR(64) NULL,
   CONSTRAINT `filter_alert_ibfk_1` FOREIGN KEY (`f_id`) REFERENCES `g_filter` (`f_id`) ON DELETE CASCADE,
@@ -149,16 +145,16 @@ CREATE TABLE `g_filter_alert` (
 );
 
 CREATE TABLE `g_message` (
-  `m_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `m_id` INT(11) PRIMARY KEY AUTO_INCREMENT,
   `m_date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `m_priority` INT(11) NOT NULL,
   `m_source` VARCHAR(64) NOT NULL,
   `m_text` VARCHAR(256) NOT NULL,
-  `m_tags` VARCHAR(576),
-  PRIMARY KEY (`m_id`)
+  `m_tags` VARCHAR(576)
 );
 
 CREATE TABLE `a_submodule` (
+  `as_id` INT(11) PRIMARY KEY AUTO_INCREMENT,
   `as_name` VARCHAR(64) NOT NULL UNIQUE,
   `as_description` VARCHAR(128),
   `as_enabled` TINYINT(1) default 1
@@ -168,16 +164,15 @@ INSERT INTO `a_submodule` (`as_name`, `as_description`, `as_enabled`) VALUES ('c
 INSERT INTO `a_submodule` (`as_name`, `as_description`, `as_enabled`) VALUES ('gareth', 'Messenger service', 1);
 
 CREATE TABLE `a_script` (
-  `asc_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `asc_id` INT(11) PRIMARY KEY AUTO_INCREMENT,
   `asc_name` VARCHAR(64) NOT NULL UNIQUE,
   `asc_description` VARCHAR(128),
   `asc_actions` BLOB,
-  `asc_options` BLOB,
-  PRIMARY KEY (`asc_id`)
+  `asc_options` BLOB
 );
 
 CREATE TABLE `a_scheduler` (
-  `ash_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `ash_id` INT(11) PRIMARY KEY AUTO_INCREMENT,
   `ash_name` VARCHAR(64) NOT NULL UNIQUE,
   `ash_description` VARCHAR(128),
   `ash_enabled` TINYINT(1) DEFAULT 1,
@@ -186,12 +181,11 @@ CREATE TABLE `a_scheduler` (
   `ash_next_time` TIMESTAMP,
   `ash_repeat` TINYINT(1) DEFAULT -1, -- -1: None, 0: minute, 1: hours, 2: days, 3: day of week, 4: month, 5: year
   `ash_repeat_value` INT(11),
-  `ash_remove_after` INT(11) DEFAULT 0,
-  PRIMARY KEY (`ash_id`)
+  `ash_remove_after` INT(11) DEFAULT 0
 );
 
 CREATE TABLE `a_trigger` (
-  `at_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `at_id` INT(11) PRIMARY KEY AUTO_INCREMENT,
   `at_name` VARCHAR(64) NOT NULL UNIQUE,
   `at_description` VARCHAR(128),
   `at_enabled` TINYINT(1) DEFAULT 1,
@@ -201,11 +195,11 @@ CREATE TABLE `a_trigger` (
   `at_source` VARCHAR(64) NOT NULL,
   `at_element` VARCHAR(64) NOT NULL,
   `at_message` VARCHAR(128),
-  `at_message_match` TINYINT(1) DEFAULT 0, -- 0 none, 1 equal, 2 different, 3 contains, 4 not contains, 5 empty, 6 not empty
-  PRIMARY KEY (`at_id`)
+  `at_message_match` TINYINT(1) DEFAULT 0 -- 0 none, 1 equal, 2 different, 3 contains, 4 not contains, 5 empty, 6 not empty
 );
 
 CREATE TABLE `a_scheduler_script` (
+  `ass_id` INT(11) PRIMARY KEY AUTO_INCREMENT,
   `ash_id` INT(11),
   `asc_id` INT(11),
   `ass_enabled` TINYINT(1) DEFAULT 1,
@@ -214,6 +208,7 @@ CREATE TABLE `a_scheduler_script` (
 );
 
 CREATE TABLE `a_trigger_script` (
+  `ats_id` INT(11) PRIMARY KEY AUTO_INCREMENT,
   `at_id` INT(11),
   `asc_id` INT(11),
   `ats_enabled` TINYINT(1) DEFAULT 1,
@@ -222,6 +217,7 @@ CREATE TABLE `a_trigger_script` (
 );
 
 CREATE TABLE `a_session` (
+  `ass_id` INT(11) PRIMARY KEY AUTO_INCREMENT,
   `ass_session_token` VARCHAR(128) NOT NULL UNIQUE,
   `ass_enabled` TINYINT(1) DEFAULT 1,
   `ass_login` VARCHAR(64),
@@ -231,10 +227,10 @@ CREATE TABLE `a_session` (
 CREATE INDEX `session_uuid_idx` ON `a_session` (`ass_session_token`);
 
 CREATE TABLE `a_user` (
+  `au_id` INT(11) PRIMARY KEY AUTO_INCREMENT,
   `au_login` VARCHAR(128) NOT NULL UNIQUE,
   `au_password` VARCHAR(128) NOT NULL,
-  `au_enabled` TINYINT(1) DEFAULT 1,
-  PRIMARY KEY (`au_login`)
+  `au_enabled` TINYINT(1) DEFAULT 1
 );
 
 CREATE TABLE `a_profile` (
