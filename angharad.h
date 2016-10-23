@@ -98,7 +98,7 @@
 #define ANGHARAD_TABLE_SCHEDULER_SCRIPT "a_scheduler_script"
 #define ANGHARAD_TABLE_TRIGGER_SCRIPT   "a_trigger_script"
 #define ANGHARAD_TABLE_USER             "a_user"
-#define ANGHARAD_TABLE_PROFILE 			    "a_profile"
+#define ANGHARAD_TABLE_PROFILE          "a_profile"
 
 #define ANGHARAD_AUTH_TYPE_NONE     0
 #define ANGHARAD_AUTH_TYPE_DATABASE 1

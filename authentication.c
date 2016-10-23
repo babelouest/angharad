@@ -60,8 +60,8 @@ json_t * auth_get(struct config_elements * config, const char * session_id) {
                         "table",
                         ANGHARAD_TABLE_SESSION,
                         "columns",
-                          "UNIX_TIMESTAMP(ass_validity) AS validity",
-                          "UNIX_TIMESTAMP(ass_lastseen) AS lastseen",
+                          config->conn->type==HOEL_DB_TYPE_MARIADB?"UNIX_TIMESTAMP(ass_validity) AS validity":"ass_validity AS validity",
+                          config->conn->type==HOEL_DB_TYPE_MARIADB?"UNIX_TIMESTAMP(ass_lastseen) AS lastseen":"ass_validity AS validity",
                           "ass_login AS login",
                         "where",
                           "ass_session_token",
@@ -72,7 +72,7 @@ json_t * auth_get(struct config_elements * config, const char * session_id) {
                             "operator",
                             "raw",
                             "value",
-                            ">= NOW()");
+                            config->conn->type==HOEL_DB_TYPE_MARIADB?">= NOW()":">= strftime('%s','now')");
     res = h_select(config->conn, j_query, &j_result, NULL);
     json_decref(j_query);
   } else {
@@ -196,7 +196,7 @@ int auth_update_last_seen(struct config_elements * config, const char * session_
                         "set", 
                           "ass_lastseen",
                             "raw",
-                            "NOW()",
+                            config->conn->type==HOEL_DB_TYPE_MARIADB?"NOW()":"strftime('%s','now')",
                           "ass_validity",
                             "raw",
                             "ass_validity", // This is to avoid mysql changing the value
@@ -248,7 +248,7 @@ json_t * auth_generate_new_token(struct config_elements * config, const char * l
   
   uuid_generate_random(uuid);
   uuid_unparse_lower(uuid, uuid_str);
-  str_validity = msprintf("FROM_UNIXTIME(%d)", validity);
+  str_validity = msprintf(config->conn->type==HOEL_DB_TYPE_MARIADB?"FROM_UNIXTIME(%d)":"%d", validity);
   
   j_query = json_pack("{sss[{sssos{ss}s{ss}}]}",
                       "table",
@@ -263,7 +263,7 @@ json_t * auth_generate_new_token(struct config_elements * config, const char * l
                           str_validity,
                         "ass_lastseen",
                           "raw",
-                          "NOW()");
+                          config->conn->type==HOEL_DB_TYPE_MARIADB?"NOW()":"strftime('%s','now')");
   res = h_insert(config->conn, j_query, NULL);
   json_decref(j_query);
   free(str_validity);
@@ -287,7 +287,11 @@ int auth_check_credentials_database(struct config_elements * config, const char 
     return A_ERROR_UNAUTHORIZED;
   } else {
     escaped = h_escape_string(config->conn, password);
-    str_password = msprintf("= PASSWORD('%s')", escaped);
+    if (config->conn->type == HOEL_DB_TYPE_SQLITE) {
+      str_password = msprintf("= HEX('%s')", escaped);
+    } else {
+      str_password = msprintf("= PASSWORD('%s')", escaped);
+    }
     free(escaped);
     j_query = json_pack("{sss{sss{ssss}si}}",
                         "table",

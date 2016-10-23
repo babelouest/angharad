@@ -118,12 +118,18 @@ int user_add(struct config_elements * config, json_t * j_user) {
   json_t * j_query;
   int res;
   char * escaped_password = h_escape_string(config->conn, json_string_value(json_object_get(j_user, "password"))), 
-       * str_password = escaped_password!=NULL?msprintf("PASSWORD('%s')", escaped_password):NULL;
+       * str_password;
   
   y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (j_user == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "user_add - Error j_user is NULL");
     return A_ERROR_MEMORY;
+  }
+  
+  if (config->conn->type == HOEL_DB_TYPE_MARIADB) {
+    str_password = escaped_password!=NULL?msprintf("PASSWORD('%s')", escaped_password):NULL;
+  } else {
+    str_password = escaped_password!=NULL?msprintf("HEX('%s')", escaped_password):NULL;
   }
   
   j_query = json_pack("{sss[{sss{ss}si}]}",
@@ -176,7 +182,12 @@ int user_modify(struct config_elements * config, const char * user_name, json_t 
   
   if (json_object_get(j_user, "password") != NULL) {
     char * escaped_password = h_escape_string(config->conn, json_string_value(json_object_get(j_user, "password"))), 
-         * str_password = escaped_password!=NULL?msprintf("PASSWORD('%s')", escaped_password):NULL;
+         * str_password;
+    if (config->conn->type == HOEL_DB_TYPE_MARIADB) {
+      str_password = escaped_password!=NULL?msprintf("PASSWORD('%s')", escaped_password):NULL;
+    } else {
+      str_password = escaped_password!=NULL?msprintf("HEX('%s')", escaped_password):NULL;
+    }
     json_object_set_new(json_object_get(j_query, "set"), "au_password", json_pack("{ss}", "raw", str_password));
     free(escaped_password);
     free(str_password);
