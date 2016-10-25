@@ -30,6 +30,7 @@
 #include <ldap.h>
 
 #include "angharad.h"
+#include "md5.h"
 
 /**
  * 
@@ -288,7 +289,19 @@ int auth_check_credentials_database(struct config_elements * config, const char 
   } else {
     escaped = h_escape_string(config->conn, password);
     if (config->conn->type == HOEL_DB_TYPE_SQLITE) {
-      str_password = msprintf("= HEX('%s')", escaped);
+      MD5_CTX mdContext;
+      char md5_str[33] = {0};
+      int i;
+
+      MD5Init (&mdContext);
+      MD5Update (&mdContext, escaped, strlen(escaped));
+      MD5Final (&mdContext);
+      for (i = 0; i < 16; i++) {
+        char md_char[3];
+        sprintf(md_char, "%02x", mdContext.digest[i]);
+        strncat(md5_str, md_char, 32);
+      }
+      str_password = msprintf("= '%s'", md5_str);
     } else {
       str_password = msprintf("= PASSWORD('%s')", escaped);
     }

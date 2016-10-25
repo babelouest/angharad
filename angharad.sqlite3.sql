@@ -62,7 +62,7 @@ CREATE TABLE `b_element` (
 CREATE TABLE `b_monitor` (
   `bm_id` INTEGER PRIMARY KEY AUTOINCREMENT,
   `be_id` INTEGER,
-  `bm_date` INT DEFAULT CURRENT_TIMESTAMP,
+  `bm_date` INT DEFAULT (strftime('%s', 'now')),
   `bm_value` TEXT
 );
 

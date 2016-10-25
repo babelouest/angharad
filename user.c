@@ -27,6 +27,7 @@
  */
 
 #include "angharad.h"
+#include "md5.h"
 
 json_t * user_get(struct config_elements * config, const char * user_name) {
   json_t * j_query, * j_result, * j_user, * to_return;
@@ -129,7 +130,23 @@ int user_add(struct config_elements * config, json_t * j_user) {
   if (config->conn->type == HOEL_DB_TYPE_MARIADB) {
     str_password = escaped_password!=NULL?msprintf("PASSWORD('%s')", escaped_password):NULL;
   } else {
-    str_password = escaped_password!=NULL?msprintf("HEX('%s')", escaped_password):NULL;
+    if (escaped_password!=NULL) {
+      MD5_CTX mdContext;
+      char md5_str[33] = {0};
+      int i;
+
+      MD5Init (&mdContext);
+      MD5Update (&mdContext, escaped_password, strlen(escaped_password));
+      MD5Final (&mdContext);
+      for (i = 0; i < 16; i++) {
+        char md_char[3];
+        sprintf(md_char, "%02x", mdContext.digest[i]);
+        strncat(md5_str, md_char, 32);
+      }
+      str_password = msprintf("'%s'", md5_str);
+    } else {
+      str_password = NULL;
+    }
   }
   
   j_query = json_pack("{sss[{sss{ss}si}]}",
@@ -186,7 +203,23 @@ int user_modify(struct config_elements * config, const char * user_name, json_t 
     if (config->conn->type == HOEL_DB_TYPE_MARIADB) {
       str_password = escaped_password!=NULL?msprintf("PASSWORD('%s')", escaped_password):NULL;
     } else {
-      str_password = escaped_password!=NULL?msprintf("HEX('%s')", escaped_password):NULL;
+      if (escaped_password!=NULL) {
+        MD5_CTX mdContext;
+        char md5_str[33] = {0};
+        int i;
+
+        MD5Init (&mdContext);
+        MD5Update (&mdContext, escaped_password, strlen(escaped_password));
+        MD5Final (&mdContext);
+        for (i = 0; i < 16; i++) {
+          char md_char[3];
+          sprintf(md_char, "%02x", mdContext.digest[i]);
+          strncat(md5_str, md_char, 32);
+        }
+        str_password = msprintf("'%s'", md5_str);
+      } else {
+        str_password = NULL;
+      }
     }
     json_object_set_new(json_object_get(j_query, "set"), "au_password", json_pack("{ss}", "raw", str_password));
     free(escaped_password);
@@ -239,7 +272,11 @@ json_t * token_get_list(struct config_elements * config, const char * login, con
   size_t index;
   
   y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
-  j_query = json_pack("{sss[sssss]}", "table", ANGHARAD_TABLE_SESSION, "columns", "ass_session_token AS token", "ass_enabled", "ass_login AS login", "ass_validity AS validity", "ass_lastseen AS last_seen");
+  if (config->conn->type == HOEL_DB_TYPE_MARIADB) {
+    j_query = json_pack("{sss[sssss]}", "table", ANGHARAD_TABLE_SESSION, "columns", "ass_session_token AS token", "ass_enabled", "ass_login AS login", "ass_validity AS validity", "ass_lastseen AS last_seen");
+  } else {
+    j_query = json_pack("{sss[sssss]}", "table", ANGHARAD_TABLE_SESSION, "columns", "ass_session_token AS token", "ass_enabled", "ass_login AS login", "strftime('%Y-%m-%dT%H:%M:%S', datetime(ass_validity, 'unixepoch', 'localtime')) AS validity", "strftime('%Y-%m-%dT%H:%M:%S', datetime(ass_validity, 'unixepoch', 'localtime')) AS last_seen");
+  }
   
   if (login != NULL && strcmp(login, "") != 0) {
     json_object_set_new(j_query, "where", json_pack("{ss}", "ass_login", login));
