@@ -232,6 +232,8 @@ CREATE TABLE `a_user` (
   `au_password` VARCHAR(128) NOT NULL,
   `au_enabled` TINYINT(1) DEFAULT 1
 );
+-- Insert credential for default user, login is 'admin', password is 'password'
+INSERT INTO a_user (au_login, au_password, au_enabled) VALUES ('admin', PASSWORD('password'), 1);
 
 CREATE TABLE `a_profile` (
   `ap_id` INT(11) PRIMARY KEY AUTO_INCREMENT,
