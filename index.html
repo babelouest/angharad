@@ -3710,6 +3710,1316 @@ heater value<span class="pl-k">:</span>
 <p>Service or element not found</p>
 
 <h1>
+<a id="mock-service-api" class="anchor" href="#mock-service-api" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Mock service API</h1>
+
+<p>This service does nothing for real, but behaves as a real carleon service. It's designed to help create a client program and create other services.</p>
+
+<p>This service use carleon prefix as prefix. All endpoints described here assume to have carleon prefix before the url.</p>
+
+<h3>
+<a id="get-all-mock-service-elements" class="anchor" href="#get-all-mock-service-elements" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Get all mock service elements</h3>
+
+<h4>
+<a id="url-65" class="anchor" href="#url-65" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><code>/mock-service/</code></p>
+
+<h4>
+<a id="method-65" class="anchor" href="#method-65" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Method</h4>
+
+<p><code>GET</code></p>
+
+<h4>
+<a id="success-response-65" class="anchor" href="#success-response-65" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Success response</h4>
+
+<p>Code 200</p>
+
+<p>Content</p>
+
+<div class="highlight highlight-source-js"><pre>[ array <span class="pl-k">of</span> moc<span class="pl-k">-</span>service elements
+
+    {
+        <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, name <span class="pl-k">of</span> the element
+        <span class="pl-s"><span class="pl-pds">"</span>description<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, description <span class="pl-k">of</span> the element
+    }
+
+]</pre></div>
+
+<h4>
+<a id="error-response-64" class="anchor" href="#error-response-64" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Error Response</h4>
+
+<p>Code 500</p>
+
+<p>Internal Error</p>
+
+<h3>
+<a id="get-a-moc-service-element-by-its-name" class="anchor" href="#get-a-moc-service-element-by-its-name" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Get a moc-service element by its name</h3>
+
+<h4>
+<a id="url-66" class="anchor" href="#url-66" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><code>/mock-service/@element_id</code></p>
+
+<h4>
+<a id="method-66" class="anchor" href="#method-66" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Method</h4>
+
+<p><code>GET</code></p>
+
+<h4>
+<a id="url-parameters-46" class="anchor" href="#url-parameters-46" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL Parameters</h4>
+
+<p><strong>Required</strong></p>
+
+<p><code>@element_id</code>: element name</p>
+
+<h4>
+<a id="success-response-66" class="anchor" href="#success-response-66" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Success response</h4>
+
+<p>Code 200</p>
+
+<p>Content</p>
+
+<div class="highlight highlight-source-js"><pre>{
+    <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, name <span class="pl-k">of</span> the element
+    <span class="pl-s"><span class="pl-pds">"</span>description<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, description <span class="pl-k">of</span> the element
+}
+</pre></div>
+
+<h4>
+<a id="error-response-65" class="anchor" href="#error-response-65" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Error Response</h4>
+
+<p>Code 500</p>
+
+<p>Internal Error</p>
+
+<p>OR</p>
+
+<p>Code 404</p>
+
+<p>Element not found</p>
+
+<h3>
+<a id="add-a-new-mock-service-element" class="anchor" href="#add-a-new-mock-service-element" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Add a new mock-service element</h3>
+
+<h4>
+<a id="url-67" class="anchor" href="#url-67" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><code>/mock-service/</code></p>
+
+<h4>
+<a id="method-67" class="anchor" href="#method-67" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Method</h4>
+
+<p><code>POST</code></p>
+
+<h4>
+<a id="data-parameters-14" class="anchor" href="#data-parameters-14" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Data Parameters</h4>
+
+<div class="highlight highlight-source-js"><pre>{
+    <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, name <span class="pl-k">of</span> the element, max <span class="pl-c1">64</span> chars
+    <span class="pl-s"><span class="pl-pds">"</span>description<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, description <span class="pl-k">of</span> the element, max <span class="pl-c1">128</span> chars
+}</pre></div>
+
+<h4>
+<a id="success-response-67" class="anchor" href="#success-response-67" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Success response</h4>
+
+<p>Code 200</p>
+
+<h4>
+<a id="error-response-66" class="anchor" href="#error-response-66" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Error Response</h4>
+
+<p>Code 500</p>
+
+<p>Internal Error</p>
+
+<p>OR</p>
+
+<p>Code 400</p>
+
+<p>Error input parameters</p>
+
+<p>Content: json array containing all errors</p>
+
+<h3>
+<a id="modify-an-existing-mock-service-element" class="anchor" href="#modify-an-existing-mock-service-element" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Modify an existing mock-service element</h3>
+
+<h4>
+<a id="url-68" class="anchor" href="#url-68" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><code>/mock-service/@element_id</code></p>
+
+<h4>
+<a id="method-68" class="anchor" href="#method-68" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Method</h4>
+
+<p><code>PUT</code></p>
+
+<h4>
+<a id="url-parameters-47" class="anchor" href="#url-parameters-47" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL Parameters</h4>
+
+<p><strong>Required</strong></p>
+
+<p><code>@element_id</code>: element name</p>
+
+<h4>
+<a id="data-parameters-15" class="anchor" href="#data-parameters-15" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Data Parameters</h4>
+
+<div class="highlight highlight-source-js"><pre>{
+    <span class="pl-s"><span class="pl-pds">"</span>description<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, description <span class="pl-k">of</span> the element, max <span class="pl-c1">128</span> chars
+}</pre></div>
+
+<h4>
+<a id="success-response-68" class="anchor" href="#success-response-68" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Success response</h4>
+
+<p>Code 200</p>
+
+<h4>
+<a id="error-response-67" class="anchor" href="#error-response-67" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Error Response</h4>
+
+<p>Code 500</p>
+
+<p>Internal Error</p>
+
+<p>OR</p>
+
+<p>Code 400</p>
+
+<p>Error input parameters</p>
+
+<p>Content: json array containing all errors</p>
+
+<p>OR</p>
+
+<p>Code 404</p>
+
+<p>Element not found</p>
+
+<h3>
+<a id="delete-an-existing-mock-service-element" class="anchor" href="#delete-an-existing-mock-service-element" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Delete an existing mock-service element</h3>
+
+<h4>
+<a id="url-69" class="anchor" href="#url-69" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><code>/mock-service/@element_id</code></p>
+
+<h4>
+<a id="method-69" class="anchor" href="#method-69" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Method</h4>
+
+<p><code>DELETE</code></p>
+
+<h4>
+<a id="url-parameters-48" class="anchor" href="#url-parameters-48" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL Parameters</h4>
+
+<p><strong>Required</strong></p>
+
+<p><code>@element_id</code>: element name</p>
+
+<h4>
+<a id="success-response-69" class="anchor" href="#success-response-69" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Success response</h4>
+
+<p>Code 200</p>
+
+<h4>
+<a id="error-response-68" class="anchor" href="#error-response-68" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Error Response</h4>
+
+<p>Code 500</p>
+
+<p>Internal Error</p>
+
+<p>OR</p>
+
+<p>Code 404</p>
+
+<p>Element not found</p>
+
+<h3>
+<a id="execute-a-mock-service-command-exec1-on-an-element" class="anchor" href="#execute-a-mock-service-command-exec1-on-an-element" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Execute a mock-service command exec1 on an element</h3>
+
+<h4>
+<a id="url-70" class="anchor" href="#url-70" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><code>/mock-service/@element_id/command/exec1/@param1/@param2/@param3</code></p>
+
+<h4>
+<a id="method-70" class="anchor" href="#method-70" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Method</h4>
+
+<p><code>GET</code></p>
+
+<h4>
+<a id="url-parameters-49" class="anchor" href="#url-parameters-49" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL Parameters</h4>
+
+<p><strong>Required</strong></p>
+
+<p><code>@element_id</code>: element name</p>
+
+<p><code>@param1</code>: string</p>
+
+<p><code>@param2</code>: integer</p>
+
+<p><code>@param3</code>: real</p>
+
+<h4>
+<a id="success-response-70" class="anchor" href="#success-response-70" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Success response</h4>
+
+<p>Code 200</p>
+
+<p>Content</p>
+
+<div class="highlight highlight-source-js"><pre>{
+    <span class="pl-s"><span class="pl-pds">"</span>value1<span class="pl-pds">"</span></span><span class="pl-k">:</span> string
+    <span class="pl-s"><span class="pl-pds">"</span>value2<span class="pl-pds">"</span></span><span class="pl-k">:</span> integer
+}</pre></div>
+
+<h4>
+<a id="error-response-69" class="anchor" href="#error-response-69" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Error Response</h4>
+
+<p>Code 500</p>
+
+<p>Internal Error</p>
+
+<p>OR</p>
+
+<p>Code 404</p>
+
+<p>Element not found</p>
+
+<h3>
+<a id="execute-a-mock-service-command-exec2-on-an-element" class="anchor" href="#execute-a-mock-service-command-exec2-on-an-element" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Execute a mock-service command exec2 on an element</h3>
+
+<h4>
+<a id="url-71" class="anchor" href="#url-71" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><code>/mock-service/@element_id/command/exec2/@param1</code></p>
+
+<h4>
+<a id="method-71" class="anchor" href="#method-71" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Method</h4>
+
+<p><code>GET</code></p>
+
+<h4>
+<a id="url-parameters-50" class="anchor" href="#url-parameters-50" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL Parameters</h4>
+
+<p><strong>Required</strong></p>
+
+<p><code>@element_id</code>: element name</p>
+
+<p><code>@param1</code>: string</p>
+
+<h4>
+<a id="success-response-71" class="anchor" href="#success-response-71" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Success response</h4>
+
+<p>Code 200</p>
+
+<p>Content</p>
+
+<div class="highlight highlight-source-js"><pre>{
+    <span class="pl-s"><span class="pl-pds">"</span>value<span class="pl-pds">"</span></span><span class="pl-k">:</span> string
+}</pre></div>
+
+<h4>
+<a id="error-response-70" class="anchor" href="#error-response-70" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Error Response</h4>
+
+<p>Code 500</p>
+
+<p>Internal Error</p>
+
+<p>OR</p>
+
+<p>Code 404</p>
+
+<p>Element not found</p>
+
+<h3>
+<a id="execute-a-mock-service-command-exec3-on-an-element" class="anchor" href="#execute-a-mock-service-command-exec3-on-an-element" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Execute a mock-service command exec3 on an element</h3>
+
+<h4>
+<a id="url-72" class="anchor" href="#url-72" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><code>/mock-service/@element_id/command/exec3</code></p>
+
+<h4>
+<a id="method-72" class="anchor" href="#method-72" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Method</h4>
+
+<p><code>GET</code></p>
+
+<h4>
+<a id="success-response-72" class="anchor" href="#success-response-72" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Success response</h4>
+
+<p>Code 200</p>
+
+<p>Content</p>
+
+<div class="highlight highlight-source-js"><pre>{
+    <span class="pl-s"><span class="pl-pds">"</span>value<span class="pl-pds">"</span></span><span class="pl-k">:</span> string
+}</pre></div>
+
+<h4>
+<a id="error-response-71" class="anchor" href="#error-response-71" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Error Response</h4>
+
+<p>Code 500</p>
+
+<p>Internal Error</p>
+
+<p>OR</p>
+
+<p>Code 404</p>
+
+<p>Element not found</p>
+
+<h3>
+<a id="execute-a-mock-service-command-exec4-on-an-element" class="anchor" href="#execute-a-mock-service-command-exec4-on-an-element" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Execute a mock-service command exec4 on an element</h3>
+
+<h4>
+<a id="url-73" class="anchor" href="#url-73" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><code>/mock-service/@element_id/command/exec4</code></p>
+
+<h4>
+<a id="method-73" class="anchor" href="#method-73" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Method</h4>
+
+<p><code>GET</code></p>
+
+<h4>
+<a id="success-response-73" class="anchor" href="#success-response-73" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Success response</h4>
+
+<p>Code 200</p>
+
+<p>Content</p>
+
+<div class="highlight highlight-source-js"><pre>{
+    <span class="pl-s"><span class="pl-pds">"</span>value1<span class="pl-pds">"</span></span><span class="pl-k">:</span> integer
+    <span class="pl-s"><span class="pl-pds">"</span>value2<span class="pl-pds">"</span></span><span class="pl-k">:</span> boolean
+}</pre></div>
+
+<h4>
+<a id="error-response-72" class="anchor" href="#error-response-72" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Error Response</h4>
+
+<p>Code 500</p>
+
+<p>Internal Error</p>
+
+<p>OR</p>
+
+<p>Code 404</p>
+
+<p>Element not found</p>
+
+<h1>
+<a id="mpd-service-api" class="anchor" href="#mpd-service-api" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>MPD service API</h1>
+
+<p>MPD service is used to get status and send commands to a MPD instance</p>
+
+<p>This service use carleon prefix as prefix. All endpoints described here assume to have carleon prefix before the url.</p>
+
+<h2>
+<a id="service-mpd-elements-management" class="anchor" href="#service-mpd-elements-management" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Service MPD elements management</h2>
+
+<h3>
+<a id="get-all-service-mpd-elements" class="anchor" href="#get-all-service-mpd-elements" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Get all service-mpd elements</h3>
+
+<h4>
+<a id="url-74" class="anchor" href="#url-74" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><code>/service-mpd/</code></p>
+
+<h4>
+<a id="method-74" class="anchor" href="#method-74" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Method</h4>
+
+<p><code>GET</code></p>
+
+<h4>
+<a id="success-response-74" class="anchor" href="#success-response-74" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Success response</h4>
+
+<p>Code 200</p>
+
+<p>Content</p>
+
+<div class="highlight highlight-source-js"><pre>[ <span class="pl-c1">Array</span> <span class="pl-k">of</span> service<span class="pl-k">-</span>mpd elements
+
+    {
+        <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, name <span class="pl-k">of</span> the element, max <span class="pl-c1">64</span> chars
+        <span class="pl-s"><span class="pl-pds">"</span>description<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, description <span class="pl-k">of</span> the element, max <span class="pl-c1">128</span> chars
+        <span class="pl-s"><span class="pl-pds">"</span>host<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, host where the mpd instance is hosted, max <span class="pl-c1">128</span> chars
+        <span class="pl-s"><span class="pl-pds">"</span>port<span class="pl-pds">"</span></span><span class="pl-k">:</span> integer, port where mpd instance is hosted, <span class="pl-k">if</span> <span class="pl-c1">0</span> then default
+    }
+
+]</pre></div>
+
+<h4>
+<a id="error-response-73" class="anchor" href="#error-response-73" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Error Response</h4>
+
+<p>Code 500</p>
+
+<p>Internal Error</p>
+
+<h3>
+<a id="get-a-service-mpd-element-by-its-name" class="anchor" href="#get-a-service-mpd-element-by-its-name" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Get a service-mpd element by its name</h3>
+
+<h4>
+<a id="url-75" class="anchor" href="#url-75" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><code>/service-mpd/@name</code></p>
+
+<h4>
+<a id="method-75" class="anchor" href="#method-75" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Method</h4>
+
+<p><code>GET</code></p>
+
+<h4>
+<a id="url-parameters-51" class="anchor" href="#url-parameters-51" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL Parameters</h4>
+
+<p><strong>Required</strong></p>
+
+<p><code>@name</code>: string, name of the element</p>
+
+<h4>
+<a id="success-response-75" class="anchor" href="#success-response-75" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Success response</h4>
+
+<p>Code 200</p>
+
+<p>Content</p>
+
+<div class="highlight highlight-source-js"><pre>{
+    <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, name <span class="pl-k">of</span> the element, max <span class="pl-c1">64</span> chars
+    <span class="pl-s"><span class="pl-pds">"</span>description<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, description <span class="pl-k">of</span> the element, max <span class="pl-c1">128</span> chars
+    <span class="pl-s"><span class="pl-pds">"</span>host<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, host where the mpd instance is hosted, max <span class="pl-c1">128</span> chars
+    <span class="pl-s"><span class="pl-pds">"</span>port<span class="pl-pds">"</span></span><span class="pl-k">:</span> integer, port where mpd instance is hosted, <span class="pl-k">if</span> <span class="pl-c1">0</span> then default
+}</pre></div>
+
+<h4>
+<a id="error-response-74" class="anchor" href="#error-response-74" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Error Response</h4>
+
+<p>Code 500</p>
+
+<p>Internal Error</p>
+
+<p>OR</p>
+
+<p>Code 404</p>
+
+<p>service-mpd not found</p>
+
+<h3>
+<a id="add-a-new-service-mpd-element" class="anchor" href="#add-a-new-service-mpd-element" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Add a new service-mpd element</h3>
+
+<h4>
+<a id="url-76" class="anchor" href="#url-76" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><code>/service-mpd/</code></p>
+
+<h4>
+<a id="method-76" class="anchor" href="#method-76" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Method</h4>
+
+<p><code>POST</code></p>
+
+<h4>
+<a id="data-parameters-16" class="anchor" href="#data-parameters-16" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Data Parameters</h4>
+
+<div class="highlight highlight-source-js"><pre>{
+    <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, name <span class="pl-k">of</span> the element, max <span class="pl-c1">64</span> chars, required
+    <span class="pl-s"><span class="pl-pds">"</span>description<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, description <span class="pl-k">of</span> the element, max <span class="pl-c1">128</span> chars, optional
+    <span class="pl-s"><span class="pl-pds">"</span>host<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, host where the mpd instance is hosted, max <span class="pl-c1">128</span> chars, required
+    <span class="pl-s"><span class="pl-pds">"</span>port<span class="pl-pds">"</span></span><span class="pl-k">:</span> integer, port where mpd instance is hosted, <span class="pl-k">if</span> <span class="pl-c1">0</span> then default mpd port, optional
+    <span class="pl-s"><span class="pl-pds">"</span>password<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, password to connect to the mpd instance, max <span class="pl-c1">128</span> chars, optional
+}</pre></div>
+
+<h4>
+<a id="success-response-76" class="anchor" href="#success-response-76" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Success response</h4>
+
+<p>Code 200</p>
+
+<h4>
+<a id="error-response-75" class="anchor" href="#error-response-75" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Error Response</h4>
+
+<p>Code 500</p>
+
+<p>Internal Error</p>
+
+<p>OR</p>
+
+<p>Code 400</p>
+
+<p>Error input parameters</p>
+
+<p>Content: json array containing all errors</p>
+
+<h3>
+<a id="modify-an-existing-service-mpd-element" class="anchor" href="#modify-an-existing-service-mpd-element" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Modify an existing service-mpd element</h3>
+
+<h4>
+<a id="url-77" class="anchor" href="#url-77" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><code>/service-mpd/@name</code></p>
+
+<h4>
+<a id="method-77" class="anchor" href="#method-77" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Method</h4>
+
+<p><code>PUT</code></p>
+
+<h4>
+<a id="url-parameters-52" class="anchor" href="#url-parameters-52" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL Parameters</h4>
+
+<p><strong>Required</strong></p>
+
+<p><code>@name</code>: string, name of the element</p>
+
+<h4>
+<a id="data-parameters-17" class="anchor" href="#data-parameters-17" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Data Parameters</h4>
+
+<div class="highlight highlight-source-js"><pre>{
+    <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, name <span class="pl-k">of</span> the element, max <span class="pl-c1">64</span> chars, required
+    <span class="pl-s"><span class="pl-pds">"</span>description<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, description <span class="pl-k">of</span> the element, max <span class="pl-c1">128</span> chars, optional
+    <span class="pl-s"><span class="pl-pds">"</span>host<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, host where the mpd instance is hosted, max <span class="pl-c1">128</span> chars, required
+    <span class="pl-s"><span class="pl-pds">"</span>port<span class="pl-pds">"</span></span><span class="pl-k">:</span> integer, port where mpd instance is hosted, <span class="pl-k">if</span> <span class="pl-c1">0</span> then default mpd port, optional
+    <span class="pl-s"><span class="pl-pds">"</span>password<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, password to connect to the mpd instance, max <span class="pl-c1">128</span> chars, optional
+}</pre></div>
+
+<h4>
+<a id="success-response-77" class="anchor" href="#success-response-77" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Success response</h4>
+
+<p>Code 200</p>
+
+<h4>
+<a id="error-response-76" class="anchor" href="#error-response-76" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Error Response</h4>
+
+<p>Code 500</p>
+
+<p>Internal Error</p>
+
+<p>OR</p>
+
+<p>Code 400</p>
+
+<p>Error input parameters</p>
+
+<p>Content: json array containing all errors</p>
+
+<p>OR</p>
+
+<p>Code 404</p>
+
+<p>Element not found</p>
+
+<h3>
+<a id="delete-an-existing-service-mpd-element" class="anchor" href="#delete-an-existing-service-mpd-element" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Delete an existing service-mpd element</h3>
+
+<h4>
+<a id="url-78" class="anchor" href="#url-78" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><code>/service-mpd/@name</code></p>
+
+<h4>
+<a id="method-78" class="anchor" href="#method-78" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Method</h4>
+
+<p><code>DELETE</code></p>
+
+<h4>
+<a id="url-parameters-53" class="anchor" href="#url-parameters-53" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL Parameters</h4>
+
+<p><strong>Required</strong></p>
+
+<p><code>@name</code>: string, name of the element</p>
+
+<h4>
+<a id="success-response-78" class="anchor" href="#success-response-78" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Success response</h4>
+
+<p>Code 200</p>
+
+<h4>
+<a id="error-response-77" class="anchor" href="#error-response-77" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Error Response</h4>
+
+<p>Code 500</p>
+
+<p>Internal Error</p>
+
+<p>OR</p>
+
+<p>Code 404</p>
+
+<p>Element not found</p>
+
+<h3>
+<a id="get-status-and-current-song-details-of-a-service-mpd-element" class="anchor" href="#get-status-and-current-song-details-of-a-service-mpd-element" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Get status and current song details of a service-mpd element</h3>
+
+<h4>
+<a id="url-79" class="anchor" href="#url-79" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><code>/service-mpd/@name/status</code></p>
+
+<h4>
+<a id="method-79" class="anchor" href="#method-79" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Method</h4>
+
+<p><code>GET</code></p>
+
+<h4>
+<a id="url-parameters-54" class="anchor" href="#url-parameters-54" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL Parameters</h4>
+
+<p><strong>Required</strong></p>
+
+<p><code>@name</code>, name of the element</p>
+
+<h4>
+<a id="success-response-79" class="anchor" href="#success-response-79" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Success response</h4>
+
+<p>Code 200</p>
+
+<p>Content</p>
+
+<div class="highlight highlight-source-js"><pre>{
+
+    <span class="pl-s"><span class="pl-pds">"</span>state<span class="pl-pds">"</span></span><span class="pl-k">:</span>string, state <span class="pl-k">of</span> the player, values can be <span class="pl-s"><span class="pl-pds">"</span>stop<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>play<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>pause<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>unknown<span class="pl-pds">"</span></span>
+    <span class="pl-s"><span class="pl-pds">"</span>volume<span class="pl-pds">"</span></span><span class="pl-k">:</span>integer, volume <span class="pl-k">of</span> the player, between <span class="pl-c1">0</span> and <span class="pl-c1">100</span>
+    <span class="pl-s"><span class="pl-pds">"</span>elapsed_time<span class="pl-pds">"</span></span><span class="pl-k">:</span>integer, elapsed time <span class="pl-k">of</span> the current song <span class="pl-k">in</span> seconds
+    <span class="pl-s"><span class="pl-pds">"</span>total_time<span class="pl-pds">"</span></span><span class="pl-k">:</span>integer, total time <span class="pl-k">of</span> the current song <span class="pl-k">in</span> seconds
+    <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span>string, Name <span class="pl-k">of</span> the playlist, optional
+    <span class="pl-s"><span class="pl-pds">"</span>title<span class="pl-pds">"</span></span><span class="pl-k">:</span>string, title <span class="pl-k">of</span> current song
+    <span class="pl-s"><span class="pl-pds">"</span>artist<span class="pl-pds">"</span></span><span class="pl-k">:</span>string, artist <span class="pl-k">of</span> current song, optional
+    <span class="pl-s"><span class="pl-pds">"</span>album<span class="pl-pds">"</span></span><span class="pl-k">:</span>string, album <span class="pl-k">of</span> current song, optional
+    <span class="pl-s"><span class="pl-pds">"</span>date<span class="pl-pds">"</span></span><span class="pl-k">:</span>string, year <span class="pl-k">of</span> current song, optional
+    <span class="pl-s"><span class="pl-pds">"</span>track<span class="pl-pds">"</span></span><span class="pl-k">:</span>string, track <span class="pl-k">of</span> current song, optional
+
+}</pre></div>
+
+<h4>
+<a id="error-response-78" class="anchor" href="#error-response-78" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Error Response</h4>
+
+<p>Code 500</p>
+
+<p>Internal Error</p>
+
+<p>OR</p>
+
+<p>Code 404</p>
+
+<p>Element not found</p>
+
+<h3>
+<a id="send-a-playback-command" class="anchor" href="#send-a-playback-command" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Send a playback command</h3>
+
+<h4>
+<a id="url-80" class="anchor" href="#url-80" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><code>/service-mpd/@name/action/@action_name</code></p>
+
+<h4>
+<a id="method-80" class="anchor" href="#method-80" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Method</h4>
+
+<p><code>GET</code></p>
+
+<h4>
+<a id="url-parameters-55" class="anchor" href="#url-parameters-55" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL Parameters</h4>
+
+<p><strong>Required</strong></p>
+
+<p><code>@name</code>: string, name of the element</p>
+
+<p><code>@action_name</code>, string, name of the action to launch, values can be "stop", "play", "pause"</p>
+
+<h4>
+<a id="success-response-80" class="anchor" href="#success-response-80" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Success response</h4>
+
+<p>Code 200</p>
+
+<h4>
+<a id="error-response-79" class="anchor" href="#error-response-79" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Error Response</h4>
+
+<p>Code 500</p>
+
+<p>Internal Error</p>
+
+<p>OR</p>
+
+<p>Code 400</p>
+
+<p>Error input parameters</p>
+
+<p>Content: json array containing all errors</p>
+
+<p>OR</p>
+
+<p>Code 404</p>
+
+<p>Element not found</p>
+
+<h3>
+<a id="get-playlists-available" class="anchor" href="#get-playlists-available" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Get playlists available</h3>
+
+<h4>
+<a id="url-81" class="anchor" href="#url-81" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><code>/service-mpd/@name/playlists</code></p>
+
+<h4>
+<a id="method-81" class="anchor" href="#method-81" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Method</h4>
+
+<p><code>GET</code></p>
+
+<h4>
+<a id="url-parameters-56" class="anchor" href="#url-parameters-56" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL Parameters</h4>
+
+<p><strong>Required</strong></p>
+
+<p><code>@name</code>: string, name of the element</p>
+
+<h4>
+<a id="success-response-81" class="anchor" href="#success-response-81" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Success response</h4>
+
+<p>Code 200</p>
+
+<p>Content</p>
+
+<div class="highlight highlight-source-js"><pre>[ <span class="pl-c1">Array</span> <span class="pl-k">of</span> strings
+
+    <span class="pl-s"><span class="pl-pds">"</span>playlist_1<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>playlist_2<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>playlist_3<span class="pl-pds">"</span></span>,
+    <span class="pl-k">...</span>
+
+]</pre></div>
+
+<h4>
+<a id="error-response-80" class="anchor" href="#error-response-80" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Error Response</h4>
+
+<p>Code 500</p>
+
+<p>Internal Error</p>
+
+<p>OR</p>
+
+<p>Code 404</p>
+
+<p>Element not found</p>
+
+<h3>
+<a id="load-and-play-a-playlist" class="anchor" href="#load-and-play-a-playlist" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Load and play a playlist</h3>
+
+<h4>
+<a id="url-82" class="anchor" href="#url-82" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><code>/service-mpd/@name/playlists/@playlist_name/load</code></p>
+
+<h4>
+<a id="method-82" class="anchor" href="#method-82" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Method</h4>
+
+<p><code>GET</code></p>
+
+<h4>
+<a id="url-parameters-57" class="anchor" href="#url-parameters-57" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL Parameters</h4>
+
+<p><strong>Required</strong></p>
+
+<p><code>@name</code>: string, name of the element</p>
+
+<p><code>@playlist_name</code>: string, name of the playlist</p>
+
+<h4>
+<a id="success-response-82" class="anchor" href="#success-response-82" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Success response</h4>
+
+<p>Code 200</p>
+
+<h4>
+<a id="error-response-81" class="anchor" href="#error-response-81" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Error Response</h4>
+
+<p>Code 500</p>
+
+<p>Internal Error</p>
+
+<p>OR</p>
+
+<p>Code 404</p>
+
+<p>Element or playlist not found</p>
+
+<h3>
+<a id="change-the-volume" class="anchor" href="#change-the-volume" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Change the volume</h3>
+
+<h4>
+<a id="url-83" class="anchor" href="#url-83" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><code>/service-mpd/@name/volume/@value</code></p>
+
+<h4>
+<a id="method-83" class="anchor" href="#method-83" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Method</h4>
+
+<p><code>GET</code></p>
+
+<h4>
+<a id="url-parameters-58" class="anchor" href="#url-parameters-58" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL Parameters</h4>
+
+<p><strong>Required</strong></p>
+
+<p><code>@name</code>: string, name of the element</p>
+
+<p><code>@value</code>: integer, volume to set, value must be between 0 (off) and 100 (max)</p>
+
+<h4>
+<a id="success-response-83" class="anchor" href="#success-response-83" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Success response</h4>
+
+<p>Code 200</p>
+
+<h4>
+<a id="error-response-82" class="anchor" href="#error-response-82" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Error Response</h4>
+
+<p>Code 500</p>
+
+<p>Internal Error</p>
+
+<p>OR</p>
+
+<p>Code 400</p>
+
+<p>Error input parameters</p>
+
+<p>Content: json array containing all errors</p>
+
+<p>OR</p>
+
+<p>Code 404</p>
+
+<p>Element not found</p>
+
+<h1>
+<a id="motion-service-api" class="anchor" href="#motion-service-api" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Motion service API</h1>
+
+<p>Motion service is used to display motion pictures taken or real-time streams.</p>
+
+<p>This service use carleon prefix as prefix. All endpoints described here assume to have carleon prefix before the url.</p>
+
+<h2>
+<a id="motion-service-elements-management" class="anchor" href="#motion-service-elements-management" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Motion-service elements management</h2>
+
+<h3>
+<a id="get-all-motion-service-elements" class="anchor" href="#get-all-motion-service-elements" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Get all motion-service elements</h3>
+
+<h4>
+<a id="url-84" class="anchor" href="#url-84" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><code>/service-motion/</code></p>
+
+<h4>
+<a id="method-84" class="anchor" href="#method-84" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Method</h4>
+
+<p><code>GET</code></p>
+
+<h4>
+<a id="success-response-84" class="anchor" href="#success-response-84" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Success response</h4>
+
+<p>Code 200</p>
+
+<p>Content</p>
+
+<div class="highlight highlight-source-js"><pre>[ <span class="pl-c1">Array</span> <span class="pl-k">of</span> service<span class="pl-k">-</span>motion elements
+    {
+        <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, name <span class="pl-k">of</span> the element, max <span class="pl-c1">64</span> chars
+        <span class="pl-s"><span class="pl-pds">"</span>description<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, description <span class="pl-k">of</span> the element, max <span class="pl-c1">128</span> chars
+        <span class="pl-s"><span class="pl-pds">"</span>config_uri<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, uri <span class="pl-k">of</span> the motion instance configuration to check <span class="pl-k">if</span> it<span class="pl-s"><span class="pl-pds">'</span><span class="pl-ii">s still responding, max 512 chars</span></span>
+<span class="pl-s"><span class="pl-ii">        "stream_list": [ Array of streams</span></span>
+<span class="pl-s"><span class="pl-ii">            {</span></span>
+<span class="pl-s"><span class="pl-ii">                "uri": string, uri to access the stream directly from the client, max 512 chars</span></span>
+<span class="pl-s"><span class="pl-ii">                "name": string, name of the stream, max 64 chars</span></span>
+<span class="pl-s"><span class="pl-ii">                "snapshot_uri": string, uri to run a snapshot command on the stream, max 512 chars</span></span>
+<span class="pl-s"><span class="pl-ii">            }</span></span>
+<span class="pl-s"><span class="pl-ii">        ],</span></span>
+<span class="pl-s"><span class="pl-ii">        "file_list": [ Array of files lists of the pricures taken by this motion instance</span></span>
+<span class="pl-s"><span class="pl-ii">            {</span></span>
+<span class="pl-s"><span class="pl-ii">                "name": string, name of the file list, max 64 chars</span></span>
+<span class="pl-s"><span class="pl-ii">                "path": string, full path of the pictures, max 512 chars</span></span>
+<span class="pl-s"><span class="pl-ii">                "thumbnail_path": string, full path of the pictures thumbnails, max 512 chars, optional</span></span>
+<span class="pl-s"><span class="pl-ii">            }</span></span>
+<span class="pl-s"><span class="pl-ii">        ]</span></span>
+<span class="pl-s"><span class="pl-ii">    }</span></span>
+<span class="pl-s"><span class="pl-ii">]</span></span></pre></div>
+
+<h4>
+<a id="error-response-83" class="anchor" href="#error-response-83" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Error Response</h4>
+
+<p>Code 500</p>
+
+<p>Internal Error</p>
+
+<h3>
+<a id="get-a-service-motion-element-by-its-name" class="anchor" href="#get-a-service-motion-element-by-its-name" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Get a service-motion element by its name</h3>
+
+<h4>
+<a id="url-85" class="anchor" href="#url-85" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><code>/service-motion/@name</code></p>
+
+<h4>
+<a id="method-85" class="anchor" href="#method-85" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Method</h4>
+
+<p><code>GET</code></p>
+
+<h4>
+<a id="url-parameters-59" class="anchor" href="#url-parameters-59" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL Parameters</h4>
+
+<p><strong>Required</strong></p>
+
+<p><code>@name</code>: name of the service-motion element</p>
+
+<h4>
+<a id="success-response-85" class="anchor" href="#success-response-85" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Success response</h4>
+
+<p>Code 200</p>
+
+<p>Content</p>
+
+<div class="highlight highlight-source-js"><pre>{
+    <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, name <span class="pl-k">of</span> the element, max <span class="pl-c1">64</span> chars
+    <span class="pl-s"><span class="pl-pds">"</span>description<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, description <span class="pl-k">of</span> the element, max <span class="pl-c1">128</span> chars
+    <span class="pl-s"><span class="pl-pds">"</span>config_uri<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, uri <span class="pl-k">of</span> the motion instance configuration to check <span class="pl-k">if</span> it<span class="pl-s"><span class="pl-pds">'</span><span class="pl-ii">s still responding, max 512 chars</span></span>
+<span class="pl-s"><span class="pl-ii">    "stream_list": [ Array of streams</span></span>
+<span class="pl-s"><span class="pl-ii">        {</span></span>
+<span class="pl-s"><span class="pl-ii">            "uri": string, uri to access the stream directly from the client, max 512 chars</span></span>
+<span class="pl-s"><span class="pl-ii">            "name": string, name of the stream, max 64 chars</span></span>
+<span class="pl-s"><span class="pl-ii">            "snapshot_uri": string, uri to run a snapshot command on the stream, max 512 chars</span></span>
+<span class="pl-s"><span class="pl-ii">        }</span></span>
+<span class="pl-s"><span class="pl-ii">    ],</span></span>
+<span class="pl-s"><span class="pl-ii">    "file_list": [ Array of files lists of the pricures taken by this motion instance</span></span>
+<span class="pl-s"><span class="pl-ii">        {</span></span>
+<span class="pl-s"><span class="pl-ii">            "name": string, name of the file list, max 64 chars</span></span>
+<span class="pl-s"><span class="pl-ii">            "path": string, full path of the pictures, max 512 chars</span></span>
+<span class="pl-s"><span class="pl-ii">            "thumbnail_path": string, full path of the pictures thumbnails, max 512 chars, optional</span></span>
+<span class="pl-s"><span class="pl-ii">        }</span></span>
+<span class="pl-s"><span class="pl-ii">    ]</span></span>
+<span class="pl-s"><span class="pl-ii">}</span></span></pre></div>
+
+<h4>
+<a id="error-response-84" class="anchor" href="#error-response-84" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Error Response</h4>
+
+<p>Code 500</p>
+
+<p>Internal Error</p>
+
+<p>OR</p>
+
+<p>Code 404</p>
+
+<p>service-motion element not found</p>
+
+<h3>
+<a id="add-a-new-service-motion-element" class="anchor" href="#add-a-new-service-motion-element" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Add a new service-motion element</h3>
+
+<h4>
+<a id="url-86" class="anchor" href="#url-86" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><code>/service-motion/</code></p>
+
+<h4>
+<a id="method-86" class="anchor" href="#method-86" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Method</h4>
+
+<p><code>POST</code></p>
+
+<h4>
+<a id="data-parameters-18" class="anchor" href="#data-parameters-18" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Data Parameters</h4>
+
+<div class="highlight highlight-source-js"><pre>{
+    <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, name <span class="pl-k">of</span> the element, max <span class="pl-c1">64</span> chars, required
+    <span class="pl-s"><span class="pl-pds">"</span>description<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, description <span class="pl-k">of</span> the element, max <span class="pl-c1">128</span> chars, optional
+    <span class="pl-s"><span class="pl-pds">"</span>config_uri<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, uri <span class="pl-k">of</span> the motion instance configuration to check <span class="pl-k">if</span> it<span class="pl-s"><span class="pl-pds">'</span><span class="pl-ii">s still responding, max 512 chars, required</span></span>
+<span class="pl-s"><span class="pl-ii">    "stream_list": [ Array of streams, optional</span></span>
+<span class="pl-s"><span class="pl-ii">        {</span></span>
+<span class="pl-s"><span class="pl-ii">            "uri": string, uri to access the stream directly from the client, max 512 chars, required</span></span>
+<span class="pl-s"><span class="pl-ii">            "name": string, name of the stream, max 64 chars, required</span></span>
+<span class="pl-s"><span class="pl-ii">            "snapshot_uri": string, uri to run a snapshot command on the stream, max 512 chars, required</span></span>
+<span class="pl-s"><span class="pl-ii">        }</span></span>
+<span class="pl-s"><span class="pl-ii">    ],</span></span>
+<span class="pl-s"><span class="pl-ii">    "file_list": [ Array of files lists of the pricures taken by this motion instance, optional</span></span>
+<span class="pl-s"><span class="pl-ii">        {</span></span>
+<span class="pl-s"><span class="pl-ii">            "name": string, name of the file list, max 64 chars, required</span></span>
+<span class="pl-s"><span class="pl-ii">            "path": string, full path of the pictures, max 512 chars, required</span></span>
+<span class="pl-s"><span class="pl-ii">            "thumbnail_path": string, full path of the pictures thumbnails, max 512 chars, optional</span></span>
+<span class="pl-s"><span class="pl-ii">        }</span></span>
+<span class="pl-s"><span class="pl-ii">    ]</span></span>
+<span class="pl-s"><span class="pl-ii">}</span></span></pre></div>
+
+<h4>
+<a id="success-response-86" class="anchor" href="#success-response-86" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Success response</h4>
+
+<p>Code 200</p>
+
+<h4>
+<a id="error-response-85" class="anchor" href="#error-response-85" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Error Response</h4>
+
+<p>Code 500</p>
+
+<p>Internal Error</p>
+
+<p>OR</p>
+
+<p>Code 400</p>
+
+<p>Error input parameters</p>
+
+<p>Content: json array containing all errors</p>
+
+<h3>
+<a id="modify-an-existing-service-motion-element" class="anchor" href="#modify-an-existing-service-motion-element" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Modify an existing service-motion element</h3>
+
+<h4>
+<a id="url-87" class="anchor" href="#url-87" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><code>/service-motion/@name</code></p>
+
+<h4>
+<a id="method-87" class="anchor" href="#method-87" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Method</h4>
+
+<p><code>PUT</code></p>
+
+<h4>
+<a id="url-parameters-60" class="anchor" href="#url-parameters-60" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL Parameters</h4>
+
+<p><strong>Required</strong></p>
+
+<p><code>@name</code>: name of the element</p>
+
+<h4>
+<a id="data-parameters-19" class="anchor" href="#data-parameters-19" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Data Parameters</h4>
+
+<div class="highlight highlight-source-js"><pre>{
+    <span class="pl-s"><span class="pl-pds">"</span>description<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, description <span class="pl-k">of</span> the element, max <span class="pl-c1">128</span> chars, optional
+    <span class="pl-s"><span class="pl-pds">"</span>config_uri<span class="pl-pds">"</span></span><span class="pl-k">:</span> string, uri <span class="pl-k">of</span> the motion instance configuration to check <span class="pl-k">if</span> it<span class="pl-s"><span class="pl-pds">'</span><span class="pl-ii">s still responding, max 512 chars, required</span></span>
+<span class="pl-s"><span class="pl-ii">    "stream_list": [ Array of streams, optional</span></span>
+<span class="pl-s"><span class="pl-ii">        {</span></span>
+<span class="pl-s"><span class="pl-ii">            "uri": string, uri to access the stream directly from the client, max 512 chars, required</span></span>
+<span class="pl-s"><span class="pl-ii">            "name": string, name of the stream, max 64 chars, required</span></span>
+<span class="pl-s"><span class="pl-ii">            "snapshot_uri": string, uri to run a snapshot command on the stream, max 512 chars, required</span></span>
+<span class="pl-s"><span class="pl-ii">        }</span></span>
+<span class="pl-s"><span class="pl-ii">    ],</span></span>
+<span class="pl-s"><span class="pl-ii">    "file_list": [ Array of files lists of the pricures taken by this motion instance, optional</span></span>
+<span class="pl-s"><span class="pl-ii">        {</span></span>
+<span class="pl-s"><span class="pl-ii">            "name": string, name of the file list, max 64 chars, required</span></span>
+<span class="pl-s"><span class="pl-ii">            "path": string, full path of the pictures, max 512 chars, required</span></span>
+<span class="pl-s"><span class="pl-ii">            "thumbnail_path": string, full path of the pictures thumbnails, max 512 chars, optional</span></span>
+<span class="pl-s"><span class="pl-ii">        }</span></span>
+<span class="pl-s"><span class="pl-ii">    ]</span></span>
+<span class="pl-s"><span class="pl-ii">}</span></span></pre></div>
+
+<h4>
+<a id="success-response-87" class="anchor" href="#success-response-87" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Success response</h4>
+
+<p>Code 200</p>
+
+<h4>
+<a id="error-response-86" class="anchor" href="#error-response-86" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Error Response</h4>
+
+<p>Code 500</p>
+
+<p>Internal Error</p>
+
+<p>OR</p>
+
+<p>Code 400</p>
+
+<p>Error input parameters</p>
+
+<p>Content: json array containing all errors</p>
+
+<p>OR</p>
+
+<p>Code 404</p>
+
+<p>Service-motion element not found</p>
+
+<h3>
+<a id="delete-an-existing-service-motion-element" class="anchor" href="#delete-an-existing-service-motion-element" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Delete an existing service-motion element</h3>
+
+<h4>
+<a id="url-88" class="anchor" href="#url-88" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><code>/service-motion/@name</code></p>
+
+<h4>
+<a id="method-88" class="anchor" href="#method-88" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Method</h4>
+
+<p><code>DELETE</code></p>
+
+<h4>
+<a id="url-parameters-61" class="anchor" href="#url-parameters-61" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL Parameters</h4>
+
+<p><strong>Required</strong></p>
+
+<p><code>@name</code>: name of the element</p>
+
+<h4>
+<a id="success-response-88" class="anchor" href="#success-response-88" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Success response</h4>
+
+<p>Code 200</p>
+
+<h4>
+<a id="error-response-87" class="anchor" href="#error-response-87" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Error Response</h4>
+
+<p>Code 500</p>
+
+<p>Internal Error</p>
+
+<p>OR</p>
+
+<p>Code 404</p>
+
+<p>Service-motion element not found</p>
+
+<h2>
+<a id="service-motion-element-commads" class="anchor" href="#service-motion-element-commads" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Service-motion element commads</h2>
+
+<h3>
+<a id="get-current-status-of-a-service-motion-element" class="anchor" href="#get-current-status-of-a-service-motion-element" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Get current status of a service-motion element</h3>
+
+<h4>
+<a id="url-89" class="anchor" href="#url-89" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><code>/service-motion/@name/status</code></p>
+
+<h4>
+<a id="method-89" class="anchor" href="#method-89" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Method</h4>
+
+<p><code>GET</code></p>
+
+<h4>
+<a id="url-parameters-62" class="anchor" href="#url-parameters-62" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL Parameters</h4>
+
+<p><strong>Required</strong></p>
+
+<p><code>@name</code>: name of the element</p>
+
+<p><strong>Optional</strong></p>
+
+<p><code>offset</code>: offset to start file-list</p>
+
+<p><code>limit</code>: limit of a file-list result number of files</p>
+
+<h4>
+<a id="success-response-89" class="anchor" href="#success-response-89" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Success response</h4>
+
+<p>Code 200</p>
+
+<p>Content</p>
+
+<div class="highlight highlight-source-js"><pre>{
+
+    <span class="pl-s"><span class="pl-pds">"</span>online<span class="pl-pds">"</span></span><span class="pl-k">:</span>boolean, is the motion instance responding<span class="pl-k">?</span>
+    <span class="pl-s"><span class="pl-pds">"</span>file_list<span class="pl-pds">"</span></span><span class="pl-k">:</span>{ <span class="pl-c1">Object</span> containing lists <span class="pl-k">of</span> files
+        <span class="pl-s"><span class="pl-pds">"</span>file_list_name_1<span class="pl-pds">"</span></span><span class="pl-k">:</span>[ <span class="pl-c1">Array</span> <span class="pl-k">of</span> string, each element is a picture file available
+        ],
+        <span class="pl-s"><span class="pl-pds">"</span>file_list_name_2<span class="pl-pds">"</span></span><span class="pl-k">:</span>[ <span class="pl-c1">Array</span> <span class="pl-k">of</span> string, each element is a picture file available
+        ],
+    },
+    <span class="pl-s"><span class="pl-pds">"</span>stream_list<span class="pl-pds">"</span></span><span class="pl-k">:</span>[ <span class="pl-c1">Array</span> <span class="pl-k">of</span> stream objects
+        {
+            <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span>string, name <span class="pl-k">of</span> the stream object
+            <span class="pl-s"><span class="pl-pds">"</span>snapshot_uri<span class="pl-pds">"</span></span><span class="pl-k">:</span>string, uri to run a snapshot command on the stream, max <span class="pl-c1">512</span> chars, required
+            <span class="pl-s"><span class="pl-pds">"</span>uri<span class="pl-pds">"</span></span><span class="pl-k">:</span>uri to access the stream directly from the client, max <span class="pl-c1">512</span> chars, required
+        }
+    ]
+
+}</pre></div>
+
+<h4>
+<a id="error-response-88" class="anchor" href="#error-response-88" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Error Response</h4>
+
+<p>Code 500</p>
+
+<p>Internal Error</p>
+
+<p>OR</p>
+
+<p>Code 400</p>
+
+<p>Error input parameters</p>
+
+<p>Content: json array containing all errors</p>
+
+<p>OR</p>
+
+<p>Code 404</p>
+
+<p>Element not found</p>
+
+<h3>
+<a id="get-a-file-from-a-file-list" class="anchor" href="#get-a-file-from-a-file-list" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Get a file from a file list</h3>
+
+<h4>
+<a id="url-90" class="anchor" href="#url-90" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><code>/service-motion/@name/image/@file_list/@file_name</code></p>
+
+<h4>
+<a id="method-90" class="anchor" href="#method-90" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Method</h4>
+
+<p><code>GET</code></p>
+
+<h4>
+<a id="url-parameters-63" class="anchor" href="#url-parameters-63" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL Parameters</h4>
+
+<p><strong>Required</strong></p>
+
+<p><code>@name</code>: name of the element</p>
+
+<p><code>@file_list</code>: name of the file list</p>
+
+<p><code>@file_name</code>: name of the file</p>
+
+<h4>
+<a id="success-response-90" class="anchor" href="#success-response-90" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Success response</h4>
+
+<p>Code 200</p>
+
+<p>Content</p>
+
+<p>Raw content of the file</p>
+
+<h4>
+<a id="error-response-89" class="anchor" href="#error-response-89" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Error Response</h4>
+
+<p>Code 500</p>
+
+<p>Internal Error</p>
+
+<p>OR</p>
+
+<p>Code 404</p>
+
+<p>Element or file list or file not found</p>
+
+<h3>
+<a id="send-a-snapshot-command-to-a-motion-instance" class="anchor" href="#send-a-snapshot-command-to-a-motion-instance" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Send a snapshot command to a motion instance</h3>
+
+<h4>
+<a id="url-91" class="anchor" href="#url-91" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h4>
+
+<p><code>/service-motion/@name/stream/@stream_name/snapshot</code></p>
+
+<h4>
+<a id="method-91" class="anchor" href="#method-91" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Method</h4>
+
+<p><code>PUT</code></p>
+
+<h4>
+<a id="url-parameters-64" class="anchor" href="#url-parameters-64" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL Parameters</h4>
+
+<p><strong>Required</strong></p>
+
+<p><code>@name</code>: name of the element</p>
+
+<p><code>@stream_name</code>: name of the stream</p>
+
+<h4>
+<a id="success-response-91" class="anchor" href="#success-response-91" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Success response</h4>
+
+<p>Code 200</p>
+
+<h4>
+<a id="error-response-90" class="anchor" href="#error-response-90" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Error Response</h4>
+
+<p>Code 500</p>
+
+<p>Internal Error</p>
+
+<p>OR</p>
+
+<p>Code 404</p>
+
+<p>Element or steam not found</p>
+
+<h1>
 <a id="gareth-api-documentation" class="anchor" href="#gareth-api-documentation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Gareth API Documentation</h1>
 
 <p>In the documentation, we assume you use the prefix <code>/gareth</code>.</p>
@@ -3728,7 +5038,7 @@ heater value<span class="pl-k">:</span>
 <a id="parameters" class="anchor" href="#parameters" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Parameters</h4>
 
 <h5>
-<a id="url-65" class="anchor" href="#url-65" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h5>
+<a id="url-92" class="anchor" href="#url-92" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h5>
 
 <p>None</p>
 
@@ -3757,7 +5067,7 @@ heater value<span class="pl-k">:</span>
 <a id="parameters-1" class="anchor" href="#parameters-1" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Parameters</h4>
 
 <h5>
-<a id="url-66" class="anchor" href="#url-66" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h5>
+<a id="url-93" class="anchor" href="#url-93" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h5>
 
 <ul>
 <li>@filter_name: string, name of an existing filter. If not set, all messages are displayed</li>
@@ -3911,7 +5221,7 @@ Additional tags: front, door
 <a id="parameters-2" class="anchor" href="#parameters-2" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Parameters</h4>
 
 <h5>
-<a id="url-67" class="anchor" href="#url-67" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h5>
+<a id="url-94" class="anchor" href="#url-94" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h5>
 
 <p>None</p>
 
@@ -3969,7 +5279,7 @@ Additional tags: front, door
 <a id="parameters-3" class="anchor" href="#parameters-3" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Parameters</h4>
 
 <h5>
-<a id="url-68" class="anchor" href="#url-68" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h5>
+<a id="url-95" class="anchor" href="#url-95" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h5>
 
 <ul>
 <li>
@@ -4029,7 +5339,7 @@ Additional tags: front, door
 <a id="parameters-4" class="anchor" href="#parameters-4" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Parameters</h4>
 
 <h5>
-<a id="url-69" class="anchor" href="#url-69" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h5>
+<a id="url-96" class="anchor" href="#url-96" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h5>
 
 <ul>
 <li>
@@ -4088,7 +5398,7 @@ Additional tags: front, door
 <a id="parameters-5" class="anchor" href="#parameters-5" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Parameters</h4>
 
 <h5>
-<a id="url-70" class="anchor" href="#url-70" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h5>
+<a id="url-97" class="anchor" href="#url-97" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h5>
 
 <ul>
 <li>
@@ -4146,7 +5456,7 @@ Additional tags: front, door
 <a id="parameters-6" class="anchor" href="#parameters-6" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Parameters</h4>
 
 <h5>
-<a id="url-71" class="anchor" href="#url-71" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h5>
+<a id="url-98" class="anchor" href="#url-98" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>URL</h5>
 
 <ul>
 <li>
@@ -4570,17 +5880,6 @@ Additional tags: front, door
 <span class="pl-c"> * </span>
 <span class="pl-c"> */</span>
 <span class="pl-c1">json_t</span> * <span class="pl-en">c_service_exec</span>(<span class="pl-k">struct</span> _carleon_config * config, <span class="pl-k">const</span> <span class="pl-k">char</span> * command, <span class="pl-k">const</span> <span class="pl-k">char</span> * element, <span class="pl-c1">json_t</span> * parameters);</pre></div>
-
-<h2>
-<a id="services-api" class="anchor" href="#services-api" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Services API</h2>
-
-<p>Each service implement its own API. The current documentation can be fund here:</p>
-
-<ul>
-<li><a href="API.mock.md">mock service API</a></li>
-<li><a href="API.motion.md">motion service API</a></li>
-<li><a href="API.mpd.md">mpd service API</a></li>
-</ul>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/babelouest/angharad">Angharad</a> is maintained by <a href="https://github.com/babelouest">babelouest</a>.</span>
