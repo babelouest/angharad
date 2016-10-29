@@ -1,0 +1,300 @@
+<!doctype html>
+<!-- The Time Machine GitHub pages theme was designed and developed by Jon Rohan, on Feb 7, 2012. -->
+<!-- Follow him for fun. http://twitter.com/jonrohan. Tail his code on https://github.com/jonrohan -->
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <link rel="stylesheet" href="stylesheets/stylesheet.css" media="screen">
+  <link rel="stylesheet" href="stylesheets/github-dark.css">
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script type="text/javascript" src="javascripts/script.js"></script>
+
+  <title>Angharad</title>
+  <meta name="description" content="House automation system with a REST/Json interface">
+
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+</head>
+
+<body>
+
+  <div class="wrapper">
+    <header>
+      <h1 class="title">Angharad</h1>
+    </header>
+    <div id="container">
+      <p class="tagline">House automation system with a REST/Json interface</p>
+      <div id="main" role="main">
+        <div class="download-bar">
+        <div class="inner">
+          <a href="https://github.com/babelouest/angharad/tarball/master" class="download-button tar"><span>Download</span></a>
+          <a href="https://github.com/babelouest/angharad/zipball/master" class="download-button zip"><span>Download</span></a>
+          <a href="https://github.com/babelouest/angharad" class="code">View Angharad on GitHub</a>
+        </div>
+        <span class="blc"></span><span class="trc"></span>
+        </div>
+        <article class="markdown-body">
+          <h1>
+<a id="angharad" class="anchor" href="#angharad" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Angharad</h1>
+
+<p>House automation system API server</p>
+
+<p><img src="https://github.com/babelouest/sagremor/raw/master/snapshots/dashboard-filled.png" alt="example snapshot">
+Central program and orchestrator of the following submodules:</p>
+
+<ul>
+<li>
+<a href="https://github.com/babelouest/benoic">Benoic</a>: Command house automation devices as lights, heaters, sensors, switches. Currently <a href="http://www.z-wave.com/">ZWave</a> and <a href="https://github.com/babelouest/taulas">Taulas</a> devices are supported</li>
+<li>
+<a href="https://github.com/babelouest/carleon">Carleon</a>: Command house automation side services (music, camera, etc)</li>
+<li>
+<a href="https://github.com/babelouest/gareth">Gareth</a>: Logs and messenger service</li>
+</ul>
+
+<p>Angharad integrates all those submodules functionnalities and manages scripts, events, user profiles, and a small static file server.</p>
+
+<p>Benoic and Carleon implement a dynamic lbrary loading interface to add/remove/update modules without having to recompile all the system every time an update or an improvement is made.</p>
+
+<p>Each module are compiled independently and have its own dependencies.</p>
+
+<h1>
+<a id="prerequisites" class="anchor" href="#prerequisites" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Prerequisites</h1>
+
+<p>All Angharad system, its submodules and its custom libraries are written in C language, for better preformance and lightweight resources consumption. GCC and Makefile were used for the development.</p>
+
+<h2>
+<a id="external-dependencies" class="anchor" href="#external-dependencies" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>External dependencies</h2>
+
+<h3>
+<a id="tldr" class="anchor" href="#tldr" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TL;DR</h3>
+
+<p>On Debian-based systems (Debian, Raspbian, Ubuntu), use the following comand to install dependencies:</p>
+
+<div class="highlight highlight-source-shell"><pre>sudo apt-get install libmicrohttpd-dev libjansson-dev libcurl4-gnutls-dev uuid-dev libldap2-dev libmysqlclient-dev libsqlite3-dev libconfig-dev
+
+git clone https://github.com/babelouest/orcania.git
+<span class="pl-c1">cd</span> orcania
+make
+sudo make install
+
+git clone https://github.com/babelouest/yder.git
+<span class="pl-c1">cd</span> yder/src
+make
+sudo make install
+
+git clone https://github.com/babelouest/ulfius.git
+<span class="pl-c1">cd</span> ulfius/src
+make
+sudo make install
+
+git clone https://github.com/babelouest/hoel.git
+<span class="pl-c1">cd</span> hoel/src
+make
+sudo make install</pre></div>
+
+<p>The following external libraries are required to build Angharad:</p>
+
+<ul>
+<li>
+<a href="https://sourceforge.net/projects/libuuid/">libuuid</a>, UUID generator</li>
+<li>
+<a href="http://www.openldap.org/devel//cvsweb.cgi/libraries/libldap?hideattic=0&amp;sortbydate=0">libldap</a>, ldap API</li>
+<li>
+<a href="http://www.hyperrealm.com/libconfig/">libconfig</a>, Configuration File Library</li>
+<li>
+<a href="http://www.digip.org/jansson/">jansson</a>, json manipulation library</li>
+</ul>
+
+<p>The following other external libraries are required to build angharad dependencies:</p>
+
+<ul>
+<li>
+<a href="https://www.gnu.org/software/libmicrohttpd/">libmicrohttpd</a>, HTTP server library</li>
+<li>
+<a href="https://curl.haxx.se/libcurl/">libcurl</a>, HTTP client library</li>
+<li>
+<a href="https://dev.mysql.com/doc/refman/5.7/en/c-api.html">MySQL client API</a>, MySQL/MariaDB API</li>
+<li>
+<a href="https://www.sqlite.org/">SQLite3</a>, SQLite API</li>
+</ul>
+
+<p>And finally, Angharad depends on the following libraries:</p>
+
+<ul>
+<li>
+<a href="https://github.com/babelouest/orcania">Orcania</a>, Potluck with different functions for different purposes that can be shared among angharad programs</li>
+<li>
+<a href="https://github.com/babelouest/yder">Yder</a>, Logging library</li>
+<li>
+<a href="https://github.com/babelouest/ulfius">Ulfius</a>, Web Framework for REST Applications</li>
+<li>
+<a href="https://github.com/babelouest/hoel">Hoel</a>, Database abstraction library</li>
+</ul>
+
+<h2>
+<a id="benoic-modules-prerequisites" class="anchor" href="#benoic-modules-prerequisites" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Benoic modules prerequisites</h2>
+
+<p>Benoic implements a ZWave module to control ZWave nodes and a <a href="https://github.com/babelouest/taulas">Taulas</a> module.</p>
+
+<p>The Benoic module is based on the <a href="http://www.openzwave.net/">OpenZwave library</a>. You must download and install this library before installing benoic zwave device module, version 1.2 or above, preferably a stable version.</p>
+
+<h2>
+<a id="carleon-modules-prerequisites" class="anchor" href="#carleon-modules-prerequisites" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Carleon modules prerequisites</h2>
+
+<p>Carleon modules available are the following:</p>
+
+<ul>
+<li>Motion control, to view pictures and real-time streams of a motion application</li>
+<li>MPD Control, for basic control of a MPD instance: volume, play/pause/stop and playlist loading, depends on <a href="https://www.musicpd.org/libs/libmpdclient/">libmpdclient</a> (<code>apt-get install libmpdclient-dev</code>)</li>
+<li>Liquidsoap Control, for basic control of a <a href="http://liquidsoap.fm/">liquidsoap</a> based webradio: play/stop/next and view the 10 last played songs</li>
+</ul>
+
+<h1>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installation</h1>
+
+<h2>
+<a id="main-system-compilation" class="anchor" href="#main-system-compilation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Main system compilation</h2>
+
+<p>When all prerequisites are installed, clone angharad from github, and git install submodules:</p>
+
+<div class="highlight highlight-source-shell"><pre>git clone https://github.com/babelouest/angharad.git
+<span class="pl-c1">cd</span> angharad
+git submodule update --init
+make</pre></div>
+
+<p>This will compile angharad program, and all device-modules for Benoic and services for Carleon.</p>
+
+<h2>
+<a id="full-system-installation" class="anchor" href="#full-system-installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Full system installation</h2>
+
+<p>Go back to angharad source folder, then as root, run <code>make install</code>:</p>
+
+<div class="highlight highlight-source-shell"><pre><span class="pl-c1">cd</span> angharad
+sudo make install</pre></div>
+
+<h2>
+<a id="benoic-modules" class="anchor" href="#benoic-modules" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Benoic modules</h2>
+
+<p>Benoic modules are located in the folder <code>benoic/device-modules</code>. If you want to adapt or change the modules for your needs, you can manually compile them.</p>
+
+<p>The module named <code>device-mock.c</code> is a mock device that is used to test the behaviour of a module with benoic and angharad systems. A mock device doesn't control any real hardware, but simulates the behaviour of a device. You can use it to help you write your own device module.</p>
+
+<div class="highlight highlight-source-shell"><pre><span class="pl-c1">cd</span> benoic/device-modules
+make libdevzwave.so <span class="pl-c"># For ZWave device</span>
+make libdevtaulas.so <span class="pl-c"># For Taulas device</span>
+make libdevmock.so <span class="pl-c"># For mock device</span>
+sudo make install <span class="pl-c"># to install compiled devices in $PREFIX/lib/angharad/benoic directory</span></pre></div>
+
+<h2>
+<a id="carleon-modules" class="anchor" href="#carleon-modules" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Carleon modules</h2>
+
+<p>Carleon service are located in the folder <code>carleon/service-modules/</code>.</p>
+
+<p>The service named <code>service-mock.c</code> is a mock service that is used to test the behaviour of a service with carleon and angharad systems. A mock service doesn't control any real service, but simulates one. You can use it to help you write your own service.</p>
+
+<div class="highlight highlight-source-shell"><pre><span class="pl-c1">cd</span> carleon/service-modules/
+make libservicemotion.so <span class="pl-c"># For Motion service</span>
+make libservicempd.so <span class="pl-c"># For MPD service</span>
+make libserviceliquidsoap.so <span class="pl-c"># For MPD service</span>
+make libservicemock.so <span class="pl-c"># For mock service</span>
+sudo make install <span class="pl-c"># to install compiled devices in $PREFIX/lib/angharad/carleon directory</span></pre></div>
+
+<h2>
+<a id="database-installation" class="anchor" href="#database-installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Database installation</h2>
+
+<p>Depending on your needs, you can use a sqlite3 database (single file, fast and reliable) or a MySQL Database (fast and reliable as well but also more secure).</p>
+
+<h3>
+<a id="mysql-installation" class="anchor" href="#mysql-installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>MySQL Installation</h3>
+
+<p>Run the SQL script angharad.mariadb.sql file under an already existing database.</p>
+
+<div class="highlight highlight-source-shell"><pre>mysql <span class="pl-k">&lt;</span> angharad.mariadb.sql</pre></div>
+
+<h3>
+<a id="sqlite3-installation" class="anchor" href="#sqlite3-installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>SQLite3 installation</h3>
+
+<p>Run the SQL script angharad.sqlite3.sql file in an existing or a new SQLite3 database file:</p>
+
+<div class="highlight highlight-source-shell"><pre>sqlite3 angharad.db <span class="pl-k">&lt;</span> angharad.sqlite3.sql</pre></div>
+
+<h1>
+<a id="configuration" class="anchor" href="#configuration" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Configuration</h1>
+
+<p>The file angharad.conf.sample contains a sample file with all the configuration parameters needed, just fill the parameters with your own environment. Paths can be relatives or absolute.</p>
+
+<p>Copy <code>angharad.conf.sample</code> into your configuration folder as <code>angharad.conf</code></p>
+
+<div class="highlight highlight-source-shell"><pre>cp angharad.conf.sample /usr/local/etc/angharad.conf</pre></div>
+
+<h2>
+<a id="static-file-server" class="anchor" href="#static-file-server" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Static file server</h2>
+
+<p><code>static_files_path</code> and <code>static_files_prefix</code> are used for the static files server, in this case, <a href="https://github.com/babelouest/sagremor">Sagremor</a> is the dedicated web application and can be hosted there.</p>
+
+<p>Beware that the static web server is not secured with SSL connection, so don't use it outside a trusted network. i.e., don't forward ports directly outside your network.</p>
+
+<p>If you want to access angharad in a secure connection, you can use apache <code>mod_proxy</code> and an https instance for example, and embed angharad access in it.</p>
+
+<h2>
+<a id="database" class="anchor" href="#database" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Database</h2>
+
+<p>Specify the database parameters in the <code>database {}</code> block, depending on your database configuration (SQLite3 or MySQL).</p>
+
+<h2>
+<a id="authentication" class="anchor" href="#authentication" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Authentication</h2>
+
+<p>Currently, 2 types of authentication are supported, database users or LDAP authentication. If you use database authentication, you can manage users with the dedicated API.</p>
+
+<p>Please note that users and profile are not linked, any authenticated user can use any profile.</p>
+
+<h1>
+<a id="run-angharad" class="anchor" href="#run-angharad" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Run Angharad</h1>
+
+<p>To run angharad, simply execute the command:</p>
+
+<div class="highlight highlight-source-shell"><pre>/usr/local/bin/angharad --config-file=/usr/local/etc/angharad.conf</pre></div>
+
+<p>Check the log messages in the log file, syslog or the console, depending on your configuration, then the server will be up and running when you'll se the following log message:</p>
+
+<pre lang="log"><code>yyyy-mm-dd hh:mm:ss - Angharad INFO: Start angharad on port 2473
+</code></pre>
+
+<p>Now you can access Angharad API via a third party application like <a href="https://github.com/babelouest/sagremor">Sagremor</a>.</p>
+
+<h1>
+<a id="api-documentation" class="anchor" href="#api-documentation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>API Documentation</h1>
+
+<p>The full API Documentation can be found in the files <code>API.md</code> (except for Gareth who is a loner):</p>
+
+<ul>
+<li><a href="API.md">Angharad API</a></li>
+<li><a href="https://github.com/babelouest/benoic/blob/master/API.md">Benoic API</a></li>
+<li><a href="https://github.com/babelouest/carleon/blob/master/API.md">Carleon API</a></li>
+<li><a href="https://github.com/babelouest/gareth">Gareth API</a></li>
+</ul>
+        </article>
+      </div>
+    </div>
+    <footer>
+      <div class="owner">
+      <p><a href="https://github.com/babelouest" class="avatar"><img src="https://avatars2.githubusercontent.com/u/3966617?v=3&amp;s=60" width="48" height="48"></a> <a href="https://github.com/babelouest">babelouest</a> maintains <a href="https://github.com/babelouest/angharad">Angharad</a></p>
+
+
+      </div>
+      <div class="creds">
+        <small>This page generated using <a href="https://pages.github.com/">GitHub Pages</a><br>theme by <a href="https://twitter.com/jonrohan/">Jon Rohan</a></small>
+      </div>
+    </footer>
+  </div>
+  <div class="current-section">
+    <a href="#top">Scroll to top</a>
+    <a href="https://github.com/babelouest/angharad/tarball/master" class="tar">tar</a><a href="https://github.com/babelouest/angharad/zipball/master" class="zip">zip</a><a href="" class="code">source code</a>
+    <p class="name"></p>
+  </div>
+
+  
+</body>
+</html>
