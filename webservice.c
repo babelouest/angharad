@@ -29,6 +29,10 @@
 #include "angharad.h"
 
 int callback_angharad_root_url (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  char * redirect = msprintf("%s/", ((struct config_elements *)user_data)->static_files_prefix);
+  response->status = 302;
+  u_map_put(response->map_header, "Location", redirect);
+  free(redirect);
   return U_OK;
 }
 
