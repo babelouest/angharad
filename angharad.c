@@ -25,6 +25,9 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#include <libconfig.h>
+#include <getopt.h>
+#include <signal.h>
 
 #include "angharad.h"
 

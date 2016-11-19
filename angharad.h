@@ -29,19 +29,15 @@
 #ifndef __ANGHARAD_H_
 #define __ANGHARAD_H_
 
-#include <libconfig.h>
-#include <getopt.h>
-#include <signal.h>
-#include <jansson.h>
-#include <math.h>
+#define _ANGHARAD_VERSION 1.0
 
 // Angharad libraries
+#include <orcania.h>
+#include <yder.h>
 #include <ulfius.h>
 #define _HOEL_MARIADB
 #define _HOEL_SQLITE
 #include <hoel.h>
-#include <orcania.h>
-#include <yder.h>
 
 // Angharad submodules
 #include "benoic/benoic.h"
