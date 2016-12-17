@@ -26,6 +26,7 @@
  *
  */
 
+#include <string.h>
 #include "angharad.h"
 #include "md5.h"
 

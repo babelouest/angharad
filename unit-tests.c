@@ -31,6 +31,7 @@
  */
 
 #include <string.h>
+#include <time.h>
 #include <jansson.h>
 #include <ulfius.h>
 #include <orcania.h>

@@ -25,6 +25,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#include <string.h>
 #include <libconfig.h>
 #include <getopt.h>
 #include <signal.h>

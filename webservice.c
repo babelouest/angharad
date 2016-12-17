@@ -26,6 +26,7 @@
  *
  */
 
+#include <string.h>
 #include "angharad.h"
 
 int callback_angharad_root_url (const struct _u_request * request, struct _u_response * response, void * user_data) {
