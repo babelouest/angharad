@@ -819,193 +819,6 @@ int callback_carleon_profile_remove (const struct _u_request * request, struct _
     return U_OK;
   }
 }
-
-int callback_angharad_user_list (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  json_t * j_user;
-  
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
-  if (user_data == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_user_list - Error, user_data is NULL");
-    return U_ERROR_PARAMS;
-  } else {
-    j_user = user_get((struct config_elements *)user_data, NULL);
-    if (j_user == NULL || json_integer_value(json_object_get(j_user, "result")) == A_ERROR) {
-      y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_user_list - Error getting user list, aborting");
-      response->status = 500;
-    } else {
-      response->json_body = json_copy(json_object_get(j_user, "users"));
-    }
-    json_decref(j_user);
-    return U_OK;
-  }
-}
-
-int callback_angharad_user_get (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  json_t * j_user;
-  
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
-  if (user_data == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_user_get - Error, user_data is NULL");
-    return U_ERROR_PARAMS;
-  } else {
-    j_user = user_get((struct config_elements *)user_data, u_map_get(request->map_url, "user_name"));
-    if (j_user == NULL || json_integer_value(json_object_get(j_user, "result")) == A_ERROR) {
-      y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_user_get - Error getting user, aborting");
-      response->status = 500;
-    } else if (json_integer_value(json_object_get(j_user, "result")) == A_ERROR_NOT_FOUND) {
-      response->status = 404;
-    } else {
-      response->json_body = json_copy(json_object_get(j_user, "user"));
-    }
-    json_decref(j_user);
-    return U_OK;
-  }
-}
-
-int callback_angharad_user_add (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  json_t * valid;
-  int res;
-  
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
-  if (user_data == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_user_get - Error, user_data is NULL");
-    return U_ERROR_PARAMS;
-  } else {
-    valid = is_user_valid((struct config_elements *)user_data, request->json_body, 0);
-    if (valid != NULL && json_array_size(valid) == 0) {
-      json_decref(valid);
-      valid = user_get((struct config_elements *)user_data, json_string_value(json_object_get(request->json_body, "login")));
-      if (valid == NULL || json_integer_value(json_object_get(valid, "result")) == A_ERROR) {
-        response->status = 500;
-      } else if (json_integer_value(json_object_get(valid, "result")) == A_ERROR_NOT_FOUND) {
-        json_decref(valid);
-        res = user_add((struct config_elements *)user_data, request->json_body);
-        if (res == A_ERROR) {
-          response->status = 500;
-        }
-      } else {
-        json_decref(valid);
-        response->status = 400;
-        response->json_body = json_pack("{ss}", "error", "login already exist");
-      }
-    } else if (valid != NULL) {
-      response->json_body = valid;
-      response->status = 400;
-    } else {
-      response->status = 500;
-    }
-    return U_OK;
-  }
-}
-
-int callback_angharad_user_modify (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  json_t * valid, * user;
-  int res;
-  
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
-  if (user_data == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_user_modify - Error, user_data is NULL");
-    return U_ERROR_PARAMS;
-  } else {
-    user = user_get((struct config_elements *)user_data, u_map_get(request->map_url, "user_name"));
-    if (user == NULL) {
-    } else if (json_integer_value(json_object_get(user, "result")) == A_ERROR_NOT_FOUND) {
-      response->status = 404;
-    } else if (json_integer_value(json_object_get(user, "result")) == A_OK) {
-      valid = is_user_valid((struct config_elements *)user_data, request->json_body, 1);
-      if (valid != NULL && json_array_size(valid) == 0) {
-        json_decref(valid);
-        res = user_modify((struct config_elements *)user_data, u_map_get(request->map_url, "user_name"), request->json_body);
-        if (res == A_OK) {
-          response->status = 200;
-        } else {
-          response->status = 500;
-        }
-      } else if (valid != NULL) {
-        response->json_body = valid;
-        response->status = 400;
-      } else {
-        response->status = 500;
-      }
-    } else {
-      response->status = 500;
-    }
-    json_decref(user);
-    return U_OK;
-  }
-}
-
-int callback_angharad_user_remove (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  int res;
-  json_t * user;
-  
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
-  if (user_data == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_user_remove - Error, user_data is NULL");
-    return U_ERROR_PARAMS;
-  } else {
-    user = user_get((struct config_elements *)user_data, u_map_get(request->map_url, "user_name"));
-    if (user == NULL) {
-    } else if (json_integer_value(json_object_get(user, "result")) == A_ERROR_NOT_FOUND) {
-      response->status = 404;
-    } else if (json_integer_value(json_object_get(user, "result")) == A_OK) {
-      res = user_delete((struct config_elements *)user_data, u_map_get(request->map_url, "user_name"));
-      if (res == A_OK) {
-        response->status = 200;
-      } else if (res == A_ERROR_NOT_FOUND) {
-        response->status = 404;
-      } else {
-        response->status = 500;
-      }
-    } else {
-      response->status = 500;
-    }
-    json_decref(user);
-    return U_OK;
-  }
-}
-
-int callback_angharad_token_list (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  json_t * j_token_list;
-  
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
-  if (user_data == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_token_list - Error, user_data is NULL");
-    return U_ERROR_PARAMS;
-  } else {
-    j_token_list = token_get_list((struct config_elements *)user_data, u_map_get(request->map_url, "login"), u_map_get(request->map_url, "enabled"));
-    if (j_token_list == NULL || json_integer_value(json_object_get(j_token_list, "result")) == A_ERROR) {
-      y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_token_list - Error getting token list, aborting");
-      response->status = 500;
-    } else {
-      response->json_body = json_copy(json_object_get(j_token_list, "tokens"));
-    }
-    json_decref(j_token_list);
-    return U_OK;
-  }
-}
-
-int callback_angharad_token_revoke (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  int res;
-  
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
-  if (user_data == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_token_revoke - Error, user_data is NULL");
-    return U_ERROR_PARAMS;
-  } else if (request->json_body == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_token_revoke - Error, no json body");
-    return U_ERROR_PARAMS;
-  } else {
-    res = token_revoke((struct config_elements *)user_data, request->json_body);
-    if (res == A_ERROR_NOT_FOUND) {
-      response->status = 404;
-    } else if (res != A_OK) {
-      response->status = 500;
-    }
-    return U_OK;
-  }
-}
-
 int callback_angharad_static_file (const struct _u_request * request, struct _u_response * response, void * user_data) {
   void * buffer = NULL;
   size_t length, res;
@@ -1064,172 +877,37 @@ int callback_angharad_static_file (const struct _u_request * request, struct _u_
   return U_OK;
 }
 
-int callback_angharad_auth_get (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  json_t * result;
-  time_t now;
-  const char * session_id;
-  
-  if (user_data == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_auth_get - Error, user_data is NULL");
-    return U_ERROR_PARAMS;
-  } else if (!((struct config_elements *)user_data)->has_auth_database && !((struct config_elements *)user_data)->has_auth_ldap) {
-    return U_OK;
-  } else {
-    session_id = u_map_get(request->map_cookie, "ANGHARAD_SESSION_ID");
-    if (session_id == NULL) {
-      session_id = u_map_get(request->map_header, "ANGHARAD_SESSION_ID");
-    }
-    
-    result = auth_get((struct config_elements *)user_data, session_id);
-    
-    if (result != NULL && json_integer_value(json_object_get(result, "result")) == A_OK) {
-      if (auth_update_last_seen((struct config_elements *)user_data, json_string_value(json_object_get(json_object_get(result, "session"), "token"))) == A_OK) {
-        time(&now);
-        response->json_body = json_copy(json_object_get(result, "session"));
-        ulfius_add_cookie_to_response(response, "ANGHARAD_SESSION_ID", json_string_value(json_object_get(json_object_get(result, "session"), "token")), NULL, (json_integer_value(json_object_get(json_object_get(result, "session"), "validity")) - now), NULL, "/", 0, 0);
-      } else {
-        response->status = 500;
-      }
-    } else {
-      response->status = 401;
-    }
-    
-    json_decref(result);
-  }
-  return U_OK;
-}
-
-int callback_angharad_auth_check (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  json_t * result;
-  int cookie_max_age = 0, user_validity = 0;
-  time_t now;
-  struct tm* tm;
-  
-  if (user_data == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_auth_check - Error, user_data is NULL");
-    return U_ERROR_PARAMS;
-  } else if (!((struct config_elements *)user_data)->has_auth_database && !((struct config_elements *)user_data)->has_auth_ldap) {
-    return U_OK;
-  } else if (request->json_body == NULL || json_object_get(request->json_body, "user") == NULL || !json_is_string(json_object_get(request->json_body, "user")) ||
-             json_object_get(request->json_body, "password") == NULL || !json_is_string(json_object_get(request->json_body, "password")) ||
-             (json_object_get(request->json_body, "validity") != NULL && !json_is_integer(json_object_get(request->json_body, "validity")))) {
-    response->status = 400;
-    response->json_body = json_pack("{ss}", "error", "Invalid parameters");
-    return U_OK;
-  } else {
-    time(&now);
-    if (json_integer_value(json_object_get(request->json_body, "validity")) < 60 || json_object_get(request->json_body, "validity") == NULL) {
-      // Session token
-      user_validity = 0;
-    } else if (json_integer_value(json_object_get(request->json_body, "validity")) <= (60*60)) {
-      // 1 hour session
-      user_validity = now + (60*60);
-    } else if (json_integer_value(json_object_get(request->json_body, "validity")) <= (12*60*60)) {
-      // 12 hour session
-      user_validity = now + (12*60*60);
-    } else if (json_integer_value(json_object_get(request->json_body, "validity")) <= (24*60*60)) {
-      // 1 day session
-      user_validity = now + (24*60*60);
-    } else if (json_integer_value(json_object_get(request->json_body, "validity")) <= (7*12*60*60)) {
-      // 1 week session
-      user_validity = now + (7*24*60*60);
-    } else {
-      // 10 years session
-      tm = localtime(&now);
-      tm->tm_year += 10;
-      user_validity = mktime(tm);
-    }
-    result = auth_check((struct config_elements *)user_data,
-                        json_string_value(json_object_get(request->json_body, "user")),
-                        json_string_value(json_object_get(request->json_body, "password")),
-                        user_validity);
-    if (result != NULL && json_integer_value(json_object_get(result, "result")) == A_OK) {
-      response->json_body = json_copy(json_object_get(result, "session"));
-      if (json_object_get(request->json_body, "validity") != NULL) {
-        if (now < json_integer_value(json_object_get(request->json_body, "validity"))) {
-          cookie_max_age = user_validity - now;
-        }
-      }
-      ulfius_add_cookie_to_response(response, "ANGHARAD_SESSION_ID", json_string_value(json_object_get(json_object_get(result, "session"), "token")), NULL, cookie_max_age, NULL, "/", 0, 0);
-    } else {
-      // Invalidate cookie
-      ulfius_add_cookie_to_response(response, "ANGHARAD_SESSION_ID", "deleted", "Thu, 01 Jan 1970 00:00:00 GMT", 0, NULL, "/", 0, 0);
-      response->status = 401;
-    }
-    json_decref(result);
-    return U_OK;
-  }
-}
-
-// Invalidate session if exist
-int callback_angharad_auth_delete (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  json_t * result;
-  const char * session_id;
-  
-  if (user_data == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_auth_get - Error, user_data is NULL");
-    return U_ERROR_PARAMS;
-  } else {
-    session_id = u_map_get(request->map_cookie, "ANGHARAD_SESSION_ID");
-    if (session_id == NULL) {
-      session_id = u_map_get(request->map_header, "ANGHARAD_SESSION_ID");
-    }
-    result = auth_get((struct config_elements *)user_data, session_id);
-    
-    if (result != NULL && json_integer_value(json_object_get(result, "result")) == A_OK) {
-      if (auth_invalidate((struct config_elements *)user_data, session_id) != A_OK) {
-        response->status = 500;
-      } else {
-        ulfius_add_cookie_to_response(response, "ANGHARAD_SESSION_ID", "deleted", "Thu, 01 Jan 1970 00:00:00 GMT", 0, NULL, "/", 0, 0);
-      }
-    } else {
-      response->status = 401;
-    }
-    
-    json_decref(result);
-  }
-  return U_OK;
-}
-
-int callback_angharad_auth_function (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  json_t * result;
-  const char * session_id;
-  
-  if (user_data == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_auth_get - Error, user_data is NULL");
-    return U_ERROR_PARAMS;
-  } else if (!((struct config_elements *)user_data)->has_auth_database && !((struct config_elements *)user_data)->has_auth_ldap) {
-    return U_OK;
-  } else {
-    session_id = u_map_get(request->map_cookie, "ANGHARAD_SESSION_ID");
-    if (session_id == NULL) {
-      session_id = u_map_get(request->map_header, "ANGHARAD_SESSION_ID");
-    }
-    result = auth_get((struct config_elements *)user_data, session_id);
-    
-    if (result != NULL && json_integer_value(json_object_get(result, "result")) == A_OK) {
-      json_decref(result);
-      if (auth_update_last_seen((struct config_elements *)user_data, session_id) == A_OK) {
-        return U_OK;
-      } else {
-        return U_ERROR_PARAMS;
-      }
-    } else {
-      json_decref(result);
-      return U_ERROR_UNAUTHORIZED;
-    }
-    
-  }
-  return U_OK;
-}
-
 int callback_angharad_no_auth_function (const struct _u_request * request, struct _u_response * response, void * user_data) {
   return U_OK;
 }
 
 int callback_angharad_options (const struct _u_request * request, struct _u_response * response, void * user_data) {
   u_map_put(response->map_header, "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  u_map_put(response->map_header, "Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, ANGHARAD_SESSION_ID");
+  u_map_put(response->map_header, "Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
   u_map_put(response->map_header, "Access-Control-Max-Age", "1800");
   return U_OK;
+}
+
+/**
+ * check if bearer token has angharad scope
+ */
+int callback_angharad_check_scope_admin (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  struct config_elements * config = (struct config_elements *)user_data;
+  json_t * j_session = NULL;
+  int res = U_ERROR_UNAUTHORIZED, i, count;
+  char ** scope_list;
+  
+  j_session = access_token_check(config, u_map_get(request->map_header, "Authorization"));
+  if (check_result_value(j_session, A_OK)) {
+    count = split_string(json_string_value(json_object_get(json_object_get(j_session, "grants"), "scope")), " ", &scope_list);
+    for (i=0; count > 0 && scope_list[i] != NULL; i++) {
+      if (strcmp(scope_list[i], config->oauth_scope) == 0) {
+        res = U_OK;
+        break;
+      }
+    }
+    free_string_array(scope_list);
+  }
+  json_decref(j_session);
+  return res;
 }

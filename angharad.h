@@ -29,7 +29,7 @@
 #ifndef __ANGHARAD_H_
 #define __ANGHARAD_H_
 
-#define _ANGHARAD_VERSION 1.0
+#define _ANGHARAD_VERSION 1.1
 
 // Angharad libraries
 #include <orcania.h>
@@ -38,6 +38,8 @@
 #define _HOEL_MARIADB
 #define _HOEL_SQLITE
 #include <hoel.h>
+
+#include <jwt.h>
 
 // Angharad submodules
 #include "benoic/benoic.h"
@@ -59,6 +61,8 @@
 #define GARETH_DEFAULT_PREFIX       "gareth"
 #define ALLOW_ORIGIN_DEFAULT        "*"
 #define STATIC_FILES_PREFIX_DEFAULT "sagremor"
+
+#define PREFIX_BEARER               "Bearer "
 
 #define MODULE_RESULT_ERROR     0
 #define MODULE_RESULT_OK        1
@@ -144,9 +148,9 @@ struct config_elements {
   struct _benoic_config  * b_config;
   struct _carleon_config * c_config;
   unsigned int             angharad_status;
-  unsigned int             has_auth_database;
-  unsigned int             has_auth_ldap;
-  struct _auth_ldap      * auth_ldap;
+  char *                   oauth_scope;
+  char *                   jwt_decode_key;
+  jwt_alg_t                jwt_alg;
 };
 
 int global_handler_variable;
@@ -158,6 +162,7 @@ void exit_handler(int handler);
 void exit_server(struct config_elements ** config, int exit_value);
 void print_help(FILE * output);
 char * get_alert_url(struct config_elements * config);
+char * get_file_content(const char * file_path);
 
 json_t * submodule_get(struct config_elements * config, const char * submodule);
 int submodule_enable(struct config_elements * config, const char * submodule, int enabled);
@@ -281,12 +286,6 @@ int callback_carleon_profile_add (const struct _u_request * request, struct _u_r
 int callback_carleon_profile_set (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_carleon_profile_remove (const struct _u_request * request, struct _u_response * response, void * user_data);
 
-int callback_angharad_user_list (const struct _u_request * request, struct _u_response * response, void * user_data);
-int callback_angharad_user_get (const struct _u_request * request, struct _u_response * response, void * user_data);
-int callback_angharad_user_add (const struct _u_request * request, struct _u_response * response, void * user_data);
-int callback_angharad_user_modify (const struct _u_request * request, struct _u_response * response, void * user_data);
-int callback_angharad_user_remove (const struct _u_request * request, struct _u_response * response, void * user_data);
-
 int callback_angharad_static_file (const struct _u_request * request, struct _u_response * response, void * user_data);
 
 int callback_angharad_options (const struct _u_request * request, struct _u_response * response, void * user_data);
@@ -295,14 +294,9 @@ int callback_angharad_root_url (const struct _u_request * request, struct _u_res
 
 int callback_angharad_default (const struct _u_request * request, struct _u_response * response, void * user_data);
 
-int callback_angharad_auth_get (const struct _u_request * request, struct _u_response * response, void * user_data);
-int callback_angharad_auth_check (const struct _u_request * request, struct _u_response * response, void * user_data);
-int callback_angharad_auth_delete (const struct _u_request * request, struct _u_response * response, void * user_data);
-
-int callback_angharad_token_list (const struct _u_request * request, struct _u_response * response, void * user_data);
-int callback_angharad_token_revoke (const struct _u_request * request, struct _u_response * response, void * user_data);
-
-int callback_angharad_auth_function (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_no_auth_function (const struct _u_request * request, struct _u_response * response, void * user_data);
+
+json_t * access_token_check(struct config_elements * config, const char * header_value);
+int callback_angharad_check_scope_admin (const struct _u_request * request, struct _u_response * response, void * user_data);
 
 #endif
