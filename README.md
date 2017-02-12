@@ -176,7 +176,9 @@ Specify the database parameters in the `database {}` block, depending on your da
 
 ## Authentication
 
-Currently, 2 types of authentication are supported, database users or LDAP authentication. If you use database authentication, you can manage users with the dedicated API.
+Angharad comes with an OAuth2 authentication method. You can use any OAuth2 authentication provider, as long as it provides [JSON Web Tokens](https://jwt.io/) with Glewlwyd format informations. Or you can install [Glewlwyd](https://github.com/babelouest/glewlwyd) as OAuth2 authentication server.
+
+The scope required for the backend API is `angharad` by default.
 
 Please note that users and profile are not linked, any authenticated user can use any profile.
 
