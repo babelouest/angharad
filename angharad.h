@@ -130,27 +130,25 @@ struct _auth_ldap {
 };
 
 struct config_elements {
-  char *                   config_file;
-  char *                   url_prefix_angharad;
-  char *                   url_prefix_benoic;
-  char *                   url_prefix_carleon;
-  char *                   url_prefix_gareth;
-  char *                   static_files_prefix;
-  char *                   static_files_path;
-  char *                   alert_url;
-  struct _u_map          * mime_types;
-  char *                   allow_origin;
-  unsigned long            log_mode;
-  unsigned long            log_level;
-  char *                   log_file;
-  struct _u_instance     * instance;
-  struct _h_connection   * conn;
-  struct _benoic_config  * b_config;
-  struct _carleon_config * c_config;
-  unsigned int             angharad_status;
-  char *                   oauth_scope;
-  char *                   jwt_decode_key;
-  jwt_alg_t                jwt_alg;
+  char *                           config_file;
+  char *                           url_prefix_angharad;
+  char *                           url_prefix_benoic;
+  char *                           url_prefix_carleon;
+  char *                           url_prefix_gareth;
+  char *                           static_files_prefix;
+  char *                           static_files_path;
+  char *                           alert_url;
+  struct _u_map                  * mime_types;
+  char *                           allow_origin;
+  unsigned long                    log_mode;
+  unsigned long                    log_level;
+  char *                           log_file;
+  struct _u_instance             * instance;
+  struct _h_connection           * conn;
+  struct _benoic_config          * b_config;
+  struct _carleon_config         * c_config;
+  unsigned int                     angharad_status;
+  struct _glewlwyd_client_config * glewlwyd_client_config;
 };
 
 int global_handler_variable;
@@ -295,8 +293,5 @@ int callback_angharad_root_url (const struct _u_request * request, struct _u_res
 int callback_angharad_default (const struct _u_request * request, struct _u_response * response, void * user_data);
 
 int callback_angharad_no_auth_function (const struct _u_request * request, struct _u_response * response, void * user_data);
-
-json_t * access_token_check(struct config_elements * config, const char * header_value);
-int callback_angharad_check_scope_admin (const struct _u_request * request, struct _u_response * response, void * user_data);
 
 #endif

@@ -887,27 +887,3 @@ int callback_angharad_options (const struct _u_request * request, struct _u_resp
   u_map_put(response->map_header, "Access-Control-Max-Age", "1800");
   return U_OK;
 }
-
-/**
- * check if bearer token has angharad scope
- */
-int callback_angharad_check_scope_admin (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  struct config_elements * config = (struct config_elements *)user_data;
-  json_t * j_session = NULL;
-  int res = U_ERROR_UNAUTHORIZED, i, count;
-  char ** scope_list;
-  
-  j_session = access_token_check(config, u_map_get(request->map_header, "Authorization"));
-  if (check_result_value(j_session, A_OK)) {
-    count = split_string(json_string_value(json_object_get(json_object_get(j_session, "grants"), "scope")), " ", &scope_list);
-    for (i=0; count > 0 && scope_list[i] != NULL; i++) {
-      if (strcmp(scope_list[i], config->oauth_scope) == 0) {
-        res = U_OK;
-        break;
-      }
-    }
-    free_string_array(scope_list);
-  }
-  json_decref(j_session);
-  return res;
-}

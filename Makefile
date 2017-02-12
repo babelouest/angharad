@@ -38,7 +38,7 @@ CARLEON_LOCATION=carleon
 GARETH_LIBS=$(GARETH_LOCATION)/gareth.o $(GARETH_LOCATION)/alert.o $(GARETH_LOCATION)/filter.o $(GARETH_LOCATION)/message.o
 BENOIC_LIBS=$(BENOIC_LOCATION)/benoic.o $(BENOIC_LOCATION)/device.o $(BENOIC_LOCATION)/device-element.o
 CARLEON_LIBS=$(CARLEON_LOCATION)/carleon.o $(CARLEON_LOCATION)/service.o
-ANGHARAD_LIBS=angharad.o condition.o scheduler.o trigger.o script.o profile.o webservice.o authentication.o
+ANGHARAD_LIBS=angharad.o condition.o scheduler.o trigger.o script.o profile.o webservice.o glewlwyd_resource.o
 
 all: release
 	cd $(BENOIC_LOCATION)/device-modules && $(MAKE)
@@ -68,8 +68,8 @@ profile.o: profile.c angharad.h
 webservice.o: webservice.c angharad.h
 	$(CC) $(CFLAGS) webservice.c
 
-authentication.o: authentication.c angharad.h
-	$(CC) $(CFLAGS) authentication.c
+glewlwyd_resource.o: glewlwyd_resource.c angharad.h
+	$(CC) $(CFLAGS) glewlwyd_resource.c
 
 debug: ADDITIONALFLAGS=-DDEBUG -g -O0
 

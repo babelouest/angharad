@@ -31,6 +31,7 @@
 #include <signal.h>
 
 #include "angharad.h"
+#include "glewlwyd_resource.h"
 
 /**
  * Initialize the application configuration based on the command line parameters
@@ -280,8 +281,9 @@ void exit_server(struct config_elements ** config, int exit_value) {
     free((*config)->static_files_path);
     free((*config)->static_files_prefix);
     free((*config)->alert_url);
-    free((*config)->jwt_decode_key);
-    free((*config)->oauth_scope);
+    free((*config)->glewlwyd_client_config->jwt_decode_key);
+    free((*config)->glewlwyd_client_config->oauth_scope);
+    free((*config)->glewlwyd_client_config);
     u_map_clean_full((*config)->mime_types);
     free((*config)->allow_origin);
     free((*config)->log_file);
@@ -535,9 +537,9 @@ int build_config_from_file(struct config_elements * config) {
     if (cur_use_rsa) {
       config_setting_lookup_string(jwt, "rsa_pub_file", &cur_rsa_pub_file);
       if (cur_rsa_pub_file != NULL) {
-        config->jwt_decode_key = get_file_content(cur_rsa_pub_file);
-        config->jwt_alg = JWT_ALG_RS512;
-        if (config->jwt_decode_key == NULL) {
+        config->glewlwyd_client_config->jwt_decode_key = get_file_content(cur_rsa_pub_file);
+        config->glewlwyd_client_config->jwt_alg = JWT_ALG_RS512;
+        if (config->glewlwyd_client_config->jwt_decode_key == NULL) {
           config_destroy(&cfg);
           fprintf(stderr, "Error, rsa_pub_file content incorrect\n");
           return 0;
@@ -550,8 +552,8 @@ int build_config_from_file(struct config_elements * config) {
     } else if (cur_use_sha) {
       config_setting_lookup_string(jwt, "sha_secret", &cur_sha_secret);
       if (cur_sha_secret != NULL) {
-        config->jwt_decode_key = nstrdup(cur_sha_secret);
-        config->jwt_alg = JWT_ALG_HS512;
+        config->glewlwyd_client_config->jwt_decode_key = nstrdup(cur_sha_secret);
+        config->glewlwyd_client_config->jwt_alg = JWT_ALG_HS512;
       } else {
         config_destroy(&cfg);
         fprintf(stderr, "Error, sha_secret incorrect\n");
@@ -564,10 +566,9 @@ int build_config_from_file(struct config_elements * config) {
     }
   }
   
-  // Get prefix url
   if (config_lookup_string(&cfg, "oauth_scope", &cur_oauth_scope)) {
-    config->oauth_scope = nstrdup(cur_oauth_scope);
-    if (config->oauth_scope == NULL) {
+    config->glewlwyd_client_config->oauth_scope = nstrdup(cur_oauth_scope);
+    if (config->glewlwyd_client_config->oauth_scope == NULL) {
       fprintf(stderr, "Error allocating config->oauth_scope, exiting\n");
       config_destroy(&cfg);
       return 0;
@@ -720,16 +721,14 @@ int main(int argc, char ** argv) {
   config->log_level = Y_LOG_LEVEL_NONE;
   config->log_file = NULL;
   config->angharad_status = ANGHARAD_STATUS_STOP;
-  config->jwt_decode_key = NULL;
-  config->jwt_alg = JWT_ALG_NONE;
   config->alert_url = NULL;
   config->instance = malloc(sizeof(struct _u_instance));
   config->c_config = malloc(sizeof(struct _carleon_config));
   config->b_config = malloc(sizeof(struct _benoic_config));
   config->mime_types = NULL;
-  config->jwt_decode_key = NULL;
-  if (config->instance == NULL || config->c_config == NULL || config->b_config == NULL) {
-    fprintf(stderr, "Memory error - config->instance || config->c_config || config->b_config\n");
+  config->glewlwyd_client_config = malloc(sizeof (struct _glewlwyd_client_config));
+  if (config->instance == NULL || config->c_config == NULL || config->b_config == NULL || config->glewlwyd_client_config == NULL) {
+    fprintf(stderr, "Memory error - config->instance || config->c_config || config->b_config || config->glewlwyd_client_config\n");
     return 1;
   }
   config->c_config->services_path = NULL;
@@ -740,6 +739,8 @@ int main(int argc, char ** argv) {
   config->b_config->device_type_list = NULL;
   config->b_config->device_data_list = NULL;
   config->b_config->benoic_status = BENOIC_STATUS_STOP;
+  config->glewlwyd_client_config->jwt_decode_key = NULL;
+  config->glewlwyd_client_config->oauth_scope = NULL;
   ulfius_init_instance(config->instance, -1, NULL);
 
   // First we parse command line arguments
@@ -1032,7 +1033,7 @@ int init_angharad(struct config_elements * config) {
 
     ulfius_add_endpoint_by_val(config->instance, "GET", NULL, "/", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_root_url, (void*)config);
 
-    ulfius_set_default_auth_function(config->instance, &callback_angharad_check_scope_admin, (void*)config, NULL);
+    ulfius_set_default_auth_function(config->instance, &callback_check_glewlwyd_scope, (void*)config->glewlwyd_client_config, NULL);
     
     u_map_put(config->instance->default_headers, "Access-Control-Allow-Origin", config->allow_origin);
     u_map_put(config->instance->default_headers, "Access-Control-Allow-Credentials", "true");
