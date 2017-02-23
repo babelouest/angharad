@@ -19,6 +19,8 @@
  *
  */
 
+#include <string.h>
+#include <time.h>
 #include <orcania.h>
 #include <ulfius.h>
 #include <jansson.h>
