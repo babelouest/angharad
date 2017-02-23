@@ -28,7 +28,7 @@
 PREFIX=/usr/local
 CC=gcc
 CFLAGS=-c -Wall -D_REENTRANT -DLDAP_DEPRECATED -I$(PREFIX)/include $(ADDITIONALFLAGS)
-LIBS=-L$(PREFIX)/lib -lc -lm -lpthread -ldl -luuid -lldap -ljansson -lulfius -lhoel -lyder -lorcania
+LIBS=-L$(PREFIX)/lib -lc -lm -lpthread -ldl -ljansson -lulfius -lhoel -lyder -lorcania -ljwt
 
 # subprojects locations
 GARETH_LOCATION=gareth
@@ -38,7 +38,7 @@ CARLEON_LOCATION=carleon
 GARETH_LIBS=$(GARETH_LOCATION)/gareth.o $(GARETH_LOCATION)/alert.o $(GARETH_LOCATION)/filter.o $(GARETH_LOCATION)/message.o
 BENOIC_LIBS=$(BENOIC_LOCATION)/benoic.o $(BENOIC_LOCATION)/device.o $(BENOIC_LOCATION)/device-element.o
 CARLEON_LIBS=$(CARLEON_LOCATION)/carleon.o $(CARLEON_LOCATION)/service.o
-ANGHARAD_LIBS=angharad.o condition.o scheduler.o trigger.o script.o profile.o user.o webservice.o authentication.o md5.o
+ANGHARAD_LIBS=angharad.o condition.o scheduler.o trigger.o script.o profile.o webservice.o glewlwyd_resource.o
 
 all: release
 	cd $(BENOIC_LOCATION)/device-modules && $(MAKE)
@@ -65,17 +65,11 @@ script.o: script.c angharad.h
 profile.o: profile.c angharad.h
 	$(CC) $(CFLAGS) profile.c
 
-user.o: user.c angharad.h
-	$(CC) $(CFLAGS) user.c
-
 webservice.o: webservice.c angharad.h
 	$(CC) $(CFLAGS) webservice.c
 
-authentication.o: authentication.c angharad.h
-	$(CC) $(CFLAGS) authentication.c
-
-md5.o: md5.c md5.h
-	$(CC) $(CFLAGS) md5.c
+glewlwyd_resource.o: glewlwyd_resource.c angharad.h
+	$(CC) $(CFLAGS) glewlwyd_resource.c
 
 debug: ADDITIONALFLAGS=-DDEBUG -g -O0
 

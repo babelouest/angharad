@@ -1,4 +1,4 @@
-/**
+  /**
  *
  * Angharad system
  *
@@ -651,11 +651,12 @@ int script_run(struct config_elements * config, const char * script_name) {
  * 
  */
 int action_run(struct config_elements * config, json_t * j_action) {
-  int res = A_OK, command_res;
+  int res = A_OK;
   json_t * parameters, * device, * element_type, * element, * command, * j_device, * is_valid, * j_result;
   int i_element_type = BENOIC_ELEMENT_TYPE_NONE;
   struct _carleon_service * cur_service = NULL;
   char * str_heater_mode;
+  json_int_t command_res;
   
   y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   is_valid = is_action_valid(config, j_action, 0);
@@ -681,9 +682,11 @@ int action_run(struct config_elements * config, json_t * j_action) {
       if (i_element_type == BENOIC_ELEMENT_TYPE_SWITCH && json_is_integer(command)) {
         command_res = set_switch(config->b_config, j_device, json_string_value(element), json_integer_value(command));
       } else if (i_element_type == BENOIC_ELEMENT_TYPE_DIMMER && json_is_integer(command)) {
-        command_res = set_dimmer(config->b_config, j_device, json_string_value(element), json_integer_value(command));
+        j_result = set_dimmer(config->b_config, j_device, json_string_value(element), json_integer_value(command));
+        command_res = json_integer_value(json_object_get(j_result, "result"));
+        json_decref(j_result);
       } else if (i_element_type == BENOIC_ELEMENT_TYPE_HEATER && json_is_integer(command)) {
-		str_heater_mode = (char*)json_string_value(json_object_get(parameters, "mode"));
+        str_heater_mode = (char*)json_string_value(json_object_get(parameters, "mode"));
         command_res = set_heater(config->b_config, j_device, json_string_value(element), str_heater_mode, json_number_value(command));
         if (command_res != B_OK) {
           y_log_message(Y_LOG_LEVEL_ERROR, "error in benoic command_res");

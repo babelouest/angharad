@@ -31,6 +31,7 @@
 #include <signal.h>
 
 #include "angharad.h"
+#include "glewlwyd_resource.h"
 
 /**
  * Initialize the application configuration based on the command line parameters
@@ -280,18 +281,12 @@ void exit_server(struct config_elements ** config, int exit_value) {
     free((*config)->static_files_path);
     free((*config)->static_files_prefix);
     free((*config)->alert_url);
+    free((*config)->glewlwyd_client_config->jwt_decode_key);
+    free((*config)->glewlwyd_client_config->oauth_scope);
+    free((*config)->glewlwyd_client_config);
     u_map_clean_full((*config)->mime_types);
     free((*config)->allow_origin);
     free((*config)->log_file);
-    if ((*config)->auth_ldap != NULL) {
-      free((*config)->auth_ldap->uri);
-      free((*config)->auth_ldap->bind_dn);
-      free((*config)->auth_ldap->bind_passwd);
-      free((*config)->auth_ldap->filter);
-      free((*config)->auth_ldap->login_property);
-      free((*config)->auth_ldap->base_search);
-      free((*config)->auth_ldap);
-    }
     y_close_logs();
 
     free(*config);
@@ -315,12 +310,9 @@ void exit_handler(int signal) {
 int build_config_from_file(struct config_elements * config) {
   
   config_t cfg;
-  config_setting_t * root, * database, * auth;
-  const char * cur_prefix_angharad, * cur_prefix_benoic, * cur_prefix_carleon, * cur_prefix_gareth, * cur_log_mode, * cur_log_level, * cur_log_file = NULL, * one_log_mode, * carleon_services_path, * benoic_modules_path, * cur_allow_origin, * cur_static_files_prefix,
-             * db_type, * db_sqlite_path, * db_mariadb_host = NULL, * db_mariadb_user = NULL, * db_mariadb_password = NULL, * db_mariadb_dbname = NULL, * cur_static_files_path = NULL,
-             * cur_auth_ldap_uri = NULL, * cur_auth_ldap_bind_dn = NULL, * cur_auth_ldap_bind_passwd = NULL, * cur_auth_ldap_filter = NULL, * cur_auth_ldap_login_property = NULL, * cur_auth_ldap_base_search = NULL;
-  int db_mariadb_port = 0;
-  int cur_database_auth = 0, cur_ldap_auth = 0;
+  config_setting_t * root, * database, * jwt;
+  const char * cur_prefix_angharad, * cur_prefix_benoic, * cur_prefix_carleon, * cur_prefix_gareth, * cur_log_mode, * cur_log_level, * cur_log_file = NULL, * one_log_mode, * carleon_services_path, * benoic_modules_path, * cur_allow_origin, * cur_static_files_prefix, * db_type, * db_sqlite_path, * db_mariadb_host = NULL, * db_mariadb_user = NULL, * db_mariadb_password = NULL, * db_mariadb_dbname = NULL, * cur_static_files_path = NULL, * cur_rsa_pub_file = NULL, * cur_sha_secret = NULL, * cur_oauth_scope = NULL;
+  int db_mariadb_port = 0, cur_use_rsa = 0, cur_use_sha = 0;
   
   config_init(&cfg);
   
@@ -514,72 +506,6 @@ int build_config_from_file(struct config_elements * config) {
     return 0;
   }
 
-  auth = config_setting_get_member(root, "authentication");
-  if (auth != NULL) {
-    config_setting_lookup_bool(auth, "database_auth", &cur_database_auth);
-    config->has_auth_database = cur_database_auth;
-    config_setting_lookup_bool(auth, "ldap_auth", &cur_ldap_auth);
-    config->has_auth_ldap = cur_ldap_auth;
-    
-    if (config->has_auth_ldap) {
-      config_setting_lookup_string(auth, "uri", &cur_auth_ldap_uri);
-      config_setting_lookup_string(auth, "bind_dn", &cur_auth_ldap_bind_dn);
-      config_setting_lookup_string(auth, "bind_passwd", &cur_auth_ldap_bind_passwd);
-      config_setting_lookup_string(auth, "filter", &cur_auth_ldap_filter);
-      config_setting_lookup_string(auth, "login_property", &cur_auth_ldap_login_property);
-      config_setting_lookup_string(auth, "base_search", &cur_auth_ldap_base_search);
-      if (cur_auth_ldap_uri != NULL && cur_auth_ldap_bind_dn != NULL && cur_auth_ldap_bind_passwd != NULL && cur_auth_ldap_filter != NULL && cur_auth_ldap_login_property != NULL && cur_auth_ldap_base_search != NULL) {
-        config->auth_ldap = malloc(sizeof(struct _auth_ldap));
-        if (config->auth_ldap == NULL) {
-          config_destroy(&cfg);
-          fprintf(stderr, "Error allocating resources for config->auth_ldap\n");
-          return 0;
-        } else {
-          config->auth_ldap->uri = nstrdup(cur_auth_ldap_uri);
-          if (config->auth_ldap->uri == NULL) {
-            config_destroy(&cfg);
-            fprintf(stderr, "Error allocating resources for config->auth_ldap->uri\n");
-            return 0;
-          }
-          config->auth_ldap->bind_dn = nstrdup(cur_auth_ldap_bind_dn);
-          if (config->auth_ldap->bind_dn == NULL) {
-            config_destroy(&cfg);
-            fprintf(stderr, "Error allocating resources for config->auth_ldap->bind_dn\n");
-            return 0;
-          }
-          config->auth_ldap->bind_passwd = nstrdup(cur_auth_ldap_bind_passwd);
-          if (config->auth_ldap->bind_passwd == NULL) {
-            config_destroy(&cfg);
-            fprintf(stderr, "Error allocating resources for config->auth_ldap->bind_passwd\n");
-            return 0;
-          }
-          config->auth_ldap->filter = nstrdup(cur_auth_ldap_filter);
-          if (config->auth_ldap->filter == NULL) {
-            config_destroy(&cfg);
-            fprintf(stderr, "Error allocating resources for config->auth_ldap->filter\n");
-            return 0;
-          }
-          config->auth_ldap->login_property = nstrdup(cur_auth_ldap_login_property);
-          if (config->auth_ldap->login_property == NULL) {
-            config_destroy(&cfg);
-            fprintf(stderr, "Error allocating resources for config->auth_ldap->login_property\n");
-            return 0;
-          }
-          config->auth_ldap->base_search = nstrdup(cur_auth_ldap_base_search);
-          if (config->auth_ldap->base_search == NULL) {
-            config_destroy(&cfg);
-            fprintf(stderr, "Error allocating resources for config->auth_ldap->base_search\n");
-            return 0;
-          }
-        }
-      } else {
-        config_destroy(&cfg);
-        fprintf(stderr, "Error, auth ldap error parameters\n");
-        return 0;
-      }
-    }
-  }
-  
   if (config->static_files_path == NULL) {
     // Get path that serve static files
     if (config_lookup_string(&cfg, "static_files_path", &cur_static_files_path)) {
@@ -603,7 +529,52 @@ int build_config_from_file(struct config_elements * config) {
       }
     }
   }
-    
+  
+  jwt = config_setting_get_member(root, "jwt");
+  if (jwt != NULL) {
+    config_setting_lookup_bool(jwt, "use_rsa", &cur_use_rsa);
+    config_setting_lookup_bool(jwt, "use_sha", &cur_use_sha);
+    if (cur_use_rsa) {
+      config_setting_lookup_string(jwt, "rsa_pub_file", &cur_rsa_pub_file);
+      if (cur_rsa_pub_file != NULL) {
+        config->glewlwyd_client_config->jwt_decode_key = get_file_content(cur_rsa_pub_file);
+        config->glewlwyd_client_config->jwt_alg = JWT_ALG_RS512;
+        if (config->glewlwyd_client_config->jwt_decode_key == NULL) {
+          config_destroy(&cfg);
+          fprintf(stderr, "Error, rsa_pub_file content incorrect\n");
+          return 0;
+        }
+      } else {
+        config_destroy(&cfg);
+        fprintf(stderr, "Error, rsa_pub_file incorrect\n");
+        return 0;
+      }
+    } else if (cur_use_sha) {
+      config_setting_lookup_string(jwt, "sha_secret", &cur_sha_secret);
+      if (cur_sha_secret != NULL) {
+        config->glewlwyd_client_config->jwt_decode_key = nstrdup(cur_sha_secret);
+        config->glewlwyd_client_config->jwt_alg = JWT_ALG_HS512;
+      } else {
+        config_destroy(&cfg);
+        fprintf(stderr, "Error, sha_secret incorrect\n");
+        return 0;
+      }
+    } else {
+      config_destroy(&cfg);
+      fprintf(stderr, "Error, no jwt algorithm selected\n");
+      return 0;
+    }
+  }
+  
+  if (config_lookup_string(&cfg, "oauth_scope", &cur_oauth_scope)) {
+    config->glewlwyd_client_config->oauth_scope = nstrdup(cur_oauth_scope);
+    if (config->glewlwyd_client_config->oauth_scope == NULL) {
+      fprintf(stderr, "Error allocating config->oauth_scope, exiting\n");
+      config_destroy(&cfg);
+      return 0;
+    }
+  }
+  
   config_destroy(&cfg);
   return 1;
 }
@@ -750,15 +721,14 @@ int main(int argc, char ** argv) {
   config->log_level = Y_LOG_LEVEL_NONE;
   config->log_file = NULL;
   config->angharad_status = ANGHARAD_STATUS_STOP;
-  config->has_auth_database = 0;
-  config->has_auth_ldap = 0;
-  config->auth_ldap = NULL;
   config->alert_url = NULL;
   config->instance = malloc(sizeof(struct _u_instance));
   config->c_config = malloc(sizeof(struct _carleon_config));
   config->b_config = malloc(sizeof(struct _benoic_config));
-  if (config->instance == NULL || config->c_config == NULL || config->b_config == NULL) {
-    fprintf(stderr, "Memory error - config->instance || config->c_config || config->b_config\n");
+  config->mime_types = NULL;
+  config->glewlwyd_client_config = malloc(sizeof (struct _glewlwyd_client_config));
+  if (config->instance == NULL || config->c_config == NULL || config->b_config == NULL || config->glewlwyd_client_config == NULL) {
+    fprintf(stderr, "Memory error - config->instance || config->c_config || config->b_config || config->glewlwyd_client_config\n");
     return 1;
   }
   config->c_config->services_path = NULL;
@@ -769,6 +739,8 @@ int main(int argc, char ** argv) {
   config->b_config->device_type_list = NULL;
   config->b_config->device_data_list = NULL;
   config->b_config->benoic_status = BENOIC_STATUS_STOP;
+  config->glewlwyd_client_config->jwt_decode_key = NULL;
+  config->glewlwyd_client_config->oauth_scope = NULL;
   ulfius_init_instance(config->instance, -1, NULL);
 
   // First we parse command line arguments
@@ -1055,29 +1027,13 @@ int init_angharad(struct config_elements * config) {
     ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/profile/@profile_id", NULL, NULL, NULL, &callback_carleon_profile_set, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/profile/@profile_id", NULL, NULL, NULL, &callback_carleon_profile_remove, (void*)config);
     
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/auth", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_auth_get, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/auth", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_auth_check, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/auth", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_auth_delete, (void*)config);
-
-    // Enable user management endpoints only when database authetication is enabled
-    if (config->has_auth_database) {
-      ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/user/", NULL, NULL, NULL, &callback_angharad_user_list, (void*)config);
-      ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/user/@user_name", NULL, NULL, NULL, &callback_angharad_user_get, (void*)config);
-      ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/user/", NULL, NULL, NULL, &callback_angharad_user_add, (void*)config);
-      ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/user/@user_name", NULL, NULL, NULL, &callback_angharad_user_modify, (void*)config);
-      ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/user/@user_name", NULL, NULL, NULL, &callback_angharad_user_remove, (void*)config);
-    }
-    
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/token/", NULL, NULL, NULL, &callback_angharad_token_list, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/token/", NULL, NULL, NULL, &callback_angharad_token_revoke, (void*)config);
-
     ulfius_add_endpoint_by_val(config->instance, "GET", config->static_files_prefix, "*", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_static_file, (void*)config);
 
     ulfius_add_endpoint_by_val(config->instance, "OPTIONS", NULL, "*", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_options, (void*)config);
 
     ulfius_add_endpoint_by_val(config->instance, "GET", NULL, "/", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_root_url, (void*)config);
 
-    ulfius_set_default_auth_function(config->instance, &callback_angharad_auth_function, (void*)config, NULL);
+    ulfius_set_default_auth_function(config->instance, &callback_check_glewlwyd_scope, (void*)config->glewlwyd_client_config, NULL);
     
     u_map_put(config->instance->default_headers, "Access-Control-Allow-Origin", config->allow_origin);
     u_map_put(config->instance->default_headers, "Access-Control-Allow-Credentials", "true");
@@ -1158,26 +1114,6 @@ int close_angharad(struct config_elements * config) {
     ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/trigger/@trigger_name/@tag");
     ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/trigger/@trigger_name/@tag");
 
-    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/profile");
-    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/profile/@profile_id");
-    ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/profile/@profile_id");
-    ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/profile/@profile_id");
-    
-    if (config->has_auth_database) {
-      ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/user/");
-      ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/user/@user_name");
-      ulfius_remove_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/user/");
-      ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/user/@user_name");
-      ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/user/@user_name");
-    }
-
-    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/token/");
-    ulfius_remove_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/token/");
-
-    ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/auth/");
-    ulfius_remove_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/auth/");
-    ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/auth/");
-
     ulfius_remove_endpoint_by_val(config->instance, "GET", NULL, "*");
     
     ulfius_remove_endpoint_by_val(config->instance, "GET", NULL, "/");
@@ -1206,4 +1142,35 @@ const char * get_filename_ext(const char *path) {
       *strchr(dot, '?') = '\0';
     }
     return dot;
+}
+
+/**
+ *
+ * Read the content of a file and return it as a char *
+ * returned value must be free'd after use
+ *
+ */
+char * get_file_content(const char * file_path) {
+  char * buffer = NULL;
+  size_t length, res;
+  FILE * f;
+
+  f = fopen (file_path, "rb");
+  if (f) {
+    fseek (f, 0, SEEK_END);
+    length = ftell (f);
+    fseek (f, 0, SEEK_SET);
+    buffer = malloc((length+1)*sizeof(char));
+    if (buffer) {
+      res = fread (buffer, 1, length, f);
+      if (res != length) {
+        fprintf(stderr, "fread warning, reading %zu while expecting %zu", res, length);
+      }
+      // Add null character at the end of buffer, just in case
+      buffer[length] = '\0';
+    }
+    fclose (f);
+  }
+  
+  return buffer;
 }
