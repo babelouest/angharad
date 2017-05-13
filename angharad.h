@@ -130,25 +130,25 @@ struct _auth_ldap {
 };
 
 struct config_elements {
-  char *                           config_file;
-  char *                           url_prefix_angharad;
-  char *                           url_prefix_benoic;
-  char *                           url_prefix_carleon;
-  char *                           url_prefix_gareth;
-  char *                           static_files_prefix;
-  char *                           static_files_path;
-  char *                           alert_url;
-  struct _u_map                  * mime_types;
-  char *                           allow_origin;
-  unsigned long                    log_mode;
-  unsigned long                    log_level;
-  char *                           log_file;
-  struct _u_instance             * instance;
-  struct _h_connection           * conn;
-  struct _benoic_config          * b_config;
-  struct _carleon_config         * c_config;
-  unsigned int                     angharad_status;
-  struct _glewlwyd_client_config * glewlwyd_client_config;
+  char *                             config_file;
+  char *                             url_prefix_angharad;
+  char *                             url_prefix_benoic;
+  char *                             url_prefix_carleon;
+  char *                             url_prefix_gareth;
+  char *                             static_files_prefix;
+  char *                             static_files_path;
+  char *                             alert_url;
+  struct _u_map                    * mime_types;
+  char *                             allow_origin;
+  unsigned long                      log_mode;
+  unsigned long                      log_level;
+  char *                             log_file;
+  struct _u_instance               * instance;
+  struct _h_connection             * conn;
+  struct _benoic_config            * b_config;
+  struct _carleon_config           * c_config;
+  unsigned int                       angharad_status;
+  struct _glewlwyd_resource_config * glewlwyd_client_config;
 };
 
 int global_handler_variable;
@@ -234,6 +234,7 @@ json_t * token_get_list(struct config_elements * config, const char * login, con
 int token_revoke(struct config_elements * config, json_t * token);
 
 const char * get_filename_ext(const char *path);
+int set_response_json_body_and_clean(struct _u_response * response, uint status, json_t * json_body);
 
 json_t * auth_get(struct config_elements * config, const char * session_id);
 int auth_invalidate(struct config_elements * config, const char * session_id);
