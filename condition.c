@@ -86,14 +86,14 @@ json_t * is_condition_valid(struct config_elements * config, json_t * condition)
   if (json_object_get(condition, "condition") == NULL || !json_is_string(json_object_get(condition, "condition"))) {
     json_array_append_new(j_valid, json_pack("{ss}", "condition", "condition is mandatory and must be a string"));
   } else {
-    if (0 != nstrcmp(json_string_value(json_object_get(condition, "condition")), "==")
-        && 0 != nstrcmp(json_string_value(json_object_get(condition, "condition")), "!=")
-        && 0 != nstrcmp(json_string_value(json_object_get(condition, "condition")), ">")
-        && 0 != nstrcmp(json_string_value(json_object_get(condition, "condition")), ">=")
-        && 0 != nstrcmp(json_string_value(json_object_get(condition, "condition")), "<")
-        && 0 != nstrcmp(json_string_value(json_object_get(condition, "condition")), "<=")
-        && 0 != nstrcmp(json_string_value(json_object_get(condition, "condition")), "contains")
-        && 0 != nstrcmp(json_string_value(json_object_get(condition, "condition")), "not contains")) {
+    if (0 != o_strcmp(json_string_value(json_object_get(condition, "condition")), "==")
+        && 0 != o_strcmp(json_string_value(json_object_get(condition, "condition")), "!=")
+        && 0 != o_strcmp(json_string_value(json_object_get(condition, "condition")), ">")
+        && 0 != o_strcmp(json_string_value(json_object_get(condition, "condition")), ">=")
+        && 0 != o_strcmp(json_string_value(json_object_get(condition, "condition")), "<")
+        && 0 != o_strcmp(json_string_value(json_object_get(condition, "condition")), "<=")
+        && 0 != o_strcmp(json_string_value(json_object_get(condition, "condition")), "contains")
+        && 0 != o_strcmp(json_string_value(json_object_get(condition, "condition")), "not contains")) {
       json_array_append_new(j_valid, json_string("condition does not exist, please choose between '==', '!=', '<', '<=', '>', '>=', 'contains' and 'not contains'"));
     }
   }
@@ -152,20 +152,20 @@ int condition_check(struct config_elements * config, json_t * j_condition) {
   if (is_valid != NULL && json_is_array(is_valid) && json_array_size(is_valid) > 0) {
     y_log_message(Y_LOG_LEVEL_ERROR, "error in condition is_valid");
     res = A_ERROR;
-  } else if (0 == nstrcmp(json_string_value(json_object_get(j_condition, "submodule")), "benoic")) {
+  } else if (0 == o_strcmp(json_string_value(json_object_get(j_condition, "submodule")), "benoic")) {
     parameters = json_object_get(j_condition, "parameters");
     element = json_object_get(j_condition, "element");
     device = json_object_get(parameters, "device");
     element_type = json_object_get(parameters, "element_type");
     j_device = get_device(config->b_config, json_string_value(device));
     if (j_device != NULL && json_object_get(j_device, "enabled") == json_true() && json_object_get(j_device, "connected") == json_true()) {
-      if (0 == nstrcmp("switch", json_string_value(element_type))) {
+      if (0 == o_strcmp("switch", json_string_value(element_type))) {
         i_element_type = BENOIC_ELEMENT_TYPE_SWITCH;
-      } else if (0 == nstrcmp("dimmer", json_string_value(element_type))) {
+      } else if (0 == o_strcmp("dimmer", json_string_value(element_type))) {
         i_element_type = BENOIC_ELEMENT_TYPE_DIMMER;
-      } else if (0 == nstrcmp("heater", json_string_value(element_type))) {
+      } else if (0 == o_strcmp("heater", json_string_value(element_type))) {
         i_element_type = BENOIC_ELEMENT_TYPE_HEATER;
-      } else if (0 == nstrcmp("sensor", json_string_value(element_type))) {
+      } else if (0 == o_strcmp("sensor", json_string_value(element_type))) {
         i_element_type = BENOIC_ELEMENT_TYPE_SENSOR;
       }
       
@@ -200,7 +200,7 @@ int condition_check(struct config_elements * config, json_t * j_condition) {
       res = A_ERROR;
     }
     json_decref(j_device);
-  } else if (j_condition != NULL && 0 == nstrcmp(json_string_value(json_object_get(j_condition, "submodule")), "carleon")) {
+  } else if (j_condition != NULL && 0 == o_strcmp(json_string_value(json_object_get(j_condition, "submodule")), "carleon")) {
     cur_service = get_service_from_name(config->c_config, json_string_value(json_object_get(json_object_get(j_condition, "parameters"), "service")));
     if (cur_service != NULL) {
       j_result = service_exec(config->c_config, cur_service, json_string_value(json_object_get(j_condition, "command")), json_string_value(json_object_get(j_condition, "element")), json_object_get(j_condition, "parameters"));
@@ -237,50 +237,50 @@ int compare_values(json_t * j_value1, json_t * j_value2, const char * operator) 
   if (j_value1 == NULL || j_value2 == NULL || operator == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error input parameters");
     return A_ERROR_PARAM;
-  } else if (0 == nstrcmp(operator, "==")) {
+  } else if (0 == o_strcmp(operator, "==")) {
     return json_equal(j_value1, j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
-  } else if (0 == nstrcmp(operator, "!=")) {
+  } else if (0 == o_strcmp(operator, "!=")) {
     return json_equal(j_value1, j_value2)?A_ERROR_FALSE:A_ERROR_TRUE;
-  } else if (0 == nstrcmp(operator, ">")) {
+  } else if (0 == o_strcmp(operator, ">")) {
     if (json_is_number(j_value1) && json_is_number(j_value2)) {
       return json_real_value(j_value1) > json_real_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
     } else {
       y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error values not numeric");
       return A_ERROR_PARAM;
     }
-  } else if (0 == nstrcmp(operator, ">=")) {
+  } else if (0 == o_strcmp(operator, ">=")) {
     if (json_is_number(j_value1) && json_is_number(j_value2)) {
       return json_real_value(j_value1) >= json_real_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
     } else {
       y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error values not numeric");
       return A_ERROR_PARAM;
     }
-  } else if (0 == nstrcmp(operator, "<")) {
+  } else if (0 == o_strcmp(operator, "<")) {
     if (json_is_number(j_value1) && json_is_number(j_value2)) {
       return json_real_value(j_value1) < json_real_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
     } else {
       y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error values not numeric");
       return A_ERROR_PARAM;
     }
-  } else if (0 == nstrcmp(operator, "<=")) {
+  } else if (0 == o_strcmp(operator, "<=")) {
     if (json_is_number(j_value1) && json_is_number(j_value2)) {
       return json_real_value(j_value1) <= json_real_value(j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
     } else {
       y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error values not numeric");
       return A_ERROR_PARAM;
     }
-  } else if (0 == nstrcmp(operator, "contains")) {
+  } else if (0 == o_strcmp(operator, "contains")) {
     if (json_is_string(j_value1) && json_is_string(j_value2)) {
-			return nstrstr(json_string_value(j_value1), json_string_value(j_value2))!=NULL?A_ERROR_TRUE:A_ERROR_FALSE;
+			return o_strstr(json_string_value(j_value1), json_string_value(j_value2))!=NULL?A_ERROR_TRUE:A_ERROR_FALSE;
     } else if (json_is_object(j_value1) && json_is_object(j_value2)) {
 			return json_search(j_value1, j_value2)?A_ERROR_TRUE:A_ERROR_FALSE;
     } else {
       y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error values not string or object type with a contains operator");
       return A_ERROR_PARAM;
     }
-  } else if (0 == nstrcmp(operator, "not contains")) {
+  } else if (0 == o_strcmp(operator, "not contains")) {
     if (json_is_string(j_value1) && json_is_string(j_value2)) {
-			return nstrstr(json_string_value(j_value1), json_string_value(j_value2))!=NULL?A_ERROR_TRUE:A_ERROR_FALSE;
+			return o_strstr(json_string_value(j_value1), json_string_value(j_value2))!=NULL?A_ERROR_TRUE:A_ERROR_FALSE;
     } else if (json_is_object(j_value1) && json_is_object(j_value2)) {
 			return json_search(j_value1, j_value2)?A_ERROR_FALSE:A_ERROR_TRUE;
     } else {

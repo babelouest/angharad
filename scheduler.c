@@ -650,7 +650,7 @@ int scheduler_remove_tag(struct config_elements * config, const char * scheduler
         return A_OK;
       } else if (json_is_array(j_tags)) {
         for (i = json_array_size(json_object_get(json_object_get(j_scheduler, "options"), "tags"))-1; i >= 0; i--) {
-          if (0 == nstrcmp(json_string_value(json_array_get(json_object_get(json_object_get(j_scheduler, "options"), "tags"), i)), tag)) {
+          if (0 == o_strcmp(json_string_value(json_array_get(json_object_get(json_object_get(j_scheduler, "options"), "tags"), i)), tag)) {
             json_array_remove(json_object_get(json_object_get(j_scheduler, "options"), "tags"), i);
           }
         }

@@ -87,22 +87,22 @@ int alert_received(struct config_elements * config, const char * submodule_name,
               message_match_check = A_ERROR_TRUE;
               break;
             case TRIGGER_MESSAGE_MATCH_EQUAL:
-              message_match_check = (0==nstrcmp(message, json_string_value(json_object_get(j_trigger, "message"))))?A_ERROR_TRUE:A_ERROR_FALSE;
+              message_match_check = (0==o_strcmp(message, json_string_value(json_object_get(j_trigger, "message"))))?A_ERROR_TRUE:A_ERROR_FALSE;
               break;
             case TRIGGER_MESSAGE_MATCH_DIFFERENT:
-              message_match_check = (0!=nstrcmp(message, json_string_value(json_object_get(j_trigger, "message"))))?A_ERROR_TRUE:A_ERROR_FALSE;
+              message_match_check = (0!=o_strcmp(message, json_string_value(json_object_get(j_trigger, "message"))))?A_ERROR_TRUE:A_ERROR_FALSE;
               break;
             case TRIGGER_MESSAGE_MATCH_CONTAINS:
-              message_match_check = (NULL!=nstrstr(message, json_string_value(json_object_get(j_trigger, "message"))))?A_ERROR_TRUE:A_ERROR_FALSE;
+              message_match_check = (NULL!=o_strstr(message, json_string_value(json_object_get(j_trigger, "message"))))?A_ERROR_TRUE:A_ERROR_FALSE;
               break;
             case TRIGGER_MESSAGE_MATCH_NOT_CONTAINS:
-              message_match_check = (NULL==nstrstr(message, json_string_value(json_object_get(j_trigger, "message"))))?A_ERROR_TRUE:A_ERROR_FALSE;
+              message_match_check = (NULL==o_strstr(message, json_string_value(json_object_get(j_trigger, "message"))))?A_ERROR_TRUE:A_ERROR_FALSE;
               break;
             case TRIGGER_MESSAGE_MATCH_EMPTY:
-              message_match_check = (nstrlen(message)==0)?A_ERROR_TRUE:A_ERROR_FALSE;
+              message_match_check = (o_strlen(message)==0)?A_ERROR_TRUE:A_ERROR_FALSE;
               break;
             case TRIGGER_MESSAGE_MATCH_NOT_EMPTY:
-              message_match_check = (nstrlen(message)>0)?A_ERROR_TRUE:A_ERROR_FALSE;
+              message_match_check = (o_strlen(message)>0)?A_ERROR_TRUE:A_ERROR_FALSE;
               break;
             default:
               message_match_check = A_ERROR_FALSE;
@@ -581,7 +581,7 @@ int trigger_remove_tag(struct config_elements * config, const char * trigger_nam
         return A_OK;
       } else if (json_is_array(j_tags)) {
         for (i = json_array_size(json_object_get(json_object_get(j_trigger, "options"), "tags"))-1; i >= 0; i--) {
-          if (0 == nstrcmp(json_string_value(json_array_get(json_object_get(json_object_get(j_trigger, "options"), "tags"), i)), tag)) {
+          if (0 == o_strcmp(json_string_value(json_array_get(json_object_get(json_object_get(j_trigger, "options"), "tags"), i)), tag)) {
             json_array_remove(json_object_get(json_object_get(j_trigger, "options"), "tags"), i);
           }
         }

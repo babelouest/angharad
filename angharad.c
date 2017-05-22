@@ -63,7 +63,7 @@ int build_config_from_args(int argc, char ** argv, struct config_elements * conf
       switch (next_option) {
         case 'c':
           if (optarg != NULL) {
-            config->config_file = nstrdup(optarg);
+            config->config_file = o_strdup(optarg);
             if (config->config_file == NULL) {
               fprintf(stderr, "Error allocating config->config_file, exiting\n");
               exit_server(&config, ANGHARAD_STOP);
@@ -87,7 +87,7 @@ int build_config_from_args(int argc, char ** argv, struct config_elements * conf
           break;
         case 'u':
           if (optarg != NULL) {
-            config->url_prefix_angharad = nstrdup(optarg);
+            config->url_prefix_angharad = o_strdup(optarg);
             if (config->url_prefix_angharad == NULL) {
               fprintf(stderr, "Error allocating config->url_prefix_angharad, exiting\n");
               exit_server(&config, ANGHARAD_STOP);
@@ -99,7 +99,7 @@ int build_config_from_args(int argc, char ** argv, struct config_elements * conf
           break;
         case 'v':
           if (optarg != NULL) {
-            config->url_prefix_benoic = nstrdup(optarg);
+            config->url_prefix_benoic = o_strdup(optarg);
             if (config->url_prefix_benoic == NULL) {
               fprintf(stderr, "Error allocating config->url_prefix_benoic, exiting\n");
               exit_server(&config, ANGHARAD_STOP);
@@ -111,7 +111,7 @@ int build_config_from_args(int argc, char ** argv, struct config_elements * conf
           break;
         case 'w':
           if (optarg != NULL) {
-            config->url_prefix_carleon = nstrdup(optarg);
+            config->url_prefix_carleon = o_strdup(optarg);
             if (config->url_prefix_carleon == NULL) {
               fprintf(stderr, "Error allocating config->url_prefix_carleon, exiting\n");
               exit_server(&config, ANGHARAD_STOP);
@@ -123,7 +123,7 @@ int build_config_from_args(int argc, char ** argv, struct config_elements * conf
           break;
         case 'x':
           if (optarg != NULL) {
-            config->url_prefix_gareth = nstrdup(optarg);
+            config->url_prefix_gareth = o_strdup(optarg);
             if (config->url_prefix_gareth == NULL) {
               fprintf(stderr, "Error allocating config->url_prefix_gareth, exiting\n");
               exit_server(&config, ANGHARAD_STOP);
@@ -135,18 +135,18 @@ int build_config_from_args(int argc, char ** argv, struct config_elements * conf
           break;
         case 'm':
           if (optarg != NULL) {
-            tmp = nstrdup(optarg);
+            tmp = o_strdup(optarg);
             if (tmp == NULL) {
               fprintf(stderr, "Error allocating log_mode, exiting\n");
               exit_server(&config, ANGHARAD_STOP);
             }
             one_log_mode = strtok(tmp, ",");
             while (one_log_mode != NULL) {
-              if (0 == nstrncmp("console", one_log_mode, strlen("console"))) {
+              if (0 == o_strncmp("console", one_log_mode, strlen("console"))) {
                 config->log_mode |= Y_LOG_MODE_CONSOLE;
-              } else if (0 == nstrncmp("syslog", one_log_mode, strlen("syslog"))) {
+              } else if (0 == o_strncmp("syslog", one_log_mode, strlen("syslog"))) {
                 config->log_mode |= Y_LOG_MODE_SYSLOG;
-              } else if (0 == nstrncmp("file", one_log_mode, strlen("file"))) {
+              } else if (0 == o_strncmp("file", one_log_mode, strlen("file"))) {
                 config->log_mode |= Y_LOG_MODE_FILE;
               }
               one_log_mode = strtok(NULL, ",");
@@ -159,15 +159,15 @@ int build_config_from_args(int argc, char ** argv, struct config_elements * conf
           break;
         case 'l':
           if (optarg != NULL) {
-            if (0 == nstrncmp("NONE", optarg, strlen("NONE"))) {
+            if (0 == o_strncmp("NONE", optarg, strlen("NONE"))) {
               config->log_level = Y_LOG_LEVEL_NONE;
-            } else if (0 == nstrncmp("ERROR", optarg, strlen("ERROR"))) {
+            } else if (0 == o_strncmp("ERROR", optarg, strlen("ERROR"))) {
               config->log_level = Y_LOG_LEVEL_ERROR;
-            } else if (0 == nstrncmp("WARNING", optarg, strlen("WARNING"))) {
+            } else if (0 == o_strncmp("WARNING", optarg, strlen("WARNING"))) {
               config->log_level = Y_LOG_LEVEL_WARNING;
-            } else if (0 == nstrncmp("INFO", optarg, strlen("INFO"))) {
+            } else if (0 == o_strncmp("INFO", optarg, strlen("INFO"))) {
               config->log_level = Y_LOG_LEVEL_INFO;
-            } else if (0 == nstrncmp("DEBUG", optarg, strlen("DEBUG"))) {
+            } else if (0 == o_strncmp("DEBUG", optarg, strlen("DEBUG"))) {
               config->log_level = Y_LOG_LEVEL_DEBUG;
             }
           } else {
@@ -177,7 +177,7 @@ int build_config_from_args(int argc, char ** argv, struct config_elements * conf
           break;
         case 'f':
           if (optarg != NULL) {
-            config->log_file = nstrdup(optarg);
+            config->log_file = o_strdup(optarg);
             if (config->log_file == NULL) {
               fprintf(stderr, "Error allocating config->log_file, exiting\n");
               exit_server(&config, ANGHARAD_STOP);
@@ -189,7 +189,7 @@ int build_config_from_args(int argc, char ** argv, struct config_elements * conf
           break;
         case 'b':
           if (optarg != NULL) {
-            config->b_config->modules_path = nstrdup(optarg);
+            config->b_config->modules_path = o_strdup(optarg);
           } else {
             fprintf(stderr, "Error!\nNo benoic modules path specified\n");
             return 0;
@@ -197,7 +197,7 @@ int build_config_from_args(int argc, char ** argv, struct config_elements * conf
           break;
         case 's':
           if (optarg != NULL) {
-            config->c_config->services_path = nstrdup(optarg);
+            config->c_config->services_path = o_strdup(optarg);
           } else {
             fprintf(stderr, "Error!\nNo carleon service path specified\n");
             return 0;
@@ -322,15 +322,17 @@ int build_config_from_file(struct config_elements * config) {
     return 0;
   }
   
-  if (config->instance->port == -1) {
+  if (config->instance->port == ANGHARAD_DEFAULT_PORT) {
     // Get Port number to listen to
-    config_lookup_int(&cfg, "port", &(config->instance->port));
+    int port;
+    config_lookup_int(&cfg, "port", &port);
+    config->instance->port = (uint)port;
   }
   
   if (config->url_prefix_angharad == NULL) {
     // Get prefix url for angharad
     if (config_lookup_string(&cfg, "url_prefix_angharad", &cur_prefix_angharad)) {
-      config->url_prefix_angharad = nstrdup(cur_prefix_angharad);
+      config->url_prefix_angharad = o_strdup(cur_prefix_angharad);
       if (config->url_prefix_angharad == NULL) {
         fprintf(stderr, "Error allocating config->url_prefix_angharad, exiting\n");
         config_destroy(&cfg);
@@ -342,7 +344,7 @@ int build_config_from_file(struct config_elements * config) {
   if (config->url_prefix_benoic == NULL) {
     // Get prefix url for benoic
     if (config_lookup_string(&cfg, "url_prefix_benoic", &cur_prefix_benoic)) {
-      config->url_prefix_benoic = nstrdup(cur_prefix_benoic);
+      config->url_prefix_benoic = o_strdup(cur_prefix_benoic);
       if (config->url_prefix_benoic == NULL) {
         fprintf(stderr, "Error allocating config->url_prefix_benoic, exiting\n");
         config_destroy(&cfg);
@@ -354,7 +356,7 @@ int build_config_from_file(struct config_elements * config) {
   if (config->url_prefix_carleon == NULL) {
     // Get prefix url for carleon
     if (config_lookup_string(&cfg, "url_prefix_carleon", &cur_prefix_carleon)) {
-      config->url_prefix_carleon = nstrdup(cur_prefix_carleon);
+      config->url_prefix_carleon = o_strdup(cur_prefix_carleon);
       if (config->url_prefix_carleon == NULL) {
         fprintf(stderr, "Error allocating config->url_prefix_carleon, exiting\n");
         config_destroy(&cfg);
@@ -366,7 +368,7 @@ int build_config_from_file(struct config_elements * config) {
   if (config->url_prefix_gareth == NULL) {
     // Get prefix url for gareth
     if (config_lookup_string(&cfg, "url_prefix_gareth", &cur_prefix_gareth)) {
-      config->url_prefix_gareth = nstrdup(cur_prefix_gareth);
+      config->url_prefix_gareth = o_strdup(cur_prefix_gareth);
       if (config->url_prefix_gareth == NULL) {
         fprintf(stderr, "Error allocating config->url_prefix_gareth, exiting\n");
         config_destroy(&cfg);
@@ -378,7 +380,7 @@ int build_config_from_file(struct config_elements * config) {
   if (config->allow_origin == NULL) {
     // Get allow-origin value for CORS
     if (config_lookup_string(&cfg, "allow_origin", &cur_allow_origin)) {
-      config->allow_origin = nstrdup(cur_allow_origin);
+      config->allow_origin = o_strdup(cur_allow_origin);
       if (config->allow_origin == NULL) {
         fprintf(stderr, "Error allocating config->allow_origin, exiting\n");
         config_destroy(&cfg);
@@ -390,7 +392,7 @@ int build_config_from_file(struct config_elements * config) {
   if (config->c_config->services_path == NULL) {
     // Get carleon services path
     if (config_lookup_string(&cfg, "carleon_services_path", &carleon_services_path)) {
-      config->c_config->services_path = nstrdup(carleon_services_path);
+      config->c_config->services_path = o_strdup(carleon_services_path);
       if (config->c_config->services_path == NULL) {
         fprintf(stderr, "Error allocating config->c_config->services_path, exiting\n");
         config_destroy(&cfg);
@@ -402,7 +404,7 @@ int build_config_from_file(struct config_elements * config) {
   if (config->b_config->modules_path == NULL) {
     // Get benoic modules path
     if (config_lookup_string(&cfg, "benoic_modules_path", &benoic_modules_path)) {
-      config->b_config->modules_path = nstrdup(benoic_modules_path);
+      config->b_config->modules_path = o_strdup(benoic_modules_path);
       if (config->b_config->modules_path == NULL) {
         fprintf(stderr, "Error allocating config->b_config->modules_path, exiting\n");
         config_destroy(&cfg);
@@ -416,16 +418,16 @@ int build_config_from_file(struct config_elements * config) {
     if (config_lookup_string(&cfg, "log_mode", &cur_log_mode)) {
       one_log_mode = strtok((char *)cur_log_mode, ",");
       while (one_log_mode != NULL) {
-        if (0 == nstrncmp("console", one_log_mode, strlen("console"))) {
+        if (0 == o_strncmp("console", one_log_mode, strlen("console"))) {
           config->log_mode |= Y_LOG_MODE_CONSOLE;
-        } else if (0 == nstrncmp("syslog", one_log_mode, strlen("syslog"))) {
+        } else if (0 == o_strncmp("syslog", one_log_mode, strlen("syslog"))) {
           config->log_mode |= Y_LOG_MODE_SYSLOG;
-        } else if (0 == nstrncmp("file", one_log_mode, strlen("file"))) {
+        } else if (0 == o_strncmp("file", one_log_mode, strlen("file"))) {
           config->log_mode |= Y_LOG_MODE_FILE;
           // Get log file path
           if (config->log_file == NULL) {
             if (config_lookup_string(&cfg, "log_file", &cur_log_file)) {
-              config->log_file = nstrdup(cur_log_file);
+              config->log_file = o_strdup(cur_log_file);
               if (config->log_file == NULL) {
                 fprintf(stderr, "Error allocating config->log_file, exiting\n");
                 config_destroy(&cfg);
@@ -442,15 +444,15 @@ int build_config_from_file(struct config_elements * config) {
   if (config->log_level == Y_LOG_LEVEL_NONE) {
     // Get log level
     if (config_lookup_string(&cfg, "log_level", &cur_log_level)) {
-      if (0 == nstrncmp("NONE", cur_log_level, strlen("NONE"))) {
+      if (0 == o_strncmp("NONE", cur_log_level, strlen("NONE"))) {
         config->log_level = Y_LOG_LEVEL_NONE;
-      } else if (0 == nstrncmp("ERROR", cur_log_level, strlen("ERROR"))) {
+      } else if (0 == o_strncmp("ERROR", cur_log_level, strlen("ERROR"))) {
         config->log_level = Y_LOG_LEVEL_ERROR;
-      } else if (0 == nstrncmp("WARNING", cur_log_level, strlen("WARNING"))) {
+      } else if (0 == o_strncmp("WARNING", cur_log_level, strlen("WARNING"))) {
         config->log_level = Y_LOG_LEVEL_WARNING;
-      } else if (0 == nstrncmp("INFO", cur_log_level, strlen("INFO"))) {
+      } else if (0 == o_strncmp("INFO", cur_log_level, strlen("INFO"))) {
         config->log_level = Y_LOG_LEVEL_INFO;
-      } else if (0 == nstrncmp("DEBUG", cur_log_level, strlen("DEBUG"))) {
+      } else if (0 == o_strncmp("DEBUG", cur_log_level, strlen("DEBUG"))) {
         config->log_level = Y_LOG_LEVEL_DEBUG;
       }
     }
@@ -465,7 +467,7 @@ int build_config_from_file(struct config_elements * config) {
   database = config_setting_get_member(root, "database");
   if (database != NULL) {
     if (config_setting_lookup_string(database, "type", &db_type) == CONFIG_TRUE) {
-      if (0 == nstrncmp(db_type, "sqlite3", strlen("sqlite3"))) {
+      if (0 == o_strncmp(db_type, "sqlite3", strlen("sqlite3"))) {
         if (config_setting_lookup_string(database, "path", &db_sqlite_path) == CONFIG_TRUE) {
           config->conn = h_connect_sqlite(db_sqlite_path);
           if (config->conn == NULL) {
@@ -478,7 +480,7 @@ int build_config_from_file(struct config_elements * config) {
           fprintf(stderr, "Error, no sqlite database specified\n");
           return 0;
         }
-      } else if (0 == nstrncmp(db_type, "mariadb", strlen("mariadb"))) {
+      } else if (0 == o_strncmp(db_type, "mariadb", strlen("mariadb"))) {
         config_setting_lookup_string(database, "host", &db_mariadb_host);
         config_setting_lookup_string(database, "user", &db_mariadb_user);
         config_setting_lookup_string(database, "password", &db_mariadb_password);
@@ -509,7 +511,7 @@ int build_config_from_file(struct config_elements * config) {
   if (config->static_files_path == NULL) {
     // Get path that serve static files
     if (config_lookup_string(&cfg, "static_files_path", &cur_static_files_path)) {
-      config->static_files_path = nstrdup(cur_static_files_path);
+      config->static_files_path = o_strdup(cur_static_files_path);
       if (config->static_files_path == NULL) {
         fprintf(stderr, "Error allocating config->static_files_path, exiting\n");
         config_destroy(&cfg);
@@ -521,7 +523,7 @@ int build_config_from_file(struct config_elements * config) {
   if (config->static_files_prefix == NULL) {
     // Get prefix url
     if (config_lookup_string(&cfg, "static_files_prefix", &cur_static_files_prefix)) {
-      config->static_files_prefix = nstrdup(cur_static_files_prefix);
+      config->static_files_prefix = o_strdup(cur_static_files_prefix);
       if (config->static_files_prefix == NULL) {
         fprintf(stderr, "Error allocating config->static_files_prefix, exiting\n");
         config_destroy(&cfg);
@@ -552,7 +554,7 @@ int build_config_from_file(struct config_elements * config) {
     } else if (cur_use_sha) {
       config_setting_lookup_string(jwt, "sha_secret", &cur_sha_secret);
       if (cur_sha_secret != NULL) {
-        config->glewlwyd_client_config->jwt_decode_key = nstrdup(cur_sha_secret);
+        config->glewlwyd_client_config->jwt_decode_key = o_strdup(cur_sha_secret);
         config->glewlwyd_client_config->jwt_alg = JWT_ALG_HS512;
       } else {
         config_destroy(&cfg);
@@ -567,7 +569,7 @@ int build_config_from_file(struct config_elements * config) {
   }
   
   if (config_lookup_string(&cfg, "oauth_scope", &cur_oauth_scope)) {
-    config->glewlwyd_client_config->oauth_scope = nstrdup(cur_oauth_scope);
+    config->glewlwyd_client_config->oauth_scope = o_strdup(cur_oauth_scope);
     if (config->glewlwyd_client_config->oauth_scope == NULL) {
       fprintf(stderr, "Error allocating config->oauth_scope, exiting\n");
       config_destroy(&cfg);
@@ -585,12 +587,8 @@ int build_config_from_file(struct config_elements * config) {
  */
 int check_config(struct config_elements * config) {
 
-  if (config->instance->port == -1) {
-    config->instance->port = ANGHARAD_DEFAULT_PORT;
-  }
-  
   if (config->url_prefix_angharad == NULL) {
-    config->url_prefix_angharad = nstrdup(ANGHARAD_DEFAULT_PREFIX);
+    config->url_prefix_angharad = o_strdup(ANGHARAD_DEFAULT_PREFIX);
     if (config->url_prefix_angharad == NULL) {
       fprintf(stderr, "Error allocating url_prefix_angharad, exit\n");
       return 0;
@@ -598,7 +596,7 @@ int check_config(struct config_elements * config) {
   }
   
   if (config->url_prefix_benoic == NULL) {
-    config->url_prefix_benoic = nstrdup(BENOIC_DEFAULT_PREFIX);
+    config->url_prefix_benoic = o_strdup(BENOIC_DEFAULT_PREFIX);
     if (config->url_prefix_benoic == NULL) {
       fprintf(stderr, "Error allocating url_prefix_benoic, exit\n");
       return 0;
@@ -606,7 +604,7 @@ int check_config(struct config_elements * config) {
   }
   
   if (config->url_prefix_carleon == NULL) {
-    config->url_prefix_carleon = nstrdup(CARLEON_DEFAULT_PREFIX);
+    config->url_prefix_carleon = o_strdup(CARLEON_DEFAULT_PREFIX);
     if (config->url_prefix_carleon == NULL) {
       fprintf(stderr, "Error allocating url_prefix_carleon, exit\n");
       return 0;
@@ -614,7 +612,7 @@ int check_config(struct config_elements * config) {
   }
   
   if (config->url_prefix_gareth == NULL) {
-    config->url_prefix_gareth = nstrdup(GARETH_DEFAULT_PREFIX);
+    config->url_prefix_gareth = o_strdup(GARETH_DEFAULT_PREFIX);
     if (config->url_prefix_gareth == NULL) {
       fprintf(stderr, "Error allocating url_prefix_gareth, exit\n");
       return 0;
@@ -636,11 +634,11 @@ int check_config(struct config_elements * config) {
   }
   
   if (config->allow_origin == NULL) {
-    config->allow_origin = nstrdup(ALLOW_ORIGIN_DEFAULT);
+    config->allow_origin = o_strdup(ALLOW_ORIGIN_DEFAULT);
   }
 
   if (config->static_files_prefix == NULL) {
-    config->static_files_prefix = nstrdup(STATIC_FILES_PREFIX_DEFAULT);
+    config->static_files_prefix = o_strdup(STATIC_FILES_PREFIX_DEFAULT);
   }
   
   if (config->b_config->modules_path == NULL) {
@@ -661,9 +659,8 @@ int check_config(struct config_elements * config) {
  * return status 404
  */
 int callback_default (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  response->json_body = json_pack("{ssssss}", "error", "page not found", "message", "The page can not be found, check documentation", "method", request->http_verb, "url", request->http_url);
-  response->status = 404;
-  return H_OK;
+  set_response_json_body_and_clean(response, 404, json_pack("{ssssss}", "error", "page not found", "message", "The page can not be found, check documentation", "method", request->http_verb, "url", request->http_url));
+  return U_CALLBACK_CONTINUE;
 }
 
 /**
@@ -726,7 +723,7 @@ int main(int argc, char ** argv) {
   config->c_config = malloc(sizeof(struct _carleon_config));
   config->b_config = malloc(sizeof(struct _benoic_config));
   config->mime_types = NULL;
-  config->glewlwyd_client_config = malloc(sizeof (struct _glewlwyd_client_config));
+  config->glewlwyd_client_config = malloc(sizeof (struct _glewlwyd_resource_config));
   if (config->instance == NULL || config->c_config == NULL || config->b_config == NULL || config->glewlwyd_client_config == NULL) {
     fprintf(stderr, "Memory error - config->instance || config->c_config || config->b_config || config->glewlwyd_client_config\n");
     return 1;
@@ -741,7 +738,8 @@ int main(int argc, char ** argv) {
   config->b_config->benoic_status = BENOIC_STATUS_STOP;
   config->glewlwyd_client_config->jwt_decode_key = NULL;
   config->glewlwyd_client_config->oauth_scope = NULL;
-  ulfius_init_instance(config->instance, -1, NULL);
+  config->glewlwyd_client_config->method = G_METHOD_HEADER;
+  ulfius_init_instance(config->instance, ANGHARAD_DEFAULT_PORT, NULL, NULL);
 
   // First we parse command line arguments
   if (!build_config_from_args(argc, argv, config)) {
@@ -816,7 +814,7 @@ int main(int argc, char ** argv) {
   }
   
   // Default endpoint
-  ulfius_set_default_endpoint(config->instance, NULL, NULL, NULL, &callback_angharad_default, (void*)config);
+  ulfius_set_default_endpoint(config->instance, &callback_angharad_default, (void*)config);
   
   // Start the webservice
   y_log_message(Y_LOG_LEVEL_INFO, "Start angharad on port %d", config->instance->port);
@@ -910,19 +908,19 @@ int submodule_enable(struct config_elements * config, const char * submodule, in
       res = h_update(config->conn, j_query, NULL);
       json_decref(j_query);
       if (res == H_OK) {
-        if (0 == nstrcmp(submodule, ANGHARAD_SUBMODULE_BENOIC)) {
+        if (0 == o_strcmp(submodule, ANGHARAD_SUBMODULE_BENOIC)) {
           if (init_benoic(config->instance, config->url_prefix_benoic, config->b_config) != B_OK) {
             y_log_message(Y_LOG_LEVEL_ERROR, "submodule_enable - Error init benoic");
             return A_ERROR;
           }
           return A_OK;
-        } else if (0 == nstrcmp(submodule, ANGHARAD_SUBMODULE_CARLEON)) {
+        } else if (0 == o_strcmp(submodule, ANGHARAD_SUBMODULE_CARLEON)) {
           if (init_carleon(config->c_config) != C_OK) {
             y_log_message(Y_LOG_LEVEL_ERROR, "submodule_enable - Error init carleon");
             return A_ERROR;
           }
           return A_OK;
-        } else if (0 == nstrcmp(submodule, ANGHARAD_SUBMODULE_GARETH)) {
+        } else if (0 == o_strcmp(submodule, ANGHARAD_SUBMODULE_GARETH)) {
           if (!init_gareth(config->instance, config->url_prefix_gareth, config->conn)) {
             y_log_message(Y_LOG_LEVEL_ERROR, "submodule_enable - Error init gareth");
             return A_ERROR;
@@ -943,19 +941,19 @@ int submodule_enable(struct config_elements * config, const char * submodule, in
       res = h_update(config->conn, j_query, NULL);
       json_decref(j_query);
       if (res == H_OK) {
-        if (0 == nstrcmp(submodule, ANGHARAD_SUBMODULE_BENOIC)) {
+        if (0 == o_strcmp(submodule, ANGHARAD_SUBMODULE_BENOIC)) {
           if (close_benoic(config->instance, config->url_prefix_benoic, config->b_config) != B_OK) {
             y_log_message(Y_LOG_LEVEL_ERROR, "submodule_enable - Error closing benoic");
             return A_ERROR;
           }
           return A_OK;
-        } else if (0 == nstrcmp(submodule, ANGHARAD_SUBMODULE_CARLEON)) {
+        } else if (0 == o_strcmp(submodule, ANGHARAD_SUBMODULE_CARLEON)) {
           if (close_carleon(config->c_config) != C_OK) {
             y_log_message(Y_LOG_LEVEL_ERROR, "submodule_enable - Error closing carleon");
             return A_ERROR;
           }
           return A_OK;
-        } else if (0 == nstrcmp(submodule, ANGHARAD_SUBMODULE_GARETH)) {
+        } else if (0 == o_strcmp(submodule, ANGHARAD_SUBMODULE_GARETH)) {
           if (!close_gareth(config->instance, config->url_prefix_gareth)) {
             y_log_message(Y_LOG_LEVEL_ERROR, "submodule_enable - Error closing gareth");
             return A_ERROR;
@@ -989,52 +987,59 @@ int init_angharad(struct config_elements * config) {
 
   y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (config != NULL && config->instance != NULL && config->url_prefix_angharad) {
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/alert/@submodule_name/@source/@element/@message/", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_alert, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, "/submodule/*", 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_client_config);
+    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, "/script/*", 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_client_config);
+    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, "/scheduler/*", 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_client_config);
+    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, "/trigger/*", 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_client_config);
+    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, "/profile/*", 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_client_config);
+    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, config->url_prefix_benoic, 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_client_config);
+    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, config->url_prefix_carleon, 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_client_config);
+    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, config->url_prefix_gareth, 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_client_config);
     
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/", NULL, NULL, NULL, &callback_angharad_submodule_list, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/@submodule_name", NULL, NULL, NULL, &callback_angharad_submodule_get, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/@submodule_name/enable/@enabled", NULL, NULL, NULL, &callback_angharad_submodule_enable, (void*)config);
-
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/", NULL, NULL, NULL, &callback_angharad_script_list, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/@script_name", NULL, NULL, NULL, &callback_angharad_script_get, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/script/", NULL, NULL, NULL, &callback_angharad_script_add, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/script/@script_name", NULL, NULL, NULL, &callback_angharad_script_modify, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/script/@script_name", NULL, NULL, NULL, &callback_angharad_script_remove, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/script/@script_name/@tag", NULL, NULL, NULL, &callback_angharad_script_add_tag, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/script/@script_name/@tag", NULL, NULL, NULL, &callback_angharad_script_remove_tag, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/@script_name/run", NULL, NULL, NULL, &callback_angharad_script_run, (void*)config);
-
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/scheduler/", NULL, NULL, NULL, &callback_angharad_scheduler_list, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/scheduler/@scheduler_name", NULL, NULL, NULL, &callback_angharad_scheduler_get, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/scheduler/@scheduler_name/enable/@enabled", NULL, NULL, NULL, &callback_angharad_scheduler_enable, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/scheduler/", NULL, NULL, NULL, &callback_angharad_scheduler_add, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/scheduler/@scheduler_name", NULL, NULL, NULL, &callback_angharad_scheduler_modify, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/scheduler/@scheduler_name", NULL, NULL, NULL, &callback_angharad_scheduler_remove, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/scheduler/@scheduler_name/@tag", NULL, NULL, NULL, &callback_angharad_scheduler_add_tag, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/scheduler/@scheduler_name/@tag", NULL, NULL, NULL, &callback_angharad_scheduler_remove_tag, (void*)config);
-
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/trigger/", NULL, NULL, NULL, &callback_angharad_trigger_list, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/trigger/@trigger_name", NULL, NULL, NULL, &callback_angharad_trigger_get, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/trigger/@trigger_name/enable/@enabled", NULL, NULL, NULL, &callback_angharad_trigger_enable, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/trigger/", NULL, NULL, NULL, &callback_angharad_trigger_add, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/trigger/@trigger_name", NULL, NULL, NULL, &callback_angharad_trigger_modify, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/trigger/@trigger_name", NULL, NULL, NULL, &callback_angharad_trigger_remove, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/trigger/@trigger_name/@tag", NULL, NULL, NULL, &callback_angharad_trigger_add_tag, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/trigger/@trigger_name/@tag", NULL, NULL, NULL, &callback_angharad_trigger_remove_tag, (void*)config);
-
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/profile", NULL, NULL, NULL, &callback_carleon_profile_list, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/profile/@profile_id", NULL, NULL, NULL, &callback_carleon_profile_get, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/profile/@profile_id", NULL, NULL, NULL, &callback_carleon_profile_set, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/profile/@profile_id", NULL, NULL, NULL, &callback_carleon_profile_remove, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/alert/@submodule_name/@source/@element/@message/", 2, &callback_angharad_alert, (void*)config);
     
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->static_files_prefix, "*", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_static_file, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/", 2, &callback_angharad_submodule_list, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/@submodule_name", 2, &callback_angharad_submodule_get, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/@submodule_name/enable/@enabled", 2, &callback_angharad_submodule_enable, (void*)config);
 
-    ulfius_add_endpoint_by_val(config->instance, "OPTIONS", NULL, "*", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_options, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/", 2, &callback_angharad_script_list, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/@script_name", 2, &callback_angharad_script_get, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/script/", 2, &callback_angharad_script_add, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/script/@script_name", 2, &callback_angharad_script_modify, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/script/@script_name", 2, &callback_angharad_script_remove, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/script/@script_name/@tag", 2, &callback_angharad_script_add_tag, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/script/@script_name/@tag", 2, &callback_angharad_script_remove_tag, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/@script_name/run", 2, &callback_angharad_script_run, (void*)config);
 
-    ulfius_add_endpoint_by_val(config->instance, "GET", NULL, "/", &callback_angharad_no_auth_function, NULL, NULL, &callback_angharad_root_url, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/scheduler/", 2, &callback_angharad_scheduler_list, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/scheduler/@scheduler_name", 2, &callback_angharad_scheduler_get, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/scheduler/@scheduler_name/enable/@enabled", 2, &callback_angharad_scheduler_enable, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/scheduler/", 2, &callback_angharad_scheduler_add, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/scheduler/@scheduler_name", 2, &callback_angharad_scheduler_modify, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/scheduler/@scheduler_name", 2, &callback_angharad_scheduler_remove, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/scheduler/@scheduler_name/@tag", 2, &callback_angharad_scheduler_add_tag, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/scheduler/@scheduler_name/@tag",2, &callback_angharad_scheduler_remove_tag, (void*)config);
 
-    ulfius_set_default_auth_function(config->instance, &callback_check_glewlwyd_scope, (void*)config->glewlwyd_client_config, NULL);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/trigger/", 2, &callback_angharad_trigger_list, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/trigger/@trigger_name", 2, &callback_angharad_trigger_get, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/trigger/@trigger_name/enable/@enabled", 21, &callback_angharad_trigger_enable, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/trigger/", 2, &callback_angharad_trigger_add, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/trigger/@trigger_name", 2, &callback_angharad_trigger_modify, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/trigger/@trigger_name", 2, &callback_angharad_trigger_remove, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/trigger/@trigger_name/@tag", 2, &callback_angharad_trigger_add_tag, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/trigger/@trigger_name/@tag", 2, &callback_angharad_trigger_remove_tag, (void*)config);
+
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/profile", 2, &callback_carleon_profile_list, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/profile/@profile_id", 2, &callback_carleon_profile_get, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/profile/@profile_id", 2, &callback_carleon_profile_set, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/profile/@profile_id", 2, &callback_carleon_profile_remove, (void*)config);
     
+    ulfius_add_endpoint_by_val(config->instance, "GET", config->static_files_prefix, "*", 1, &callback_angharad_static_file, (void*)config);
+
+    ulfius_add_endpoint_by_val(config->instance, "OPTIONS", NULL, "*", 0, &callback_angharad_options, (void*)config);
+
+    ulfius_add_endpoint_by_val(config->instance, "GET", NULL, "/", 2, &callback_angharad_root_url, (void*)config);
+
     u_map_put(config->instance->default_headers, "Access-Control-Allow-Origin", config->allow_origin);
     u_map_put(config->instance->default_headers, "Access-Control-Allow-Credentials", "true");
     
@@ -1173,4 +1178,10 @@ char * get_file_content(const char * file_path) {
   }
   
   return buffer;
+}
+
+int set_response_json_body_and_clean(struct _u_response * response, uint status, json_t * json_body) {
+  int res = ulfius_set_json_body_response(response, status, json_body);
+  json_decref(json_body);
+  return res;
 }
