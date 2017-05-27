@@ -34,6 +34,7 @@
 // Angharad libraries
 #include <orcania.h>
 #include <yder.h>
+#define U_DISABLE_WEBSOCKET
 #include <ulfius.h>
 #define _HOEL_MARIADB
 #define _HOEL_SQLITE
