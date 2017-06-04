@@ -152,7 +152,8 @@ struct config_elements {
   struct _glewlwyd_resource_config * glewlwyd_client_config;
 };
 
-int global_handler_variable;
+pthread_mutex_t global_handler_close_lock;
+pthread_cond_t  global_handler_close_cond;
 
 int  build_config_from_args(int argc, char ** argv, struct config_elements * config);
 int  build_config_from_file(struct config_elements * config);

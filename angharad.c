@@ -287,11 +287,15 @@ void exit_server(struct config_elements ** config, int exit_value) {
     u_map_clean_full((*config)->mime_types);
     free((*config)->allow_origin);
     free((*config)->log_file);
-    y_close_logs();
 
     free(*config);
     (*config) = NULL;
   }
+  if (pthread_mutex_destroy(&global_handler_close_lock) ||
+      pthread_cond_destroy(&global_handler_close_cond)) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "Error destroying global_handler_close_lock or global_handler_close_cond");
+  }
+  y_close_logs();
   exit(exit_value);
 }
 
@@ -300,7 +304,9 @@ void exit_server(struct config_elements ** config, int exit_value) {
  */
 void exit_handler(int signal) {
   y_log_message(Y_LOG_LEVEL_INFO, "Caught a stop or kill signal (%d), exiting", signal);
-  global_handler_variable = ANGHARAD_STOP;
+  pthread_mutex_lock(&global_handler_close_lock);
+  pthread_cond_signal(&global_handler_close_cond);
+  pthread_mutex_unlock(&global_handler_close_lock);
 }
 
 /**
@@ -694,13 +700,6 @@ int main(int argc, char ** argv) {
   int res;
   json_t * submodule;
   
-  global_handler_variable = ANGHARAD_RUNNING;
-  // Catch end signals to make a clean exit
-  signal (SIGQUIT, exit_handler);
-  signal (SIGINT, exit_handler);
-  signal (SIGTERM, exit_handler);
-  signal (SIGHUP, exit_handler);
-
   if (config == NULL) {
     fprintf(stderr, "Memory error - config\n");
     return 1;
@@ -740,6 +739,20 @@ int main(int argc, char ** argv) {
   config->glewlwyd_client_config->oauth_scope = NULL;
   config->glewlwyd_client_config->method = G_METHOD_HEADER;
   ulfius_init_instance(config->instance, ANGHARAD_DEFAULT_PORT, NULL, NULL);
+
+  if (pthread_mutex_init(&global_handler_close_lock, NULL) || 
+      pthread_cond_init(&global_handler_close_cond, NULL)) {
+    fprintf(stderr, "init - Error initializing global_handler_close_lock or global_handler_close_cond\n");
+    return 1;
+  }
+  // Catch end signals to make a clean exit
+  if (signal (SIGQUIT, exit_handler) == SIG_ERR || 
+      signal (SIGINT, exit_handler) == SIG_ERR || 
+      signal (SIGTERM, exit_handler) == SIG_ERR || 
+      signal (SIGHUP, exit_handler) == SIG_ERR) {
+    fprintf(stderr, "init - Error initializing end signal\n");
+    return 1;
+  }
 
   // First we parse command line arguments
   if (!build_config_from_args(argc, argv, config)) {
@@ -819,13 +832,15 @@ int main(int argc, char ** argv) {
   // Start the webservice
   y_log_message(Y_LOG_LEVEL_INFO, "Start angharad on port %d", config->instance->port);
   if (ulfius_start_framework(config->instance) == U_OK) {
-    while (global_handler_variable == ANGHARAD_RUNNING) {
-      sleep(1);
-    }
+    // Wait until stop signal is broadcasted
+    pthread_mutex_lock(&global_handler_close_lock);
+    pthread_cond_wait(&global_handler_close_cond, &global_handler_close_lock);
+    pthread_mutex_unlock(&global_handler_close_lock);
   } else {
     y_log_message(Y_LOG_LEVEL_ERROR, "Error starting angharad webserver");
     exit_server(&config, ANGHARAD_ERROR);
   }
+  y_log_message(Y_LOG_LEVEL_INFO, "Stop angharad server");
   exit_server(&config, ANGHARAD_STOP);
   return 0;
 }
