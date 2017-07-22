@@ -1007,9 +1007,9 @@ int init_angharad(struct config_elements * config) {
     ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, "/scheduler/*", 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_client_config);
     ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, "/trigger/*", 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_client_config);
     ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, "/profile/*", 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_client_config);
-    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, config->url_prefix_benoic, 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_client_config);
-    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, config->url_prefix_carleon, 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_client_config);
-    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, config->url_prefix_gareth, 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_client_config);
+    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_benoic, "*", 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_client_config);
+    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_carleon, "*", 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_client_config);
+    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_gareth, "*", 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_client_config);
     
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/alert/@submodule_name/@source/@element/@message/", 2, &callback_angharad_alert, (void*)config);
     
