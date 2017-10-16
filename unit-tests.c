@@ -41,7 +41,7 @@
 #define PREFIX_BENOIC "benoic"
 #define PREFIX_CARLEON "carleon"
 
-#define AUTH_SERVER_URI "http://localhost:4593/glewlwyd"
+#define AUTH_SERVER_URI "http://localhost:4593/api"
 #define USER_LOGIN "user1"
 #define USER_PASSWORD "MyUser1Password!"
 #define USER_SCOPE_LIST "angharad"
@@ -1522,29 +1522,35 @@ int main(int argc, char ** argv) {
   res = ulfius_send_http_request(&auth_req, &auth_resp);
   if (res == U_OK && auth_resp.status == 200) {
     json_t * json_body = ulfius_get_json_body_response(&auth_resp, NULL);
-    token = msprintf("Bearer %s", (json_string_value(json_object_get(json_body, "access_token"))));
-    printf("User %s authenticated\n", USER_LOGIN);
-    json_decref(json_body);
+		if (json_body != NULL && json_object_get(json_body, "access_token") != NULL) {
+			token = msprintf("Bearer %s", (json_string_value(json_object_get(json_body, "access_token"))));
+			printf("User %s authenticated: %s\n", USER_LOGIN, auth_req.http_url);
+			json_decref(json_body);
+		} else {
+			printf("Error authentication, no token provided\n");
+		}
   } else {
     printf("Error authentication user %s\n", USER_LOGIN);
   }
-  printf("Press <enter> to run submodule tests\n");
-  getchar();
-  run_submodule_tests();
-  printf("Press <enter> to run script tests\n");
-  getchar();
-  run_script_tests();
-  printf("Press <enter> to run scheduler tests\n");
-  getchar();
-  run_scheduler_tests();
-  printf("Press <enter> to run trigger tests\n");
-  getchar();
-  run_trigger_tests();
-  printf("Press <enter> to run scheduler and trigger execution tests\n");
-  getchar();
-  run_scheduler_trigger_exec_tests();
-  printf("Press <enter> to run profile tests\n");
-  getchar();
-  run_profile_tests();
+	if (token != NULL) {
+		printf("Press <enter> to run submodule tests\n");
+		getchar();
+		run_submodule_tests();
+		printf("Press <enter> to run script tests\n");
+		getchar();
+		run_script_tests();
+		printf("Press <enter> to run scheduler tests\n");
+		getchar();
+		run_scheduler_tests();
+		printf("Press <enter> to run trigger tests\n");
+		getchar();
+		run_trigger_tests();
+		printf("Press <enter> to run scheduler and trigger execution tests\n");
+		getchar();
+		run_scheduler_trigger_exec_tests();
+		printf("Press <enter> to run profile tests\n");
+		getchar();
+		run_profile_tests();
+	}
   return 0;
 }
