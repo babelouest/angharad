@@ -149,7 +149,7 @@ struct config_elements {
   struct _benoic_config            * b_config;
   struct _carleon_config           * c_config;
   unsigned int                       angharad_status;
-  struct _glewlwyd_resource_config * glewlwyd_client_config;
+  struct _glewlwyd_resource_config * glewlwyd_resource_config;
 };
 
 pthread_mutex_t global_handler_close_lock;

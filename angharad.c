@@ -281,9 +281,9 @@ void exit_server(struct config_elements ** config, int exit_value) {
     free((*config)->static_files_path);
     free((*config)->static_files_prefix);
     free((*config)->alert_url);
-    free((*config)->glewlwyd_client_config->jwt_decode_key);
-    free((*config)->glewlwyd_client_config->oauth_scope);
-    free((*config)->glewlwyd_client_config);
+    free((*config)->glewlwyd_resource_config->jwt_decode_key);
+    free((*config)->glewlwyd_resource_config->oauth_scope);
+    free((*config)->glewlwyd_resource_config);
     u_map_clean_full((*config)->mime_types);
     free((*config)->allow_origin);
     free((*config)->log_file);
@@ -317,8 +317,8 @@ int build_config_from_file(struct config_elements * config) {
   
   config_t cfg;
   config_setting_t * root, * database, * jwt;
-  const char * cur_prefix_angharad, * cur_prefix_benoic, * cur_prefix_carleon, * cur_prefix_gareth, * cur_log_mode, * cur_log_level, * cur_log_file = NULL, * one_log_mode, * carleon_services_path, * benoic_modules_path, * cur_allow_origin, * cur_static_files_prefix, * db_type, * db_sqlite_path, * db_mariadb_host = NULL, * db_mariadb_user = NULL, * db_mariadb_password = NULL, * db_mariadb_dbname = NULL, * cur_static_files_path = NULL, * cur_rsa_pub_file = NULL, * cur_sha_secret = NULL, * cur_oauth_scope = NULL;
-  int db_mariadb_port = 0, cur_use_rsa = 0, cur_use_sha = 0;
+  const char * cur_prefix_angharad, * cur_prefix_benoic, * cur_prefix_carleon, * cur_prefix_gareth, * cur_log_mode, * cur_log_level, * cur_log_file = NULL, * one_log_mode, * carleon_services_path, * benoic_modules_path, * cur_allow_origin, * cur_static_files_prefix, * db_type, * db_sqlite_path, * db_mariadb_host = NULL, * db_mariadb_user = NULL, * db_mariadb_password = NULL, * db_mariadb_dbname = NULL, * cur_static_files_path = NULL, * cur_rsa_pub_file = NULL, * cur_ecdsa_pub_file = NULL, * cur_sha_secret = NULL, * cur_oauth_scope = NULL;
+  int db_mariadb_port = 0, cur_key_size = 512, cur_use_rsa = 0, cur_use_sha = 0, cur_use_ecdsa = 0;
   
   config_init(&cfg);
   
@@ -540,43 +540,79 @@ int build_config_from_file(struct config_elements * config) {
   
   jwt = config_setting_get_member(root, "jwt");
   if (jwt != NULL) {
-    config_setting_lookup_bool(jwt, "use_rsa", &cur_use_rsa);
-    config_setting_lookup_bool(jwt, "use_sha", &cur_use_sha);
-    if (cur_use_rsa) {
-      config_setting_lookup_string(jwt, "rsa_pub_file", &cur_rsa_pub_file);
-      if (cur_rsa_pub_file != NULL) {
-        config->glewlwyd_client_config->jwt_decode_key = get_file_content(cur_rsa_pub_file);
-        config->glewlwyd_client_config->jwt_alg = JWT_ALG_RS512;
-        if (config->glewlwyd_client_config->jwt_decode_key == NULL) {
-          config_destroy(&cfg);
-          fprintf(stderr, "Error, rsa_pub_file content incorrect\n");
-          return 0;
-        }
-      } else {
-        config_destroy(&cfg);
-        fprintf(stderr, "Error, rsa_pub_file incorrect\n");
-        return 0;
-      }
-    } else if (cur_use_sha) {
-      config_setting_lookup_string(jwt, "sha_secret", &cur_sha_secret);
-      if (cur_sha_secret != NULL) {
-        config->glewlwyd_client_config->jwt_decode_key = o_strdup(cur_sha_secret);
-        config->glewlwyd_client_config->jwt_alg = JWT_ALG_HS512;
-      } else {
-        config_destroy(&cfg);
-        fprintf(stderr, "Error, sha_secret incorrect\n");
-        return 0;
-      }
-    } else {
-      config_destroy(&cfg);
-      fprintf(stderr, "Error, no jwt algorithm selected\n");
-      return 0;
-    }
+		config_setting_lookup_bool(jwt, "key_size", &cur_key_size);
+		
+		if (cur_key_size == 256 || cur_key_size == 384 || cur_key_size == 512) {
+			config_setting_lookup_bool(jwt, "use_rsa", &cur_use_rsa);
+			config_setting_lookup_bool(jwt, "use_sha", &cur_use_sha);
+			config_setting_lookup_bool(jwt, "use_ecdsa", &cur_use_ecdsa);
+			if (cur_use_rsa) {
+				config_setting_lookup_string(jwt, "rsa_pub_file", &cur_rsa_pub_file);
+				if (cur_rsa_pub_file != NULL) {
+					config->glewlwyd_resource_config->jwt_decode_key = get_file_content(cur_rsa_pub_file);
+					if (config->glewlwyd_resource_config->jwt_decode_key == NULL) {
+						config_destroy(&cfg);
+						fprintf(stderr, "Error, rsa_pub_file content incorrect\n");
+						return 0;
+					}
+					if (cur_key_size == 256) {
+						config->glewlwyd_resource_config->jwt_alg = JWT_ALG_RS256;
+					} else if (cur_key_size == 384) {
+						config->glewlwyd_resource_config->jwt_alg = JWT_ALG_RS384;
+					} else if (cur_key_size == 512) {
+						config->glewlwyd_resource_config->jwt_alg = JWT_ALG_RS512;
+					}
+				} else {
+					config_destroy(&cfg);
+					fprintf(stderr, "Error, rsa_pub_file incorrect\n");
+					return 0;
+				}
+			} else if (cur_use_ecdsa) {
+				config_setting_lookup_string(jwt, "ecdsa_pub_file", &cur_ecdsa_pub_file);
+				if (cur_ecdsa_pub_file != NULL) {
+					config->glewlwyd_resource_config->jwt_decode_key = get_file_content(cur_ecdsa_pub_file);
+					if (config->glewlwyd_resource_config->jwt_decode_key == NULL) {
+						config_destroy(&cfg);
+						fprintf(stderr, "Error, ecdsa_pub_file content incorrect\n");
+						return 0;
+					}
+					if (cur_key_size == 256) {
+						config->glewlwyd_resource_config->jwt_alg = JWT_ALG_ES256;
+					} else if (cur_key_size == 384) {
+						config->glewlwyd_resource_config->jwt_alg = JWT_ALG_ES384;
+					} else if (cur_key_size == 512) {
+						config->glewlwyd_resource_config->jwt_alg = JWT_ALG_ES512;
+					}
+				} else {
+					config_destroy(&cfg);
+					fprintf(stderr, "Error, ecdsa_pub_file incorrect\n");
+					return 0;
+				}
+			} else if (cur_use_sha) {
+				config_setting_lookup_string(jwt, "sha_secret", &cur_sha_secret);
+				if (cur_sha_secret != NULL) {
+					config->glewlwyd_resource_config->jwt_decode_key = o_strdup(cur_sha_secret);
+					config->glewlwyd_resource_config->jwt_alg = JWT_ALG_HS512;
+				} else {
+					config_destroy(&cfg);
+					fprintf(stderr, "Error, sha_secret incorrect\n");
+					return 0;
+				}
+			} else {
+				config_destroy(&cfg);
+				fprintf(stderr, "Error, no jwt algorithm selected\n");
+				return 0;
+			}
+		} else {
+			config_destroy(&cfg);
+			fprintf(stderr, "Error, key_size incorrect, values available are 256, 384 or 512\n");
+			return 0;
+		}
   }
   
   if (config_lookup_string(&cfg, "oauth_scope", &cur_oauth_scope)) {
-    config->glewlwyd_client_config->oauth_scope = o_strdup(cur_oauth_scope);
-    if (config->glewlwyd_client_config->oauth_scope == NULL) {
+    config->glewlwyd_resource_config->oauth_scope = o_strdup(cur_oauth_scope);
+    if (config->glewlwyd_resource_config->oauth_scope == NULL) {
       fprintf(stderr, "Error allocating config->oauth_scope, exiting\n");
       config_destroy(&cfg);
       return 0;
@@ -722,9 +758,9 @@ int main(int argc, char ** argv) {
   config->c_config = malloc(sizeof(struct _carleon_config));
   config->b_config = malloc(sizeof(struct _benoic_config));
   config->mime_types = NULL;
-  config->glewlwyd_client_config = malloc(sizeof (struct _glewlwyd_resource_config));
-  if (config->instance == NULL || config->c_config == NULL || config->b_config == NULL || config->glewlwyd_client_config == NULL) {
-    fprintf(stderr, "Memory error - config->instance || config->c_config || config->b_config || config->glewlwyd_client_config\n");
+  config->glewlwyd_resource_config = malloc(sizeof (struct _glewlwyd_resource_config));
+  if (config->instance == NULL || config->c_config == NULL || config->b_config == NULL || config->glewlwyd_resource_config == NULL) {
+    fprintf(stderr, "Memory error - config->instance || config->c_config || config->b_config || config->glewlwyd_resource_config\n");
     return 1;
   }
   config->c_config->services_path = NULL;
@@ -735,9 +771,10 @@ int main(int argc, char ** argv) {
   config->b_config->device_type_list = NULL;
   config->b_config->device_data_list = NULL;
   config->b_config->benoic_status = BENOIC_STATUS_STOP;
-  config->glewlwyd_client_config->jwt_decode_key = NULL;
-  config->glewlwyd_client_config->oauth_scope = NULL;
-  config->glewlwyd_client_config->method = G_METHOD_HEADER;
+  config->glewlwyd_resource_config->jwt_decode_key = NULL;
+  config->glewlwyd_resource_config->oauth_scope = NULL;
+  config->glewlwyd_resource_config->method = G_METHOD_HEADER;
+  config->glewlwyd_resource_config->realm = NULL;
   ulfius_init_instance(config->instance, ANGHARAD_DEFAULT_PORT, NULL, NULL);
 
   if (pthread_mutex_init(&global_handler_close_lock, NULL) || 
@@ -1002,14 +1039,14 @@ int init_angharad(struct config_elements * config) {
 
   y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (config != NULL && config->instance != NULL && config->url_prefix_angharad) {
-    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, "/submodule/*", 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_client_config);
-    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, "/script/*", 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_client_config);
-    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, "/scheduler/*", 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_client_config);
-    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, "/trigger/*", 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_client_config);
-    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, "/profile/*", 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_client_config);
-    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_benoic, "*", 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_client_config);
-    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_carleon, "*", 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_client_config);
-    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_gareth, "*", 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_client_config);
+    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, "/submodule/*", 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_resource_config);
+    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, "/script/*", 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_resource_config);
+    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, "/scheduler/*", 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_resource_config);
+    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, "/trigger/*", 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_resource_config);
+    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, "/profile/*", 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_resource_config);
+    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_benoic, "*", 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_resource_config);
+    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_carleon, "*", 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_resource_config);
+    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_gareth, "*", 1, &callback_check_glewlwyd_access_token, (void*)config->glewlwyd_resource_config);
     
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/alert/@submodule_name/@source/@element/@message/", 2, &callback_angharad_alert, (void*)config);
     
