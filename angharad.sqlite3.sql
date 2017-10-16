@@ -134,7 +134,8 @@ CREATE TABLE `g_filter_clause` (
 CREATE INDEX `i_filter_clause` ON `g_filter_clause`(`fc_id`);
 
 CREATE TABLE `g_filter_alert` (
-  `f_id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `fa_id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `f_id` INTEGER,
   `ah_name` TEXT NULL,
   `as_name` TEXT NULL,
   FOREIGN KEY(f_id) REFERENCES g_filter(f_id),

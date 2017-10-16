@@ -136,7 +136,8 @@ CREATE TABLE `g_filter_clause` (
 );
 
 CREATE TABLE `g_filter_alert` (
-  `f_id` INT(11) PRIMARY KEY AUTO_INCREMENT,
+  `fa_id` INT(11) PRIMARY KEY AUTO_INCREMENT,
+  `f_id` INT(11) NOT NULL,
   `ah_name` VARCHAR(64) NULL,
   `as_name` VARCHAR(64) NULL,
   CONSTRAINT `filter_alert_ibfk_1` FOREIGN KEY (`f_id`) REFERENCES `g_filter` (`f_id`) ON DELETE CASCADE,
