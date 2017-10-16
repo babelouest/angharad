@@ -341,7 +341,8 @@ json_t * is_actions_valid(struct config_elements * config, json_t * j_action_lis
  *     "service": "service_name"      // Required for carleon
  *     "param1": "value1",            // for a string value
  *     "param2": 2,                   // for an integer value
- *     "param3", 3.3                  // for a real value
+ *     "param3": 3.3                  // for a real value
+ *     "param4": ["x","y","z"]        // for an array value
  *   }
  * 
  */
@@ -477,6 +478,8 @@ json_t * is_action_valid(struct config_elements * config, json_t * j_action, con
                       json_array_append_new(j_result, json_pack("{ss}", "action", "parameter must be an integer"));
                     } else if (0 == o_strcmp("real", json_string_value(json_object_get(j_cur_param, "type"))) && !json_is_number(j_command_param)) {
                       json_array_append_new(j_result, json_pack("{ss}", "action", "parameter must be an real"));
+                    } else if (0 == o_strcmp("array", json_string_value(json_object_get(j_cur_param, "type"))) && !json_is_array(j_command_param)) {
+                      json_array_append_new(j_result, json_pack("{ss}", "action", "parameter must be an array"));
                     }
                   }
                 }
