@@ -9,15 +9,15 @@ Central program and orchestrator of the following submodules:
 - [Carleon](https://github.com/babelouest/carleon): Command house automation side services (music, camera, etc)
 - [Gareth](https://github.com/babelouest/gareth): Logs and messenger service
 
-Angharad integrates all those submodules functionnalities and manages scripts, events, user profiles, and a small static file server.
+Angharad integrates all those submodules functionalities and manages scripts, events, user profiles, and a small static file server.
 
-Benoic and Carleon implement a dynamic lbrary loading interface to add/remove/update modules without having to recompile all the system every time an update or an improvement is made.
+Benoic and Carleon implement a dynamic library loading interface to add/remove/update modules without having to recompile all the system every time an update or an improvement is made.
 
 Each module are compiled independently and have its own dependencies.
 
 # Prerequisites
 
-All Angharad system, its submodules and its custom libraries are written in C language, for better preformance and lightweight resources consumption. GCC and Makefile were used for the development.
+All Angharad system, its submodules and its custom libraries are written in C language, for better performance and lightweight resources consumption. GCC and Makefile were used for the development.
 
 ## External dependencies
 
@@ -26,32 +26,41 @@ All Angharad system, its submodules and its custom libraries are written in C la
 On Debian-based systems (Debian, Raspbian, Ubuntu), use the following comand to install dependencies:
 
 ```shell
-sudo apt-get install libmicrohttpd-dev libjansson-dev libcurl4-gnutls-dev uuid-dev libldap2-dev libmysqlclient-dev libsqlite3-dev libconfig-dev
+$ sudo apt-get install libmicrohttpd-dev libjansson-dev libcurl4-gnutls-dev libmysqlclient-dev libsqlite3-dev libconfig-dev libssl-dev
+# Install libjwt
+$ git clone https://github.com/benmcollins/libjwt.git
+$ cd libjwt/
+$ autoreconf -i
+$ ./configure
+$ make
+$ sudo make install
 
-git clone https://github.com/babelouest/orcania.git
-cd orcania
-make
-sudo make install
+# Install Orcania
+$ git clone https://github.com/babelouest/orcania.git
+$ cd orcania/
+$ make
+$ sudo make install
 
-git clone https://github.com/babelouest/yder.git
-cd yder/src
-make
-sudo make install
+# Install Yder
+$ git clone https://github.com/babelouest/yder.git
+$ cd yder/src/
+$ make
+$ sudo make install
 
-git clone https://github.com/babelouest/ulfius.git
-cd ulfius/src
-make
-sudo make install
+# Install Ulfius
+$ git clone https://github.com/babelouest/ulfius.git
+$ cd ulfius/src/
+$ make
+$ sudo make install
 
-git clone https://github.com/babelouest/hoel.git
-cd hoel/src
-make
-sudo make install
+# Install Hoel
+$ git clone https://github.com/babelouest/hoel.git
+$ cd hoel/src/
+$ make
+$ sudo make install
 ```
 
 The following external libraries are required to build Angharad:
-- [libuuid](https://sourceforge.net/projects/libuuid/), UUID generator
-- [libldap](http://www.openldap.org/devel//cvsweb.cgi/libraries/libldap?hideattic=0&sortbydate=0), ldap API
 - [libconfig](http://www.hyperrealm.com/libconfig/), Configuration File Library
 - [jansson](http://www.digip.org/jansson/), json manipulation library
 
@@ -66,6 +75,7 @@ And finally, Angharad depends on the following libraries:
 - [Yder](https://github.com/babelouest/yder), Logging library
 - [Ulfius](https://github.com/babelouest/ulfius), Web Framework for REST Applications
 - [Hoel](https://github.com/babelouest/hoel), Database abstraction library
+- [Libjwt](https://github.com/benmcollins/libjwt), JWT parser
 
 ## Benoic modules prerequisites
 
