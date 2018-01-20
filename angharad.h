@@ -92,13 +92,11 @@
 #define ANGHARAD_SUBMODULE_FERGUS  "fergus"
 
 #define ANGHARAD_TABLE_SUBMODULE        "a_submodule"
-#define ANGHARAD_TABLE_SESSION          "a_session"
 #define ANGHARAD_TABLE_SCRIPT           "a_script"
 #define ANGHARAD_TABLE_SCHEDULER        "a_scheduler"
 #define ANGHARAD_TABLE_TRIGGER          "a_trigger"
 #define ANGHARAD_TABLE_SCHEDULER_SCRIPT "a_scheduler_script"
 #define ANGHARAD_TABLE_TRIGGER_SCRIPT   "a_trigger_script"
-#define ANGHARAD_TABLE_USER             "a_user"
 #define ANGHARAD_TABLE_PROFILE          "a_profile"
 
 #define ANGHARAD_AUTH_TYPE_NONE     0

@@ -15,8 +15,6 @@ DROP TABLE IF EXISTS `g_alert_smtp`;
 DROP TABLE IF EXISTS `g_alert_http_header`;
 DROP TABLE IF EXISTS `g_alert_http`;
 
-DROP TABLE IF EXISTS `a_user`;
-DROP TABLE IF EXISTS `a_session`;
 DROP TABLE IF EXISTS `a_scheduler_script`;
 DROP TABLE IF EXISTS `a_trigger_script`;
 DROP TABLE IF EXISTS `a_trigger`;
@@ -216,24 +214,6 @@ CREATE TABLE `a_trigger_script` (
   CONSTRAINT `trigger_id_ibfk_1` FOREIGN KEY (`at_id`) REFERENCES `a_trigger` (`at_id`) ON DELETE CASCADE,
   CONSTRAINT `script_id_ibfk_2` FOREIGN KEY (`asc_id`) REFERENCES `a_script` (`asc_id`) ON DELETE CASCADE
 );
-
-CREATE TABLE `a_session` (
-  `ass_session_token` TEXT PRIMARY KEY NOT NULL,
-  `ass_enabled` INTEGER DEFAULT 1,
-  `ass_login` TEXT,
-  `ass_validity` INTEGER,
-  `ass_lastseen` INTEGER
-);
-CREATE INDEX `session_uuid_idx` ON `a_session` (`ass_session_token`);
-
-CREATE TABLE `a_user` (
-  `au_id` INTEGER PRIMARY KEY AUTOINCREMENT,
-  `au_login` TEXT NOT NULL,
-  `au_password` TEXT NOT NULL,
-  `au_enabled` INTEGER DEFAULT 1
-);
--- Insert credential for default user, login is 'admin', password is 'password'
-INSERT INTO a_user (au_login, au_password, au_enabled) VALUES ('admin', '5f4dcc3b5aa765d61d8327deb882cf99', 1);
 
 CREATE TABLE `a_profile` (
   `ap_id` INTEGER PRIMARY KEY AUTOINCREMENT,
