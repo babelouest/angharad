@@ -1,0 +1,18 @@
+{
+	"baseUrl": "http://localhost:2473/",
+	"taliesinBbaseUrl": "http://localhost:8576/api/",
+	"prefixAngharad": "angharad/",
+	"prefixBenoic": "benoic/",
+	"prefixCarleon": "carleon/",
+	"prefixGareth": "gareth/",
+	"oauth2": {
+		"site": "http://localhost:4593/api/",
+		"clientId": "sagremor",
+		"responseType": "code",
+		"redirectUri": "http://localhost:2473/",
+		"profileUri": "http://localhost:4593/api/profile/",
+		"scope": "angharad taliesin",
+		"authorizePath": "auth",
+		"tokenPath": "token"
+	}
+}

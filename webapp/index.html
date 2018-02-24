@@ -1,0 +1,14 @@
+<!doctype html><html><head><base href="/"><meta charset="utf-8"><title>Angharad</title><link href="favicon.ico" rel="icon" type="image/x-icon"><meta name="description" content="Angharad Home Automation Manager"><meta name="viewport" content="width=device-width"><link rel="stylesheet" href="styles/vendor-89b8ce3f2a.css"><link rel="stylesheet" href="styles/app-996bcd5a0c.css"></head><body data-ng-controller="sagremorCtrl" data-ng-controller-as="sagremorCtrl"><!--[if lt IE 10]>
+ <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade
+ your browser</a> to improve your experience.</p>
+ <![endif]--><data-toaster-container></data-toaster-container><div role="main" class="main row"><div class="tabbable sag-tabs-left col-xs-2"><data-top-left-menu></data-top-left-menu></div><div class="tab-content col-xs-10"><div data-ui-view="" class="tab-pane active" id="tabView"></div></div><data-top-right-menu></data-top-right-menu></div><script src="scripts/vendor-1b5d5829fe.js"></script><script src="scripts/app-7d58e2d81a.js"></script></body><script type="text/javascript">
+// Bootstrap the application manually instead of the ng-app directive.
+// So we can get the config.json file prior to everything else
+// Thanks to Jaco Pretorius: https://jacopretorius.net/2016/09/loading-configuration-data-on-startup-with-angular.html
+$(function(){
+    $.get('config.json', (response) => {
+    angular.module('sagremorApp').constant("angharadConfig", response);
+    angular.bootstrap(document, ['sagremorApp']);
+  });
+});
+</script></html>
