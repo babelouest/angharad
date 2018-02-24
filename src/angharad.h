@@ -119,6 +119,12 @@
 #define TRIGGER_MESSAGE_MATCH_EMPTY        5
 #define TRIGGER_MESSAGE_MATCH_NOT_EMPTY    6
 
+#define ANGHARAD_CALLBACK_PRIORITY_ZERO           0
+#define ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION 1
+#define ANGHARAD_CALLBACK_PRIORITY_APPLICATION    2
+#define ANGHARAD_CALLBACK_PRIORITY_FILES          3
+#define ANGHARAD_CALLBACK_PRIORITY_CLEAN          4
+
 struct _auth_ldap {
   char * uri;
   char * bind_dn;
@@ -134,7 +140,6 @@ struct config_elements {
   char *                             url_prefix_benoic;
   char *                             url_prefix_carleon;
   char *                             url_prefix_gareth;
-  char *                             static_files_prefix;
   char *                             static_files_path;
   char *                             alert_url;
   struct _u_map                    * mime_types;
@@ -286,13 +291,7 @@ int callback_carleon_profile_set (const struct _u_request * request, struct _u_r
 int callback_carleon_profile_remove (const struct _u_request * request, struct _u_response * response, void * user_data);
 
 int callback_angharad_static_file (const struct _u_request * request, struct _u_response * response, void * user_data);
-
 int callback_angharad_options (const struct _u_request * request, struct _u_response * response, void * user_data);
-
-int callback_angharad_root_url (const struct _u_request * request, struct _u_response * response, void * user_data);
-
-int callback_angharad_default (const struct _u_request * request, struct _u_response * response, void * user_data);
-
-int callback_angharad_no_auth_function (const struct _u_request * request, struct _u_response * response, void * user_data);
+int callback_clean (const struct _u_request * request, struct _u_response * response, void * user_data);
 
 #endif

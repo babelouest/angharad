@@ -36,7 +36,7 @@
 #include <ulfius.h>
 #include <orcania.h>
 
-#define SERVER_URL "http://localhost:2473/"
+#define SERVER_URL "http://localhost:2474/"
 #define PREFIX_ANGHARAD "angharad"
 #define PREFIX_BENOIC "benoic"
 #define PREFIX_CARLEON "carleon"
@@ -1530,7 +1530,7 @@ int main(int argc, char ** argv) {
 			printf("Error authentication, no token provided\n");
 		}
   } else {
-    printf("Error authentication user %s\n", USER_LOGIN);
+    printf("Error authentication user %s\n", argc>1?argv[1]:USER_LOGIN);
   }
 	if (token != NULL) {
 		printf("Press <enter> to run submodule tests\n");

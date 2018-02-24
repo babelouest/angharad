@@ -23,62 +23,111 @@ url_prefix_carleon="carleon"
 url_prefix_gareth="gareth"
 
 # path to static files for /static url
-static_files_path="/path/to/static/files"
+static_files_path="/usr/local/share/angharad/webapp"
 
-# static files prefix
-static_files_prefix = "sagremor"
+# mime types for webapp files
+app_files_mime_types =
+(
+  {
+    extension = ".html"
+    type = "text/html"
+  },
+  {
+    extension = ".css"
+    type = "text/css"
+  },
+  {
+    extension = ".js"
+    type = "application/javascript"
+  },
+  {
+    extension = ".png"
+    type = "image/png"
+  },
+  {
+    extension = ".jpg"
+    type = "image/jpeg"
+  },
+  {
+    extension = ".jpeg"
+    type = "image/jpeg"
+  },
+  {
+    extension = ".ttf"
+    type = "font/ttf"
+  },
+  {
+    extension = ".woff"
+    type = "font/woff"
+  },
+  {
+    extension = ".woff2"
+    type = "font/woff2"
+  },
+  {
+    extension = ".map"
+    type = "application/octet-stream"
+  },
+  {
+    extension = ".json"
+    type = "text/json"
+  },
+  {
+    extension = ".ico"
+    type = "image/x-icon"
+  }
+)
 
 # access-control-allow-origin value
 allow_origin="*"
 
 # log mode (console, syslog, file)
-log_mode="console,file"
+log_mode="file"
 
 # log level: NONE, ERROR, WARNING, INFO, DEBUG
-log_level="DEBUG"
+log_level="INFO"
 
 # output to log file (required if log_mode is file)
-log_file="/path/to/angharad.log"
+log_file="/tmp/angharad.log"
 
 # path to modules folder for carleon
-carleon_services_path="/path/to/carleon/modules"
+carleon_services_path="/usr/local/lib/angharad/carleon"
 
 # path to modules folder for benoic
-benoic_modules_path="/path/to/benoic/modules"
+benoic_modules_path="/usr/local/lib/angharad/benoic"
 
 # OAuth2 scope required
 oauth_scope="angharad"
 
+# MariaDB/Mysql database connection
+#database =
+#{
+#  type = "mariadb";
+#  host = "localhost";
+#  user = "angharad";
+#  password = "angharad";
+#  dbname = "angharad";
+#  port = 0;
+#};
+
+# SQLite database connection
+database =
+{
+   type = "sqlite3";
+   path = "/var/cache/angharad/angharad.db";
+};
+
 # jwt parameters
 jwt =
 {
-   # Use RSA algorithm to sign tokens (asymetric)
-   use_rsa = false
+   key_size = 512
    
-   # path to the public certificate file to validate signatures
-   rsa_pub_file = "public.pem"
+   use_rsa = true
+   rsa_pub_file = "/usr/etc/taliesin/public-rsa.pem"
    
-   # Use SHA algorithm to sign tokens (symetric)
-   use_sha = true
+   use_ecdsa = false
+   ecdsa_pub_file = "/usr/etc/taliesin/public-ecdsa.pem"
    
-   # characters used to generate and validate the token
+   use_sha = false
    sha_secret = "secret"
 }
-
-# MariaDB/Mysql database connection
-database =
-{
-  type = "mariadb";
-  host = "localhost";
-  user = "angharad";
-  password = "angharad";
-  dbname = "angharad";
-  port = 0;
-};
-
-# SQLite database connection
-# database =
-# {
-#    type = "sqlite3";
-#    path = "/tmp/angharad.db";
-# };

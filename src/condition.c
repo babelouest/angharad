@@ -35,7 +35,6 @@ json_t * is_condition_list_valid(struct config_elements * config, json_t * condi
   json_t * j_return = json_array(), * condition, * valid;
   size_t index;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (j_return == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "is_condition_list_valid - Error allocating resources for j_return");
     return NULL;
@@ -69,7 +68,6 @@ json_t * is_condition_list_valid(struct config_elements * config, json_t * condi
 json_t * is_condition_valid(struct config_elements * config, json_t * condition) {
   json_t * j_valid = is_action_valid(config, condition, 1);
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (j_valid == NULL) {
     j_valid = json_array();
   }
@@ -117,7 +115,6 @@ int condition_list_check(struct config_elements * config, json_t * condition_lis
   json_t * condition;
   size_t index;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (condition_list == NULL || json_array_size(condition_list) == 0) {
     return 1;
   } else {
@@ -147,7 +144,6 @@ int condition_check(struct config_elements * config, json_t * j_condition) {
   int i_element_type = BENOIC_ELEMENT_TYPE_NONE;
   struct _carleon_service * cur_service = NULL;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   is_valid = is_condition_valid(config, j_condition);
   if (is_valid != NULL && json_is_array(is_valid) && json_array_size(is_valid) > 0) {
     y_log_message(Y_LOG_LEVEL_ERROR, "error in condition is_valid");
@@ -233,7 +229,6 @@ int condition_check(struct config_elements * config, json_t * j_condition) {
  * Compare 2 values depending on the specified operator
  */
 int compare_values(json_t * j_value1, json_t * j_value2, const char * operator) {
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (j_value1 == NULL || j_value2 == NULL || operator == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "compare_values - error input parameters");
     return A_ERROR_PARAM;
@@ -300,7 +295,6 @@ json_t * is_script_list_valid(struct config_elements * config, json_t * script_l
   json_t * j_return = json_array(), * script, * j_script;
   size_t index;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if(j_return == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "is_script_list_valid - Error allocating resources for j_return");
     return NULL;

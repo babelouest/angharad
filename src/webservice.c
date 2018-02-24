@@ -29,21 +29,7 @@
 #include <string.h>
 #include "angharad.h"
 
-int callback_angharad_root_url (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  char * redirect = msprintf("%s/", ((struct config_elements *)user_data)->static_files_prefix);
-  response->status = 302;
-  u_map_put(response->map_header, "Location", redirect);
-  free(redirect);
-  return U_CALLBACK_CONTINUE;
-}
-
-int callback_angharad_default (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  set_response_json_body_and_clean(response, 404, json_pack("{ssssss}", "error", "page not found", "message", "The resource can not be found, check documentation", "url", request->http_url));
-  return U_CALLBACK_CONTINUE;
-}
-
 int callback_angharad_alert (const struct _u_request * request, struct _u_response * response, void * user_data) {  
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_carleon_service_element_remove_tag - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -58,7 +44,6 @@ int callback_angharad_alert (const struct _u_request * request, struct _u_respon
 int callback_angharad_submodule_list (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * j_result;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_carleon_service_element_remove_tag - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -79,7 +64,6 @@ int callback_angharad_submodule_list (const struct _u_request * request, struct 
 int callback_angharad_submodule_get (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * j_result;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_carleon_service_element_remove_tag - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -100,7 +84,6 @@ int callback_angharad_submodule_get (const struct _u_request * request, struct _
 int callback_angharad_submodule_enable (const struct _u_request * request, struct _u_response * response, void * user_data) {
   int res;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_carleon_service_element_remove_tag - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -118,7 +101,6 @@ int callback_angharad_submodule_enable (const struct _u_request * request, struc
 int callback_angharad_script_list (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * j_script;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_script_list - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -138,7 +120,6 @@ int callback_angharad_script_list (const struct _u_request * request, struct _u_
 int callback_angharad_script_get (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * j_script;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_script_get - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -162,7 +143,6 @@ int callback_angharad_script_add (const struct _u_request * request, struct _u_r
   int res;
   json_t * json_body = ulfius_get_json_body_request(request, NULL);
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_script_get - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -197,7 +177,6 @@ int callback_angharad_script_modify (const struct _u_request * request, struct _
   int res;
   json_t * json_body = ulfius_get_json_body_request(request, NULL);
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_script_modify - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -226,7 +205,6 @@ int callback_angharad_script_modify (const struct _u_request * request, struct _
 int callback_angharad_script_remove (const struct _u_request * request, struct _u_response * response, void * user_data) {
   int res;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_script_remove - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -246,7 +224,6 @@ int callback_angharad_script_remove (const struct _u_request * request, struct _
 int callback_angharad_script_add_tag (const struct _u_request * request, struct _u_response * response, void * user_data) {
   int res;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_script_add_tag - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -271,7 +248,6 @@ int callback_angharad_script_add_tag (const struct _u_request * request, struct 
 int callback_angharad_script_remove_tag (const struct _u_request * request, struct _u_response * response, void * user_data) {
   int res;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_carleon_service_element_remove_tag - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -296,7 +272,6 @@ int callback_angharad_script_remove_tag (const struct _u_request * request, stru
 int callback_angharad_script_run (const struct _u_request * request, struct _u_response * response, void * user_data) {
   int res;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_carleon_service_element_remove_tag - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -316,7 +291,6 @@ int callback_angharad_script_run (const struct _u_request * request, struct _u_r
 int callback_angharad_scheduler_list (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * j_scheduler;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_scheduler_list - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -336,7 +310,6 @@ int callback_angharad_scheduler_list (const struct _u_request * request, struct 
 int callback_angharad_scheduler_get (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * j_scheduler;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_scheduler_get - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -358,7 +331,6 @@ int callback_angharad_scheduler_get (const struct _u_request * request, struct _
 int callback_angharad_scheduler_enable (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * j_scheduler;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_scheduler_enable - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -387,7 +359,6 @@ int callback_angharad_scheduler_add (const struct _u_request * request, struct _
   int res;
   json_t * json_body = ulfius_get_json_body_request(request, NULL);
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_scheduler_get - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -423,7 +394,6 @@ int callback_angharad_scheduler_modify (const struct _u_request * request, struc
   int res;
   json_t * json_body = ulfius_get_json_body_request(request, NULL);
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_scheduler_modify - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -452,7 +422,6 @@ int callback_angharad_scheduler_modify (const struct _u_request * request, struc
 int callback_angharad_scheduler_remove (const struct _u_request * request, struct _u_response * response, void * user_data) {
   int res;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_scheduler_remove - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -472,7 +441,6 @@ int callback_angharad_scheduler_remove (const struct _u_request * request, struc
 int callback_angharad_scheduler_add_tag (const struct _u_request * request, struct _u_response * response, void * user_data) {
   int res;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_scheduler_add_tag - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -497,7 +465,6 @@ int callback_angharad_scheduler_add_tag (const struct _u_request * request, stru
 int callback_angharad_scheduler_remove_tag (const struct _u_request * request, struct _u_response * response, void * user_data) {
   int res;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_carleon_service_element_remove_tag - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -522,7 +489,6 @@ int callback_angharad_scheduler_remove_tag (const struct _u_request * request, s
 int callback_angharad_trigger_list (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * j_trigger;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_trigger_list - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -542,7 +508,6 @@ int callback_angharad_trigger_list (const struct _u_request * request, struct _u
 int callback_angharad_trigger_get (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * j_trigger;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_trigger_get - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -564,7 +529,6 @@ int callback_angharad_trigger_get (const struct _u_request * request, struct _u_
 int callback_angharad_trigger_enable (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * j_trigger;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_trigger_enable - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -593,7 +557,6 @@ int callback_angharad_trigger_add (const struct _u_request * request, struct _u_
   int res;
   json_t * json_body = ulfius_get_json_body_request(request, NULL);
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_trigger_get - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -629,7 +592,6 @@ int callback_angharad_trigger_modify (const struct _u_request * request, struct 
   int res;
   json_t * json_body = ulfius_get_json_body_request(request, NULL);
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_trigger_modify - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -658,7 +620,6 @@ int callback_angharad_trigger_modify (const struct _u_request * request, struct 
 int callback_angharad_trigger_remove (const struct _u_request * request, struct _u_response * response, void * user_data) {
   int res;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_trigger_remove - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -678,7 +639,6 @@ int callback_angharad_trigger_remove (const struct _u_request * request, struct 
 int callback_angharad_trigger_add_tag (const struct _u_request * request, struct _u_response * response, void * user_data) {
   int res;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_trigger_add_tag - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -703,7 +663,6 @@ int callback_angharad_trigger_add_tag (const struct _u_request * request, struct
 int callback_angharad_trigger_remove_tag (const struct _u_request * request, struct _u_response * response, void * user_data) {
   int res;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_carleon_service_element_remove_tag - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -728,7 +687,6 @@ int callback_angharad_trigger_remove_tag (const struct _u_request * request, str
 int callback_carleon_profile_list (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * j_list;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_carleon_profile_list - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -747,7 +705,6 @@ int callback_carleon_profile_list (const struct _u_request * request, struct _u_
 int callback_carleon_profile_get (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * j_profile;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_carleon_profile_list - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -769,7 +726,6 @@ int callback_carleon_profile_set (const struct _u_request * request, struct _u_r
   int res;
   json_t * json_body = ulfius_get_json_body_request(request, NULL);
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_carleon_profile_list - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -788,7 +744,6 @@ int callback_carleon_profile_set (const struct _u_request * request, struct _u_r
 int callback_carleon_profile_remove (const struct _u_request * request, struct _u_response * response, void * user_data) {
   int res;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_carleon_profile_list - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -804,13 +759,21 @@ int callback_carleon_profile_remove (const struct _u_request * request, struct _
     return U_CALLBACK_CONTINUE;
   }
 }
+
 int callback_angharad_static_file (const struct _u_request * request, struct _u_response * response, void * user_data) {
   void * buffer = NULL;
   size_t length, res;
   FILE * f;
-  char * file_requested = request->http_url + strlen(((struct config_elements *)user_data)->static_files_prefix) + 1;
+  char * file_requested = request->http_url + 1;
   char * file_path;
   const char * content_type;
+
+  /*
+   * Comment this if statement if you put static files url not in root, like /app
+   */
+  if (response->shared_data != NULL) {
+    return U_CALLBACK_CONTINUE;
+  }
 
   if (file_requested == NULL || strlen(file_requested) == 0 || 0 == o_strcmp("/", file_requested)) {
     file_requested = "/index.html";
@@ -860,13 +823,16 @@ int callback_angharad_static_file (const struct _u_request * request, struct _u_
   return U_CALLBACK_CONTINUE;
 }
 
-int callback_angharad_no_auth_function (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  return U_CALLBACK_CONTINUE;
-}
-
 int callback_angharad_options (const struct _u_request * request, struct _u_response * response, void * user_data) {
   u_map_put(response->map_header, "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   u_map_put(response->map_header, "Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
   u_map_put(response->map_header, "Access-Control-Max-Age", "1800");
+  return U_CALLBACK_COMPLETE;
+}
+
+/**
+ * Last endpoint called, clean response->shared_data
+ */
+int callback_clean (const struct _u_request * request, struct _u_response * response, void * user_data) {
   return U_CALLBACK_COMPLETE;
 }

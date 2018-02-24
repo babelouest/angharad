@@ -43,7 +43,6 @@ void * thread_scheduler_run(void * args) {
   char * str_message_text;
   json_t * j_message;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (config != NULL) {
     while (config->angharad_status == ANGHARAD_STATUS_RUN) {
       // Run monitoring task every minute
@@ -58,23 +57,6 @@ void * thread_scheduler_run(void * args) {
             if (scheduler_result != NULL && json_integer_value(json_object_get(scheduler_result, "result")) == A_OK) {
               scheduler = json_object_get(scheduler_result, "scheduler");
               next_time = json_integer_value(json_object_get(scheduler, "next_time"));
-              
-              if (json_integer_value(json_object_get(scheduler, "next_time")) >= (now - 60) && condition_list_check(config, json_object_get(scheduler, "conditions"))) {
-                // Send a message via gareth submodule
-                str_message_text = msprintf("Running scripts from scheduler %s", json_string_value(json_object_get(scheduler, "name")));
-                j_message = json_pack("{sssssss[s]}", "priority", "LOW", "source", "angharad", "text", str_message_text, "tags", "scheduler");
-                add_message(config->conn, j_message);
-                json_decref(j_message);
-                free(str_message_text);
-          
-                next_time = now;
-                json_array_foreach(json_object_get(scheduler, "scripts"), index_sc, script) {
-                  if (json_object_get(script, "enabled") == json_true() && json_is_string(json_object_get(script, "name"))) {
-                    y_log_message(Y_LOG_LEVEL_INFO, "thread_scheduler_run - run script %s", json_string_value(json_object_get(script, "name")));
-                    script_run(config, json_string_value(json_object_get(script, "name")));
-                  }
-                }
-              }
               
               // Calculate next time or remove scheduler if needed or disable it if it's in the past
               if (json_object_get(scheduler, "remove_after") == json_true() && json_integer_value(json_object_get(scheduler, "repeat")) < 0) {
@@ -98,6 +80,24 @@ void * thread_scheduler_run(void * args) {
                 json_object_set_new(scheduler, "enabled", json_false());
                 if (scheduler_modify(config, json_string_value(json_object_get(scheduler, "name")), scheduler) != A_OK) {
                   y_log_message(Y_LOG_LEVEL_ERROR, "Error updating scheduler %s", json_string_value(json_object_get(scheduler, "name")));
+                }
+              }
+              
+              // Execute scheduler scripts
+              if (json_integer_value(json_object_get(scheduler, "next_time")) >= (now - 60) && condition_list_check(config, json_object_get(scheduler, "conditions"))) {
+                // Send a message via gareth submodule
+                str_message_text = msprintf("Running scheduled script %s", json_string_value(json_object_get(scheduler, "name")));
+                j_message = json_pack("{sssssss[s]}", "priority", "LOW", "source", "angharad", "text", str_message_text, "tags", "scheduler");
+                add_message(config->conn, j_message);
+                json_decref(j_message);
+                free(str_message_text);
+          
+                next_time = now;
+                json_array_foreach(json_object_get(scheduler, "scripts"), index_sc, script) {
+                  if (json_object_get(script, "enabled") == json_true() && json_is_string(json_object_get(script, "name"))) {
+                    y_log_message(Y_LOG_LEVEL_INFO, "thread_scheduler_run - run script %s", json_string_value(json_object_get(script, "name")));
+                    script_run(config, json_string_value(json_object_get(script, "name")));
+                  }
                 }
               }
             } else {
@@ -137,7 +137,6 @@ json_t * scheduler_get_next_schedules(struct config_elements * config) {
                                   "ash_enabled",
                                   1);
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (j_query == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_get - Error allocating resources for j_query");
     return json_pack("{si}", "result", A_ERROR_MEMORY);
@@ -159,7 +158,6 @@ json_t * scheduler_get(struct config_elements * config, const char * scheduler_n
   int res;
   size_t index;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   j_query = json_pack("{sss[ssssssss]}", 
                         "table", 
                           ANGHARAD_TABLE_SCHEDULER, 
@@ -284,7 +282,6 @@ json_t * scheduler_get(struct config_elements * config, const char * scheduler_n
 int scheduler_enable(struct config_elements * config, json_t * j_scheduler, int enabled) {
   time_t now, next_time;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (j_scheduler != NULL) {
     json_object_set(j_scheduler, "enabled", enabled?json_true():json_false());
     time(&now);
@@ -315,7 +312,6 @@ int scheduler_add(struct config_elements * config, json_t * j_scheduler) {
   char * str_options, * str_conditions, * str_next_time;
   json_error_t error;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (j_scheduler == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_add - Error j_scheduler is NULL");
     return A_ERROR_MEMORY;
@@ -378,7 +374,6 @@ json_t * is_scheduler_valid(struct config_elements * config, json_t * j_schedule
   json_t * j_result = json_array(), * j_element, * j_options_valid, * j_conditions_valid, * j_scripts_valid;
   size_t index;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (j_result == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "is_scheduler_valid - Error allocating resources for j_result");
     return NULL;
@@ -479,7 +474,6 @@ int scheduler_modify(struct config_elements * config, const char * scheduler_nam
   int res, res_cur_scheduler;
   char * str_options, * str_conditions, * str_next_time;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (j_scheduler == NULL || scheduler_name == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_modify - Error j_scheduler or scheduler_name is NULL");
     return A_ERROR_MEMORY;
@@ -551,7 +545,6 @@ int scheduler_delete(struct config_elements * config, const char * scheduler_nam
   json_t * j_query, * cur_scheduler;
   int res, res_cur_scheduler;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (scheduler_name == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_modify - Error scheduler_name is NULL");
     return A_ERROR_PARAM;
@@ -593,7 +586,6 @@ int scheduler_add_tag(struct config_elements * config, const char * scheduler_na
   json_t * j_result = scheduler_get(config, scheduler_name, 0), * j_scheduler, * j_tags;
   int res;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (j_result == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_add_tag - Error getting scheduler");
     return A_ERROR_PARAM;
@@ -634,7 +626,6 @@ int scheduler_remove_tag(struct config_elements * config, const char * scheduler
   json_t * j_result = scheduler_get(config, scheduler_name, 0), * j_scheduler, * j_tags;
   int i, res;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (j_result == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_remove_tag - Error getting scheduler");
     return A_ERROR;
@@ -676,7 +667,6 @@ time_t scheduler_calculate_next_time(time_t from, int schedule_type, unsigned in
   time_t to_return;
   int isdst_from, isdst_to;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   isdst_from = ts.tm_isdst;
   
   switch (schedule_type) {
@@ -749,7 +739,6 @@ json_t * scheduler_get_script_list(struct config_elements * config, const char *
   json_t * j_result, * j_script;
   size_t index;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   res = h_query_select_json(config->conn, query, &j_result);
   free(escaped);
   free(query);
@@ -779,7 +768,6 @@ int scheduler_set_script_list(struct config_elements * config, const char * sche
   size_t index;
   char * sch_escaped = h_escape_string(config->conn, scheduler_name), * sch_clause = msprintf("(SELECT ash_id FROM a_scheduler WHERE ash_name = '%s')", sch_escaped), * tmp = msprintf("= %s", sch_clause), * sc_escaped, * sc_clause;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   j_query = json_pack("{sss{s{ssss}}}",
                       "table",
                       ANGHARAD_TABLE_SCHEDULER_SCRIPT,

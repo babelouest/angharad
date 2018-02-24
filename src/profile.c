@@ -36,7 +36,6 @@ json_t * profile_list(struct config_elements * config) {
   int res;
   size_t index;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (config == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "profile_list - Error no config");
     return json_pack("{si}", "result", WEBSERVICE_RESULT_ERROR);
@@ -79,7 +78,6 @@ json_t * profile_get(struct config_elements * config, const char * profile_id) {
   json_t * j_query, * j_result, * profile;
   int res;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (config == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "profile_get - Error no config");
     return json_pack("{si}", "result", WEBSERVICE_RESULT_ERROR);
@@ -123,7 +121,6 @@ int profile_modify(struct config_elements * config, const char * profile_id, jso
   char * str_data;
   int res;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (profile_data == NULL || profile_id == NULL) {
     json_decref(profile);
     return C_ERROR_PARAM;
@@ -166,7 +163,6 @@ int profile_delete(struct config_elements * config, const char * profile_id) {
   json_t * profile = profile_get(config, profile_id), * j_query;
   int res;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "Entering function %s from file %s", __PRETTY_FUNCTION__, __FILE__);
   if (profile_id == NULL) {
     json_decref(profile);
     return C_ERROR_PARAM;
