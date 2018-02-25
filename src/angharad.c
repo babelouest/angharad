@@ -278,12 +278,14 @@ void exit_server(struct config_elements ** config, int exit_value) {
     free((*config)->url_prefix_benoic);
     free((*config)->url_prefix_carleon);
     free((*config)->url_prefix_gareth);
-    free((*config)->static_files_path);
     free((*config)->alert_url);
     free((*config)->glewlwyd_resource_config->jwt_decode_key);
     free((*config)->glewlwyd_resource_config->oauth_scope);
     free((*config)->glewlwyd_resource_config);
-    u_map_clean_full((*config)->mime_types);
+    o_free((*config)->static_file_config->files_path);
+    o_free((*config)->static_file_config->url_prefix);
+    u_map_clean_full((*config)->static_file_config->mime_types);
+    o_free((*config)->static_file_config);
     free((*config)->allow_origin);
     free((*config)->log_file);
 
@@ -519,12 +521,12 @@ int build_config_from_file(struct config_elements * config) {
     return 0;
   }
 
-  if (config->static_files_path == NULL) {
+  if (config->static_file_config->files_path == NULL) {
     // Get path that serve static files
-    if (config_lookup_string(&cfg, "static_files_path", &cur_static_files_path)) {
-      config->static_files_path = o_strdup(cur_static_files_path);
-      if (config->static_files_path == NULL) {
-        fprintf(stderr, "Error allocating config->static_files_path, exiting\n");
+    if (config_lookup_string(&cfg, "app_files_path", &cur_static_files_path)) {
+      config->static_file_config->files_path = o_strdup(cur_static_files_path);
+      if (config->static_file_config->files_path == NULL) {
+        fprintf(stderr, "Error allocating config->static_file_config->files_path, exiting\n");
         config_destroy(&cfg);
         return 0;
       }
@@ -538,7 +540,7 @@ int build_config_from_file(struct config_elements * config) {
       mime_type = config_setting_get_elem(mime_type_list, i);
       if (mime_type != NULL) {
         if (config_setting_lookup_string(mime_type, "extension", &extension) && config_setting_lookup_string(mime_type, "type", &mime_type_value)) {
-          u_map_put(config->mime_types, extension, mime_type_value);
+          u_map_put(config->static_file_config->mime_types, extension, mime_type_value);
         }
       }
     }
@@ -748,7 +750,6 @@ int main(int argc, char ** argv) {
   config->url_prefix_benoic = NULL;
   config->url_prefix_carleon = NULL;
   config->url_prefix_gareth = NULL;
-  config->static_files_path = NULL;
   config->allow_origin = NULL;
   config->log_mode = Y_LOG_MODE_NONE;
   config->log_level = Y_LOG_LEVEL_NONE;
@@ -758,10 +759,10 @@ int main(int argc, char ** argv) {
   config->instance = malloc(sizeof(struct _u_instance));
   config->c_config = malloc(sizeof(struct _carleon_config));
   config->b_config = malloc(sizeof(struct _benoic_config));
-  config->mime_types = NULL;
   config->glewlwyd_resource_config = malloc(sizeof (struct _glewlwyd_resource_config));
-  if (config->instance == NULL || config->c_config == NULL || config->b_config == NULL || config->glewlwyd_resource_config == NULL) {
-    fprintf(stderr, "Memory error - config->instance || config->c_config || config->b_config || config->glewlwyd_resource_config\n");
+  config->static_file_config = o_malloc(sizeof(struct _static_file_config));
+  if (config->instance == NULL || config->c_config == NULL || config->b_config == NULL || config->glewlwyd_resource_config == NULL || config->static_file_config == NULL) {
+    fprintf(stderr, "Memory error - config->instance || config->c_config || config->b_config || config->glewlwyd_resource_config || config->static_file_config == NULL\n");
     return 1;
   }
   config->c_config->services_path = NULL;
@@ -776,6 +777,16 @@ int main(int argc, char ** argv) {
   config->glewlwyd_resource_config->oauth_scope = NULL;
   config->glewlwyd_resource_config->method = G_METHOD_HEADER;
   config->glewlwyd_resource_config->realm = NULL;
+  config->static_file_config->files_path = NULL;
+  config->static_file_config->url_prefix = NULL;
+  config->static_file_config->mime_types = o_malloc(sizeof(struct _u_map));
+  if (config->static_file_config->mime_types == NULL) {
+    fprintf(stderr, "init - Error allocating resources for config->static_file_config->mime_types, aborting");
+    exit_server(&config, ANGHARAD_ERROR);
+  }
+  u_map_init(config->static_file_config->mime_types);
+  u_map_put(config->static_file_config->mime_types, "*", "application/octet-stream");
+
   ulfius_init_instance(config->instance, ANGHARAD_DEFAULT_PORT, NULL, NULL);
 
   if (pthread_mutex_init(&global_handler_close_lock, NULL) || 
@@ -1078,7 +1089,7 @@ int init_angharad(struct config_elements * config) {
     ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/profile/@profile_id", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_carleon_profile_set, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/profile/@profile_id", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_carleon_profile_remove, (void*)config);
     
-    ulfius_add_endpoint_by_val(config->instance, "GET", NULL, "*", ANGHARAD_CALLBACK_PRIORITY_FILES, &callback_angharad_static_file, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "GET", NULL, "*", ANGHARAD_CALLBACK_PRIORITY_FILES, &callback_static_file, (void*)config->static_file_config);
     ulfius_add_endpoint_by_val(config->instance, "OPTIONS", NULL, "*", ANGHARAD_CALLBACK_PRIORITY_ZERO, &callback_angharad_options, (void*)config);
 		ulfius_add_endpoint_by_val(config->instance, "*", NULL, "*", ANGHARAD_CALLBACK_PRIORITY_CLEAN, &callback_clean, (void*)config);
 
@@ -1086,13 +1097,6 @@ int init_angharad(struct config_elements * config) {
     u_map_put(config->instance->default_headers, "Access-Control-Allow-Credentials", "true");
     u_map_put(config->instance->default_headers, "Cache-Control", "no-store");
     u_map_put(config->instance->default_headers, "Pragma", "no-cache");
-    
-    config->mime_types = malloc(sizeof(struct _u_map));
-    if (config->mime_types == NULL) {
-      y_log_message(Y_LOG_LEVEL_ERROR, "init_angharad - Error allocating resources for config->mime_types, aborting");
-      return A_ERROR_MEMORY;
-    }
-    u_map_init(config->mime_types);
     
     // Start event thread
     config->angharad_status = ANGHARAD_STATUS_RUN;
@@ -1165,18 +1169,6 @@ int close_angharad(struct config_elements * config) {
     y_log_message(Y_LOG_LEVEL_ERROR, "close_agharad - Error closing angharad webservices, error input parameters");
     return A_ERROR_PARAM;
   }
-}
-
-/**
- * return the filename extension
- */
-const char * get_filename_ext(const char *path) {
-    const char *dot = strrchr(path, '.');
-    if(!dot || dot == path) return "*";
-    if (strchr(dot, '?') != NULL) {
-      *strchr(dot, '?') = '\0';
-    }
-    return dot;
 }
 
 /**

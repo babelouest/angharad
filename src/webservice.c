@@ -760,69 +760,6 @@ int callback_carleon_profile_remove (const struct _u_request * request, struct _
   }
 }
 
-int callback_angharad_static_file (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  void * buffer = NULL;
-  size_t length, res;
-  FILE * f;
-  char * file_requested = request->http_url + 1;
-  char * file_path;
-  const char * content_type;
-
-  /*
-   * Comment this if statement if you put static files url not in root, like /app
-   */
-  if (response->shared_data != NULL) {
-    return U_CALLBACK_CONTINUE;
-  }
-
-  if (file_requested == NULL || strlen(file_requested) == 0 || 0 == o_strcmp("/", file_requested)) {
-    file_requested = "/index.html";
-  } else {
-    if (strchr(file_requested, '?') != NULL) {
-      *strchr(file_requested, '?') = '\0';
-    }
-  }
-  
-  file_path = msprintf("%s%s", ((struct config_elements *)user_data)->static_files_path, file_requested);
-
-  if (access(file_path, F_OK) != -1) {
-    f = fopen (file_path, "rb");
-    if (f) {
-      fseek (f, 0, SEEK_END);
-      length = ftell (f);
-      fseek (f, 0, SEEK_SET);
-      buffer = malloc(length*sizeof(void));
-      if (buffer) {
-        res = fread (buffer, 1, length, f);
-        if (res != length) {
-          y_log_message(Y_LOG_LEVEL_WARNING, "callback_angharad_static_file - fread warning, reading %ld while expecting %ld", res, length);
-        }
-      }
-      fclose (f);
-    }
-
-    if (buffer) {
-      y_log_message(Y_LOG_LEVEL_INFO, "Static File Server - Serving file %s", file_requested);
-      content_type = u_map_get_case(((struct config_elements *)user_data)->mime_types, get_filename_ext(file_requested));
-      if (content_type == NULL) {
-        content_type = u_map_get(((struct config_elements *)user_data)->mime_types, "*");
-        y_log_message(Y_LOG_LEVEL_WARNING, "Static File Server - Unknown mime type for extension %s", get_filename_ext(file_requested));
-      }
-      response->binary_body = buffer;
-      response->binary_body_length = length;
-      u_map_put(response->map_header, "Content-Type", content_type);
-    } else {
-      y_log_message(Y_LOG_LEVEL_ERROR, "Static File Server - Internal error in %s", request->http_url);
-      set_response_json_body_and_clean(response, 500, json_pack("{ss}", "error", request->http_url));
-    }
-  } else {
-    y_log_message(Y_LOG_LEVEL_ERROR, "Static File Server - File %s not found", request->http_url);
-    set_response_json_body_and_clean(response, 404, json_pack("{ss}", "not found", request->http_url));
-  }
-  free(file_path);
-  return U_CALLBACK_CONTINUE;
-}
-
 int callback_angharad_options (const struct _u_request * request, struct _u_response * response, void * user_data) {
   u_map_put(response->map_header, "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   u_map_put(response->map_header, "Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");

@@ -46,6 +46,7 @@
 #include "benoic/benoic.h"
 #include "carleon/carleon.h"
 #include "gareth/gareth.h"
+#include "static_file_callback.h"
 
 #define ANGHARAD_RUNNING  0
 #define ANGHARAD_STOP     1
@@ -140,9 +141,7 @@ struct config_elements {
   char *                             url_prefix_benoic;
   char *                             url_prefix_carleon;
   char *                             url_prefix_gareth;
-  char *                             static_files_path;
   char *                             alert_url;
-  struct _u_map                    * mime_types;
   char *                             allow_origin;
   unsigned long                      log_mode;
   unsigned long                      log_level;
@@ -153,6 +152,7 @@ struct config_elements {
   struct _carleon_config           * c_config;
   unsigned int                       angharad_status;
   struct _glewlwyd_resource_config * glewlwyd_resource_config;
+  struct _static_file_config       * static_file_config;
 };
 
 pthread_mutex_t global_handler_close_lock;
@@ -290,7 +290,6 @@ int callback_carleon_profile_add (const struct _u_request * request, struct _u_r
 int callback_carleon_profile_set (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_carleon_profile_remove (const struct _u_request * request, struct _u_response * response, void * user_data);
 
-int callback_angharad_static_file (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_options (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_clean (const struct _u_request * request, struct _u_response * response, void * user_data);
 
