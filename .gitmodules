@@ -7,3 +7,6 @@
 [submodule "carleon"]
 	path = src/carleon
 	url = https://github.com/babelouest/carleon.git
+[submodule "webapp-src"]
+	path = webapp-src
+	url = https://github.com/babelouest/sagremor.git
