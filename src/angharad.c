@@ -478,8 +478,8 @@ int build_config_from_file(struct config_elements * config) {
         if (config_setting_lookup_string(database, "path", &db_sqlite_path) == CONFIG_TRUE) {
           config->conn = h_connect_sqlite(db_sqlite_path);
           if (config->conn == NULL) {
-            config_destroy(&cfg);
             fprintf(stderr, "Error opening sqlite database %s\n", db_sqlite_path);
+            config_destroy(&cfg);
             return 0;
           } else {
             if (h_exec_query_sqlite(config->conn, "PRAGMA foreign_keys = ON;") != H_OK) {
