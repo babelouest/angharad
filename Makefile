@@ -13,14 +13,26 @@
 # GNU GENERAL PUBLIC LICENSE for more details.
 #
 
-sagremor-build:
+webapp-build:
 	cd webapp-src && $(MAKE) build
-	rm -rf webapp/*
-	cp -R webapp-src/dist webapp
-	rm -f webapp/config.json
+	find webapp ! -name config.json ! -name webapp -delete
+	cp -R webapp-src/dist/* webapp/
+
+webapp-install:
+	cd webapp-src && $(MAKE) install
+	
+webapp-clean:
+	cd webapp-src && $(MAKE) clean
 
 angharad-build:
 	cd src && make
 
 angharad-install:
 	cd src && make install
+
+angharad-clean:
+	cd src && make clean
+
+install: angharad-install webapp-install
+
+clean: angharad-clean webapp-clean
