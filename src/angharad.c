@@ -229,6 +229,8 @@ int build_config_from_args(int argc, char ** argv, struct config_elements * conf
 void print_help(FILE * output) {
   fprintf(output, "\nAngharad System\n");
   fprintf(output, "\n");
+  fprintf(output, "Version %s\n", _ANGHARAD_VERSION_);
+  fprintf(output, "\n");
   fprintf(output, "Command house automation devices and subsystems using a JSON/REST interface\n");
   fprintf(output, "\n");
   fprintf(output, "-c --config-file=PATH\n");
