@@ -529,5 +529,6 @@
 	"refresh_device_error": "Erreur lors du rafraîchissement du dispositif {{name}}",
 	"refresh_scripts_events_error": "Erreur lors du rafraîchissement des tâches et des événements",
 	"refresh_carleon_error": "Erreur lors du rafraîchissement des services Carleon",
-  "access_denied": "Accès refusé"
+	"access_denied": "Accès refusé",
+	"connect_message": "Veuillez vous connecter à l'application"
 }

@@ -1,6 +1,5 @@
 {
 	"baseUrl": "http://localhost:2473/",
-	"taliesinBbaseUrl": "http://localhost:8576/api/",
 	"prefixAngharad": "angharad/",
 	"prefixBenoic": "benoic/",
 	"prefixCarleon": "carleon/",
@@ -11,7 +10,7 @@
 		"responseType": "code",
 		"redirectUri": "http://localhost:2473/",
 		"profileUri": "http://localhost:4593/api/profile/",
-		"scope": "angharad taliesin",
+		"scope": "angharad g_profile",
 		"authorizePath": "auth",
 		"tokenPath": "token"
 	}

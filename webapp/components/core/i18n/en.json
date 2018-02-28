@@ -529,5 +529,6 @@
 	"refresh_device_error": "Error refreshing device {{name}}",
 	"refresh_scripts_events_error": "Error during scripts and events refresh",
 	"refresh_carleon_error": "Error during carleon refresh",
-  "access_denied": "Access denied"
+	"access_denied": "Access denied",
+	"connect_message": "Please connect to the application"
 }
