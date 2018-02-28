@@ -1,14 +1,14 @@
 # Angharad API Documentation
 
-Angharad has several endpoints with their own format. Here is the full documentaition of the REST API.
+Angharad has several endpoints with their own format. Here is the full documentation of the REST API.
 
 All the return data are in JSON format.
 
-Except fo static file API, all URL have the prefix called `ANGHARAD_PREFIX`, default is `/angharad`. All the URLs given in this dcumentation (Except for static files) are relative to `ANGHARAD_PREFIX`.
+Except for static file API, all URL have the prefix called `ANGHARAD_PREFIX`, default is `/angharad`. All the URLs given in this documentation (Except for static files) are relative to `ANGHARAD_PREFIX`.
 
 ## Authentication
 
-Except when mentionned otherwise, all endpoints require a valid authentication token located in the header or in the cookies. The header or cookies key must be called `"ANGHARAD_SESSION_ID"` and the value must be a valid token value returned b a previous successfull login.
+Except when mentioned otherwise, all endpoints require a valid oauth2 token in Glewlwyd format. The token must contain the scope `angharad`.
 
 ## Submodules management
 

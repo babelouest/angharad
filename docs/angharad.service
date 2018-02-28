@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-EnvironmentFile=-/etc/angharad.conf
+EnvironmentFile=-/usr/local/etc/angharad.conf
 ExecStart=/usr/local/bin/angharad --config-file=/usr/local/etc/angharad/angharad.conf
 User=pi
 KillMode=process

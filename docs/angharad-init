@@ -16,7 +16,7 @@ group=pi
 prefix=/usr/bin
 exec_prefix=${prefix}
 angharad=${prefix}/angharad
-angharadconf=--config=/etc/angharad.conf
+angharadconf=--config=${prefix}/etc/angharad.conf
 pidfile=/var/run/angharad.pid
 
 case "$1" in

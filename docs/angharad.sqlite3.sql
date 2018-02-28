@@ -1,3 +1,11 @@
+DROP TABLE IF EXISTS `c_service_liquidsoap`;
+
+DROP TABLE IF EXISTS `c_service_motion_file_list`;
+DROP TABLE IF EXISTS `c_service_motion_stream`;
+DROP TABLE IF EXISTS `c_service_motion`;
+
+DROP TABLE IF EXISTS `c_mpd_websocket`;
+DROP TABLE IF EXISTS `c_service_mpd`;
 
 DROP TABLE IF EXISTS `b_monitor`;
 DROP TABLE IF EXISTS `b_element`;
@@ -220,3 +228,53 @@ CREATE TABLE `a_profile` (
   `ap_name` TEXT NOT NULL UNIQUE,
   `ap_data` TEXT
 );
+
+CREATE TABLE `c_service_liquidsoap` (
+  `csl_name` TEXT PRIMARY KEY NOT NULL,
+  `csl_description` TEXT,
+  `csl_radio_url` TEXT NOT NULL,
+  `csl_radio_type` TEXT,
+  `csl_control_enabled` INTEGER DEFAULT 0,
+  `csl_control_host` TEXT,
+  `csl_control_port` INTEGER,
+  `csl_control_request_name` TEXT
+);
+
+CREATE TABLE `c_service_motion` (
+  `csm_name` TEXT PRIMARY KEY NOT NULL,
+  `csm_description` varchar(128),
+  `csm_config_uri` varchar(512)
+);
+
+CREATE TABLE `c_service_motion_file_list` (
+  `csmfl_name` TEXT NOT NULL,
+  `csm_name` TEXT REFERENCES `c_service_motion`(`csm_name`) ON DELETE CASCADE,
+  `csmfl_path` TEXT NOT NULL,
+  `csmfl_thumbnail_path` TEXT NOT NULL
+);
+
+CREATE TABLE `c_service_motion_stream` (
+  `csms_name` TEXT NOT NULL,
+  `csm_name` TEXT REFERENCES `c_service_motion`(`csm_name`) ON DELETE CASCADE,
+  `csms_uri` TEXT NOT NULL,
+  `csms_snapshot_uri` TEXT
+);
+
+CREATE TABLE `c_service_mpd` (
+  `cmpd_name` TEXT PRIMARY KEY NOT NULL,
+  `cmpd_description` TEXT,
+  `cmpd_host` TEXT NOT NULL,
+  `cmpd_port` INTEGER,
+  `cmpd_password` TEXT,
+  `cmpd_device` TEXT,
+  `cmpd_switch` TEXT
+);
+
+CREATE TABLE `c_mpd_websocket` (
+  `cmw_id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `cmpd_id` INTEGER NOT NULL,
+  `cmw_name` TEXT NOT NULL,
+	`cmw_creation` INT DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT `service_mpd_ibfk_1` FOREIGN KEY (`cmpd_id`) REFERENCES `c_service_mpd` (`cmpd_id`)
+);
+CREATE INDEX `cmw_name_idx` ON `c_mpd_websocket` (`cmw_name`);
