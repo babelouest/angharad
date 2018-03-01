@@ -290,7 +290,7 @@ endif ()
 
 install(TARGETS angharad
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-install(FILES angharad.conf.sample 
+install(FILES docs/angharad.conf.sample 
         DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/angharad RENAME angharad.conf COMPONENT config)
 install(TARGETS ${BENOIC_DEVICES}
 				DESTINATION ${CMAKE_INSTALL_LIBDIR}/angharad/benoic)
