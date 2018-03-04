@@ -78,7 +78,7 @@ debug: ADDITIONALFLAGS=-DDEBUG -g -O0
 
 debug: DEBUGFLAG=debug
 
-debug: angharad unit-tests
+debug: angharad
 	cd $(BENOIC_LOCATION)/device-modules && $(MAKE) debug
 	cd $(CARLEON_LOCATION)/service-modules && $(MAKE) debug
 
@@ -89,18 +89,15 @@ release: angharad
 	cd $(CARLEON_LOCATION)/service-modules && $(MAKE)
 
 clean:
-	rm -f *.o angharad unit-tests valgrind.txt
+	rm -f *.o angharad valgrind.txt
 	cd $(GARETH_LOCATION) && $(MAKE) clean
 	cd $(BENOIC_LOCATION) && $(MAKE) clean
 	cd $(CARLEON_LOCATION) && $(MAKE) clean
 
-unit-tests: unit-tests.c
-	$(CC) -o unit-tests unit-tests.c -lc -lulfius -lorcania -ljansson -L$(PREFIX)/lib
-
 memcheck: debug
 	cd $(BENOIC_LOCATION)/device-modules && $(MAKE) debug
 	cd $(CARLEON_LOCATION)/service-modules && $(MAKE) debug
-	valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all ./angharad --config-file=../angharad.conf 2>valgrind.txt
+	valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all ./angharad --config-file=../angharad.conf
 
 install-angharad:
 	cp -f angharad $(PREFIX)/bin
