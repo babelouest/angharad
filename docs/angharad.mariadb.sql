@@ -4,6 +4,17 @@
 -- FLUSH PRIVILEGES;
 -- USE `benoic_dev`;
 
+DROP TABLE IF EXISTS `c_mpd_websocket`;
+DROP TABLE IF EXISTS `c_service_mpd`;
+
+DROP TABLE IF EXISTS `c_service_liquidsoap`;
+
+DROP TABLE IF EXISTS `c_service_motion_file_list`;
+DROP TABLE IF EXISTS `c_service_motion_stream`;
+DROP TABLE IF EXISTS `c_service_motion`;
+
+DROP TABLE IF EXISTS `c_mock_service`;
+
 DROP TABLE IF EXISTS `b_monitor`;
 DROP TABLE IF EXISTS `b_element`;
 DROP TABLE IF EXISTS `b_device`;
@@ -220,3 +231,61 @@ CREATE TABLE `a_profile` (
   `ap_name` VARCHAR(64) NOT NULL UNIQUE,
   `ap_data` BLOB -- profile data, json in a blob for old mysql versions compatibility
 );
+
+CREATE TABLE `c_service_liquidsoap` (
+  `csl_name` varchar(64) NOT NULL UNIQUE,
+  `csl_description` varchar(128),
+  `csl_radio_url` varchar(512) NOT NULL,
+  `csl_radio_type` varchar(64),
+  `csl_control_enabled` tinyint(1) DEFAULT 0,
+  `csl_control_host` varchar(128),
+  `csl_control_port` int(11),
+  `csl_control_request_name` varchar(64)
+);
+
+CREATE TABLE `c_mock_service` (
+  `cms_name` varchar(64) NOT NULL UNIQUE,
+  `cms_description` varchar(128)
+);
+
+CREATE TABLE `c_service_motion` (
+  `csm_name` varchar(64) PRIMARY KEY,
+  `csm_description` varchar(128),
+  `csm_config_uri` varchar(512)
+);
+
+CREATE TABLE `c_service_motion_file_list` (
+  `csmfl_name` varchar(64),
+  `csm_name` varchar(64) NOT NULL,
+  `csmfl_path` varchar(512) NOT NULL,
+  `csmfl_thumbnail_path` varchar(512) NOT NULL,
+  CONSTRAINT `service_motion_ibfk_1` FOREIGN KEY (`csm_name`) REFERENCES `c_service_motion` (`csm_name`) ON DELETE CASCADE
+);
+
+CREATE TABLE `c_service_motion_stream` (
+  `csms_name` varchar(64),
+  `csm_name` varchar(64) NOT NULL,
+  `csms_uri` varchar(512) NOT NULL,
+  `csms_snapshot_uri` varchar(512),
+  CONSTRAINT `service_motion_ibfk_2` FOREIGN KEY (`csm_name`) REFERENCES `c_service_motion` (`csm_name`) ON DELETE CASCADE
+);
+
+CREATE TABLE `c_service_mpd` (
+  `cmpd_id` INT(11) PRIMARY KEY AUTO_INCREMENT,
+  `cmpd_name` varchar(64) NOT NULL UNIQUE,
+  `cmpd_description` varchar(128),
+  `cmpd_host` varchar(128) NOT NULL,
+  `cmpd_port` INT(5),
+  `cmpd_password` varchar(128),
+	`cmpd_device` VARCHAR(64),
+	`cmpd_switch` VARCHAR(64)
+);
+
+CREATE TABLE `c_mpd_websocket` (
+  `cmw_id` INT(11) PRIMARY KEY AUTO_INCREMENT,
+  `cmpd_id` INT(11) NOT NULL,
+  `cmw_name` VARCHAR(32) NOT NULL,
+	`cmw_creation` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT `service_mpd_ibfk_1` FOREIGN KEY (`cmpd_id`) REFERENCES `c_service_mpd` (`cmpd_id`)
+);
+CREATE INDEX `cmw_name_idx` ON `c_mpd_websocket` (`cmw_name`);

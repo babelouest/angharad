@@ -1,11 +1,13 @@
+DROP TABLE IF EXISTS `c_mpd_websocket`;
+DROP TABLE IF EXISTS `c_service_mpd`;
+
 DROP TABLE IF EXISTS `c_service_liquidsoap`;
 
 DROP TABLE IF EXISTS `c_service_motion_file_list`;
 DROP TABLE IF EXISTS `c_service_motion_stream`;
 DROP TABLE IF EXISTS `c_service_motion`;
 
-DROP TABLE IF EXISTS `c_mpd_websocket`;
-DROP TABLE IF EXISTS `c_service_mpd`;
+DROP TABLE IF EXISTS `c_mock_service`;
 
 DROP TABLE IF EXISTS `b_monitor`;
 DROP TABLE IF EXISTS `b_element`;
@@ -227,6 +229,11 @@ CREATE TABLE `a_profile` (
   `ap_id` INTEGER PRIMARY KEY AUTOINCREMENT,
   `ap_name` TEXT NOT NULL UNIQUE,
   `ap_data` TEXT
+);
+
+CREATE TABLE `c_mock_service` (
+  `cms_name` TEXT PRIMARY KEY NOT NULL,
+  `cms_description` TEXT
 );
 
 CREATE TABLE `c_service_liquidsoap` (
