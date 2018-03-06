@@ -39,12 +39,13 @@ libconfig
 libssl
 libopenzwave
 libmpdclient
+libjwt
 ```
 
 On Debian-based systems (Debian, Raspbian, Ubuntu), use the following comand to install the dependencies:
 
 ```shell
-$ sudo apt-get install libmicrohttpd-dev libjansson-dev libcurl4-gnutls-dev libmysqlclient-dev libsqlite3-dev libconfig-dev libssl-dev libopenzwave1.5-dev libmpdclient-dev
+$ sudo apt-get install -y libmicrohttpd-dev libjansson-dev libcurl4-gnutls-dev libmysqlclient-dev libsqlite3-dev libconfig-dev libssl-dev libopenzwave1.5-dev libmpdclient-dev
 # Install libjwt
 $ git clone https://github.com/benmcollins/libjwt.git
 $ cd libjwt/
@@ -54,6 +55,32 @@ $ make
 $ sudo make install
 ```
 
+## Pre-compiled packages
+
+You can install Angharad with a pre-compiled package available in the [release pages](https://github.com/babelouest/angharad/releases/latest/). The package files `angharad-full_*` contain the package libraries of `orcania`, `yder`, `ulfius` and `hoel` precompiled for `angharad`, plus `angharad` package.
+
+For example, to install Angharad with the `
+For example, to install Hutch with the `hutch-full_1.2.0_Debian_stretch_x86_64.tar.gz` package downloaded on the `releases` page, you must execute the following commands:
+
+```shell
+$ sudo apt-get install -y libmicrohttpd-dev libjansson-dev libcurl4-gnutls-dev libmysqlclient-dev libsqlite3-dev libconfig-dev libssl-dev libopenzwave1.5-dev libmpdclient-dev
+$ wget https://github.com/benmcollins/libjwt/archive/v1.9.tar.gz
+$ tar -zxvf v1.9.tar.gz
+$ cd libjwt-1.9
+$ autoreconf -i
+$ ./configure
+$ make && sudo make install
+$ wget https://github.com/babelouest/angharad/releases/download/v1.2.0/angharad-full_1.2.0_Debian_stretch_x86_64.tar.gz
+$ tar xf angharad-full_1.2.0_Debian_stretch_x86_64.tar.gz
+$ sudo dpkg -i liborcania_1.2.0_Debian_stretch_x86_64.deb
+$ sudo dpkg -i libyder_1.2.0_Debian_stretch_x86_64.deb
+$ sudo dpkg -i libhoel_1.4.0_Debian_stretch_x86_64.deb
+$ sudo dpkg -i libulfius_2.3.1_Debian_stretch_x86_64.deb
+$ sudo dpkg -i angharad_1.2.0-b.3_Debian_stretch_x86_64.deb
+```
+
+## Build from source
+
 Then, download Angharad source code and its submodules.
 
 ```shell
@@ -62,7 +89,7 @@ cd angharad
 git submodule update --init
 ```
 
-## CMake
+### CMake build
 
 ```shell
 $ mkdir build
@@ -71,7 +98,7 @@ $ cmake ..
 $ make && sudo make install
 ```
 
-## Good ol' Makefile
+### Good ol' Makefile
 
 ```shell
 # Install Orcania
@@ -103,7 +130,7 @@ $ cd angharad
 $ make && sudo make install
 ```
 
-## Benoic modules
+### Benoic modules
 
 Benoic modules are located in the folder `benoic/device-modules`. If you want to adapt or change the modules for your needs, you can manually compile them.
 
@@ -117,7 +144,7 @@ make libdevmock.so # For mock device
 sudo make install # to install compiled devices in $PREFIX/lib/angharad/benoic directory
 ```
 
-## Carleon modules
+### Carleon services
 
 Carleon service are located in the folder `carleon/service-modules/`.
 
@@ -183,6 +210,10 @@ Please note that users and profile are not linked, any authenticated user can us
 
 # Run Angharad
 
+By default, when running, Angharad is accessible at the address [http://localhost:2473/](http://localhost:2473/).
+
+## In the console
+
 To run angharad, simply execute the command:
 
 ```shell
@@ -195,4 +226,26 @@ Check the log messages in the log file, syslog or the console, depending on your
 yyyy-mm-dd hh:mm:ss - Angharad INFO: Start angharad on port 2473
 ```
 
-Now you can access Angharad on the address [http://localhost:2473/](http://localhost:2473/).
+## As a service
+
+Use the script `angharad-init` (SysV Init) or `angharad.service` (SystemD) to run Angharad as a service. Both files are designed for Raspbian distribution but can be easily modify to fit your needs.
+
+### SysV init
+
+Copy the file `angharad-init` in the directory `/etc/init.d` as `angharad`, enable it on startup if needed, then start the service:
+
+```shell
+$ sudo cp angharad-init /etc/init.d/angharad
+$ sudo update-rc.d angharad defaults
+$ sudo service angharad start
+```
+
+### SystemD init
+
+Copy the file `angharad.service` in the directory `/etc/systemd/system`, enable it on startup if needed, then start the service:
+
+```shell
+$ sudo cp angharad.service /etc/systemd/system
+$ sudo systemctl enable angharad
+$ sudo service angharad start
+```
