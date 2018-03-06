@@ -81,23 +81,6 @@ int callback_angharad_submodule_get (const struct _u_request * request, struct _
   }
 }
 
-int callback_angharad_submodule_enable (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  int res;
-  
-  if (user_data == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "callback_carleon_service_element_remove_tag - Error, user_data is NULL");
-    return U_CALLBACK_ERROR;
-  } else {
-    res = submodule_enable((struct config_elements *)user_data, u_map_get(request->map_url, "submodule_name"), (0 == o_strcmp(u_map_get(request->map_url, "enabled"), "1")));
-    if (res == A_ERROR_NOT_FOUND) {
-      response->status = 404;
-    } else if (res != A_OK) {
-      response->status = 500;
-    }
-    return U_CALLBACK_CONTINUE;
-  }
-}
-
 int callback_angharad_script_list (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * j_script;
   

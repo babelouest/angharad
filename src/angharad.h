@@ -168,7 +168,6 @@ char * get_alert_url(struct config_elements * config);
 char * get_file_content(const char * file_path);
 
 json_t * submodule_get(struct config_elements * config, const char * submodule);
-int submodule_enable(struct config_elements * config, const char * submodule, int enabled);
 
 int init_angharad(struct config_elements * config);
 int close_angharad(struct config_elements * config);
@@ -255,7 +254,6 @@ int callback_angharad_alert (const struct _u_request * request, struct _u_respon
 
 int callback_angharad_submodule_list (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_submodule_get (const struct _u_request * request, struct _u_response * response, void * user_data);
-int callback_angharad_submodule_enable (const struct _u_request * request, struct _u_response * response, void * user_data);
 
 int callback_angharad_script_list (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_script_get (const struct _u_request * request, struct _u_response * response, void * user_data);
