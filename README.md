@@ -24,4 +24,4 @@ The full API Documentation can be found in the files `API.md` (except for Gareth
 - [Angharad API](docs/API.md)
 - [Benoic API](https://github.com/babelouest/benoic/blob/master/docs/API.md)
 - [Carleon API](https://github.com/babelouest/carleon/blob/master/docs/API.md)
-- [Gareth API](https://github.com/babelouest/gareth)
+- [Gareth API](https://github.com/babelouest/gareth/blob/master/docs/API.md)
