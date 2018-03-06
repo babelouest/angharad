@@ -33,6 +33,12 @@ angharad-install:
 angharad-clean:
 	cd src && make clean
 
+test:
+	cd test && make
+
+test-clean:
+	cd test && make clean
+
 install: angharad-install webapp-install
 
-clean: angharad-clean webapp-clean
+clean: angharad-clean webapp-clean test-clean

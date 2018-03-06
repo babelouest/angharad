@@ -286,6 +286,45 @@ if (WITH_MPD)
 		set(CARLEON_SERVICES ${CARLEON_SERVICES} servicempd)
 endif ()
 
+# tests
+
+option(BUILD_TESTING "Build the testing tree." OFF)
+
+if (BUILD_TESTING)
+    include(FindCheck)
+    find_package(Check REQUIRED)
+    if (CHECK_FOUND)
+        include(FindSubunit)
+        find_package(Subunit REQUIRED)
+
+        enable_testing()
+
+        set(CMAKE_CTEST_COMMAND ctest -V)
+
+        set(TST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test)
+        set(LIBS ${LIBS} ${CHECK_LIBRARIES} ulfius yder orcania)
+        find_package(Threads REQUIRED)
+        set(LIBS ${LIBS} ${SUBUNIT_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} m rt)
+
+				set(TESTS angharad_submodule angharad_script angharad_scheduler angharad_trigger angharad_scheduler_trigger_exec angharad_profile benoic_device benoic_device_element benoic_monitor carleon_service carleon_liquidsoap carleon_motion carleon_mpd gareth_alert_smtp gareth_alert_http gareth_filter gareth_message gareth_trigger)
+            
+
+        configure_file(
+                "${CMAKE_MODULE_PATH}/CTestCustom.cmake.in"
+                "${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake"
+                @ONLY)
+
+        foreach (t ${TESTS})
+            add_executable(${t} EXCLUDE_FROM_ALL ${TST_DIR}/${t}.c ${TST_DIR}/unit-tests.c ${TST_DIR}/unit-tests.h)
+            target_include_directories(${t} PUBLIC ${TST_DIR})
+            target_link_libraries(${t} PUBLIC ${LIBS})
+            add_test(NAME ${t}
+                    WORKING_DIRECTORY ${TST_DIR}
+                    COMMAND ${t})
+        endforeach ()
+    endif ()
+endif ()
+
 # install target
 
 install(TARGETS angharad
