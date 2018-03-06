@@ -155,8 +155,6 @@
 	"param_submodule_gareth": "Gareth",
 	"param_submodule_enable": "Changement d'état",
 	"param_submodule_enable_confirm": "Êtes-vous sûr de vouloir changer l'état de ce sous-module ?",
-	"param_submodule_benoic_reload_types": "Recharger les types de dispositifs",
-	"param_submodule_carleon_reload_services": "Recharger les types de services",
 	"param_admin_global": "Global",
 	"param_admin_mode": "Mode administrateur",
 	"param_device_list": "Liste des dispositifs domotiques",

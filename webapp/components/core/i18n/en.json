@@ -155,8 +155,6 @@
 	"param_submodule_gareth": "Gareth",
 	"param_submodule_enable": "Status change",
 	"param_submodule_enable_confirm": "Are you sure you want to change this submodule state?",
-	"param_submodule_benoic_reload_types": "Reload device types",
-	"param_submodule_carleon_reload_services": "Reload service types",
 	"param_benoic_device_type_list": "Device types list",
 	"param_carleon_service_list": "Carleon services list",
 	"carleon_services": "Carleon services",
