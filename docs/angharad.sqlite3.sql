@@ -261,7 +261,8 @@ CREATE TABLE `c_service_motion_stream` (
 );
 
 CREATE TABLE `c_service_mpd` (
-  `cmpd_name` TEXT PRIMARY KEY NOT NULL,
+  `cmpd_id` INTEGER PRIMARY KEY AUTOINCREMENT,
+  `cmpd_name` TEXT NOT NULL,
   `cmpd_description` TEXT,
   `cmpd_host` TEXT NOT NULL,
   `cmpd_port` INTEGER,
