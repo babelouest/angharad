@@ -95,16 +95,14 @@ CREATE TABLE `g_alert_http` (
   `ah_url` TEXT,
   `ah_body` TEXT
 );
-CREATE INDEX `i_alert_http` ON `g_alert_http`(`ah_id`);
 
 CREATE TABLE `g_alert_http_header` (
   `ahh_id` INTEGER PRIMARY KEY AUTOINCREMENT,
   `ah_id` INTEGER,
   `ahh_key` TEXT,
   `ahh_value` TEXT DEFAULT NULL,
-  FOREIGN KEY(`ah_id`) REFERENCES `g_alert_http`(`ah_id`)
+  FOREIGN KEY(`ah_id`) REFERENCES `g_alert_http`(`ah_id`) ON DELETE CASCADE
 );
-CREATE INDEX `i_alert_http_header` ON `g_alert_http_header`(`ahh_id`);
 
 CREATE TABLE `g_alert_smtp` (
   `as_id` INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -122,14 +120,12 @@ CREATE TABLE `g_alert_smtp` (
   `as_subject` TEXT,
   `as_body` TEXT
 );
-CREATE INDEX `i_alert_smtp` ON `g_alert_smtp`(`as_id`);
 
 CREATE TABLE `g_filter` (
   `f_id` INTEGER PRIMARY KEY AUTOINCREMENT,
   `f_name` TEXT UNIQUE,
   `f_description` TEXT
 );
-CREATE INDEX `i_filter` ON `g_filter`(`f_id`);
 
 CREATE TABLE `g_filter_clause` (
   `fc_id` INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -137,20 +133,18 @@ CREATE TABLE `g_filter_clause` (
   `fc_element` int(2),
   `fc_operator` INTEGER DEFAULT 0,
   `fc_value` TEXT,
-  FOREIGN KEY(`f_id`) REFERENCES `g_filter`(`f_id`)
+  FOREIGN KEY(`f_id`) REFERENCES `g_filter`(`f_id`) ON DELETE CASCADE
 );
-CREATE INDEX `i_filter_clause` ON `g_filter_clause`(`fc_id`);
 
 CREATE TABLE `g_filter_alert` (
   `fa_id` INTEGER PRIMARY KEY AUTOINCREMENT,
   `f_id` INTEGER,
   `ah_name` TEXT NULL,
   `as_name` TEXT NULL,
-  FOREIGN KEY(f_id) REFERENCES g_filter(f_id),
-  FOREIGN KEY(`ah_name`) REFERENCES `g_alert_http`(`ah_name`),
-  FOREIGN KEY(`as_name`) REFERENCES `g_alert_smtp`(`as_name`)
+  FOREIGN KEY(f_id) REFERENCES g_filter(f_id) ON DELETE CASCADE,
+  FOREIGN KEY(`ah_name`) REFERENCES `g_alert_http`(`ah_name`) ON DELETE CASCADE,
+  FOREIGN KEY(`as_name`) REFERENCES `g_alert_smtp`(`as_name`) ON DELETE CASCADE
 );
-CREATE INDEX `i_filter_alert` ON `g_filter_alert`(`f_id`);
 
 CREATE TABLE `g_message` (
   `m_id` INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -160,7 +154,6 @@ CREATE TABLE `g_message` (
   `m_text` TEXT,
   `m_tags` TEXT
 );
-CREATE INDEX `i_message_id` ON `g_message`(`m_id`);
 CREATE INDEX `i_message_date` ON `g_message`(`m_date`);
 
 CREATE TABLE `a_submodule` (
@@ -282,6 +275,6 @@ CREATE TABLE `c_mpd_websocket` (
   `cmpd_id` INTEGER NOT NULL,
   `cmw_name` TEXT NOT NULL,
 	`cmw_creation` INT DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT `service_mpd_ibfk_1` FOREIGN KEY (`cmpd_id`) REFERENCES `c_service_mpd` (`cmpd_id`)
+  CONSTRAINT `service_mpd_ibfk_1` FOREIGN KEY (`cmpd_id`) REFERENCES `c_service_mpd` (`cmpd_id`) ON DELETE CASCADE
 );
 CREATE INDEX `cmw_name_idx` ON `c_mpd_websocket` (`cmw_name`);
