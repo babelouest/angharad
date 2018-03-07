@@ -151,7 +151,7 @@ int build_config_from_args(int argc, char ** argv, struct config_elements * conf
               }
               one_log_mode = strtok(NULL, ",");
             }
-            free(to_free);
+            o_free(to_free);
           } else {
             fprintf(stderr, "Error!\nNo mode specified\n");
             return 0;
@@ -274,24 +274,24 @@ void exit_server(struct config_elements ** config, int exit_value) {
     ulfius_clean_instance((*config)->instance);
     clean_benoic((*config)->b_config);
     clean_carleon((*config)->c_config);
-    free((*config)->instance);
-    free((*config)->config_file);
-    free((*config)->url_prefix_angharad);
-    free((*config)->url_prefix_benoic);
-    free((*config)->url_prefix_carleon);
-    free((*config)->url_prefix_gareth);
-    free((*config)->alert_url);
-    free((*config)->glewlwyd_resource_config->jwt_decode_key);
-    free((*config)->glewlwyd_resource_config->oauth_scope);
-    free((*config)->glewlwyd_resource_config);
+    o_free((*config)->instance);
+    o_free((*config)->config_file);
+    o_free((*config)->url_prefix_angharad);
+    o_free((*config)->url_prefix_benoic);
+    o_free((*config)->url_prefix_carleon);
+    o_free((*config)->url_prefix_gareth);
+    o_free((*config)->alert_url);
+    o_free((*config)->glewlwyd_resource_config->jwt_decode_key);
+    o_free((*config)->glewlwyd_resource_config->oauth_scope);
+    o_free((*config)->glewlwyd_resource_config);
     o_free((*config)->static_file_config->files_path);
     o_free((*config)->static_file_config->url_prefix);
     u_map_clean_full((*config)->static_file_config->mime_types);
     o_free((*config)->static_file_config);
-    free((*config)->allow_origin);
-    free((*config)->log_file);
+    o_free((*config)->allow_origin);
+    o_free((*config)->log_file);
 
-    free(*config);
+    o_free(*config);
     (*config) = NULL;
   }
   if (pthread_mutex_destroy(&global_handler_close_lock) ||
@@ -738,7 +738,7 @@ char * get_alert_url(struct config_elements * config) {
  * Infinite loop until an end signal is triggered
  */
 int main(int argc, char ** argv) {
-  struct config_elements * config = malloc(sizeof(struct config_elements));
+  struct config_elements * config = o_malloc(sizeof(struct config_elements));
   int res;
   json_t * submodule;
   
@@ -758,10 +758,10 @@ int main(int argc, char ** argv) {
   config->log_file = NULL;
   config->angharad_status = ANGHARAD_STATUS_STOP;
   config->alert_url = NULL;
-  config->instance = malloc(sizeof(struct _u_instance));
-  config->c_config = malloc(sizeof(struct _carleon_config));
-  config->b_config = malloc(sizeof(struct _benoic_config));
-  config->glewlwyd_resource_config = malloc(sizeof (struct _glewlwyd_resource_config));
+  config->instance = o_malloc(sizeof(struct _u_instance));
+  config->c_config = o_malloc(sizeof(struct _carleon_config));
+  config->b_config = o_malloc(sizeof(struct _benoic_config));
+  config->glewlwyd_resource_config = o_malloc(sizeof (struct _glewlwyd_resource_config));
   config->static_file_config = o_malloc(sizeof(struct _static_file_config));
   if (config->instance == NULL || config->c_config == NULL || config->b_config == NULL || config->glewlwyd_resource_config == NULL || config->static_file_config == NULL) {
     fprintf(stderr, "Memory error - config->instance || config->c_config || config->b_config || config->glewlwyd_resource_config || config->static_file_config == NULL\n");
@@ -1103,7 +1103,7 @@ char * get_file_content(const char * file_path) {
     fseek (f, 0, SEEK_END);
     length = ftell (f);
     fseek (f, 0, SEEK_SET);
-    buffer = malloc((length+1)*sizeof(char));
+    buffer = o_malloc((length+1)*sizeof(char));
     if (buffer) {
       res = fread (buffer, 1, length, f);
       if (res != length) {

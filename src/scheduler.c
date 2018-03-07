@@ -90,7 +90,7 @@ void * thread_scheduler_run(void * args) {
                 j_message = json_pack("{sssssss[s]}", "priority", "LOW", "source", "angharad", "text", str_message_text, "tags", "scheduler");
                 add_message(config->conn, j_message);
                 json_decref(j_message);
-                free(str_message_text);
+                o_free(str_message_text);
           
                 next_time = now;
                 json_array_foreach(json_object_get(scheduler, "scripts"), index_sc, script) {
@@ -323,18 +323,18 @@ int scheduler_add(struct config_elements * config, json_t * j_scheduler) {
     str_next_time = msprintf("%" JSON_INTEGER_FORMAT, json_integer_value(json_object_get(j_scheduler, "next_time")));
   } else {
     // Should not happen, but I don't like gcc warnings
-    str_next_time = strdup("");
+    str_next_time = o_strdup("");
   }
   
   if (json_object_get(j_scheduler, "options") != NULL) {
     str_options = json_dumps(json_object_get(j_scheduler, "options"), JSON_COMPACT);
   } else {
-    str_options = strdup("");
+    str_options = o_strdup("");
   }
   if (json_object_get(j_scheduler, "conditions") != NULL) {
     str_conditions = json_dumps(json_object_get(j_scheduler, "conditions"), JSON_COMPACT);
   } else {
-    str_conditions = strdup("");
+    str_conditions = o_strdup("");
   }
   j_query = json_pack("{sss[{sssssisssss{ss}sIsIsi}]}",
                       "table", ANGHARAD_TABLE_SCHEDULER,
@@ -348,9 +348,9 @@ int scheduler_add(struct config_elements * config, json_t * j_scheduler) {
                         "ash_repeat", json_integer_value(json_object_get(j_scheduler, "repeat")), 
                         "ash_repeat_value", json_integer_value(json_object_get(j_scheduler, "repeat_value")), 
                         "ash_remove_after", json_object_get(j_scheduler, "remove_after")==json_false()?0:1);
-  free(str_options);
-  free(str_conditions);
-  free(str_next_time);
+  o_free(str_options);
+  o_free(str_conditions);
+  o_free(str_next_time);
   
   if (j_query == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_add - Error Allocating resources for j_query: %s", error.text);
@@ -486,12 +486,12 @@ int scheduler_modify(struct config_elements * config, const char * scheduler_nam
     if (json_object_get(j_scheduler, "options") != NULL) {
       str_options = json_dumps(json_object_get(j_scheduler, "options"), JSON_COMPACT);
     } else {
-      str_options = strdup("");
+      str_options = o_strdup("");
     }
     if (json_object_get(j_scheduler, "conditions") != NULL) {
       str_conditions = json_dumps(json_object_get(j_scheduler, "conditions"), JSON_COMPACT);
     } else {
-      str_conditions = strdup("");
+      str_conditions = o_strdup("");
     }
     if (config->conn->type == HOEL_DB_TYPE_MARIADB) {
       str_next_time = msprintf("FROM_UNIXTIME(%" JSON_INTEGER_FORMAT ")", json_integer_value(json_object_get(j_scheduler, "next_time")));
@@ -499,7 +499,7 @@ int scheduler_modify(struct config_elements * config, const char * scheduler_nam
       str_next_time = msprintf("%" JSON_INTEGER_FORMAT, json_integer_value(json_object_get(j_scheduler, "next_time")));
     } else {
       // Should not happen
-      str_next_time = strdup("");
+      str_next_time = o_strdup("");
     }
     j_query = json_pack("{sss{sssisssss{ss}sIsIsi}s{ss}}",
                         "table", ANGHARAD_TABLE_SCHEDULER,
@@ -514,9 +514,9 @@ int scheduler_modify(struct config_elements * config, const char * scheduler_nam
                           "ash_remove_after", json_object_get(j_scheduler, "remove_after")==json_false()?0:1,
                         "where",
                           "ash_name", scheduler_name);
-    free(str_options);
-    free(str_conditions);
-    free(str_next_time);
+    o_free(str_options);
+    o_free(str_conditions);
+    o_free(str_next_time);
     
     if (j_query == NULL) {
       y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_modify - Error Allocating resources for j_query");
@@ -740,8 +740,8 @@ json_t * scheduler_get_script_list(struct config_elements * config, const char *
   size_t index;
   
   res = h_query_select_json(config->conn, query, &j_result);
-  free(escaped);
-  free(query);
+  o_free(escaped);
+  o_free(query);
   
   if (res != H_OK) {
     y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_get_script_list - Error getting scheduler");
@@ -777,7 +777,7 @@ int scheduler_set_script_list(struct config_elements * config, const char * sche
                           "raw",
                           "value",
                           tmp);
-  free(tmp);
+  o_free(tmp);
   
   if (j_query == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_set_script_list - Error allocating resources for j_query");
@@ -788,8 +788,8 @@ int scheduler_set_script_list(struct config_elements * config, const char * sche
   json_decref(j_query);
   if (res != H_OK) {
     y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_set_script_list - Error deleting script list");
-    free(sch_escaped);
-    free(sch_clause);
+    o_free(sch_escaped);
+    o_free(sch_clause);
     return A_ERROR_DB;
   } else {
     j_query = json_pack("{ssso}",
@@ -799,8 +799,8 @@ int scheduler_set_script_list(struct config_elements * config, const char * sche
                           json_array());
     if (j_query == NULL) {
       y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_set_script_list - Error allocating resources for j_query (2)");
-      free(sch_escaped);
-      free(sch_clause);
+      o_free(sch_escaped);
+      o_free(sch_clause);
       return A_ERROR_MEMORY;
     }
     json_array_foreach(script_list, index, script) {
@@ -816,14 +816,14 @@ int scheduler_set_script_list(struct config_elements * config, const char * sche
                     sc_clause,
                   "ass_enabled",
                     json_object_get(script, "enabled")));
-      free(sc_escaped);
-      free(sc_clause);
+      o_free(sc_escaped);
+      o_free(sc_clause);
     }
     
     res = h_insert(config->conn, j_query, NULL);
     json_decref(j_query);
-    free(sch_escaped);
-    free(sch_clause);
+    o_free(sch_escaped);
+    o_free(sch_clause);
     if (res == H_OK) {
       return A_OK;
     } else {

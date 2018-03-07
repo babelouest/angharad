@@ -115,8 +115,8 @@ int script_add(struct config_elements * config, json_t * j_script) {
                         "asc_description", (json_object_get(j_script, "description")!=NULL?json_string_value(json_object_get(j_script, "description")):""),
                         "asc_actions", str_actions,
                         "asc_options", str_options);
-  free(str_actions);
-  free(str_options);
+  o_free(str_actions);
+  o_free(str_options);
   
   if (j_query == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "script_add - Error Allocating resources for j_query");
@@ -161,8 +161,8 @@ int script_modify(struct config_elements * config, const char * script_name, jso
                           "asc_options", str_options,
                         "where",
                           "asc_name", script_name);
-    free(str_actions);
-    free(str_options);
+    o_free(str_actions);
+    o_free(str_options);
     
     if (j_query == NULL) {
       y_log_message(Y_LOG_LEVEL_ERROR, "script_modify - Error Allocating resources for j_query");
@@ -600,7 +600,7 @@ int script_run(struct config_elements * config, const char * script_name) {
       j_message = json_pack("{sssssss[s]}", "priority", "LOW", "source", "angharad", "text", str_message_text, "tags", "script");
       add_message(config->conn, j_message);
       json_decref(j_message);
-      free(str_message_text);
+      o_free(str_message_text);
       
       j_action_list = json_object_get(j_script, "actions");
       if (j_action_list != NULL && json_is_array(j_action_list)) {

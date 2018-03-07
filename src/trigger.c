@@ -69,7 +69,7 @@ int alert_received(struct config_elements * config, const char * submodule_name,
     j_message = json_pack("{sssssss[s]}", "priority", "MEDIUM", "source", source, "text", str_message_text, "tags", "trigger");
     add_message(config->conn, j_message);
     json_decref(j_message);
-    free(str_message_text);
+    o_free(str_message_text);
     
     json_array_foreach (j_result, index, cur_trigger) {
       j_result_trigger = trigger_get(config, json_string_value(json_object_get(cur_trigger, "at_name")));
@@ -263,12 +263,12 @@ int trigger_add(struct config_elements * config, json_t * j_trigger) {
   if (json_object_get(j_trigger, "options") != NULL) {
 		str_options = json_dumps(json_object_get(j_trigger, "options"), JSON_COMPACT);
 	} else {
-		str_options = strdup("");
+		str_options = o_strdup("");
 	}
 	if (json_object_get(j_trigger, "conditions") != NULL) {
 		str_conditions = json_dumps(json_object_get(j_trigger, "conditions"), JSON_COMPACT);
 	} else {
-		str_conditions = strdup("");
+		str_conditions = o_strdup("");
 	}
   j_query = json_pack("{sss[{sssssisssssssssssssI}]}",
                       "table", ANGHARAD_TABLE_TRIGGER,
@@ -283,8 +283,8 @@ int trigger_add(struct config_elements * config, json_t * j_trigger) {
                         "at_element", json_string_value(json_object_get(j_trigger, "element")),
                         "at_message", json_object_get(j_trigger, "message")!=NULL?json_string_value(json_object_get(j_trigger, "message")):"",
                         "at_message_match", json_object_get(j_trigger, "message_match")!=NULL?json_integer_value(json_object_get(j_trigger, "message_match")):0);
-  free(str_options);
-  free(str_conditions);
+  o_free(str_options);
+  o_free(str_conditions);
   
   if (j_query == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "trigger_add - Error Allocating resources for j_query");
@@ -425,12 +425,12 @@ int trigger_modify(struct config_elements * config, const char * trigger_name, j
 		if (json_object_get(j_trigger, "options") != NULL) {
 			str_options = json_dumps(json_object_get(j_trigger, "options"), JSON_COMPACT);
 		} else {
-			str_options = strdup("");
+			str_options = o_strdup("");
 		}
 		if (json_object_get(j_trigger, "conditions") != NULL) {
 			str_conditions = json_dumps(json_object_get(j_trigger, "conditions"), JSON_COMPACT);
 		} else {
-			str_conditions = strdup("");
+			str_conditions = o_strdup("");
 		}
     j_query = json_pack("{sss{sssisssssssssssssI}s{ss}}",
                         "table", ANGHARAD_TABLE_TRIGGER,
@@ -446,8 +446,8 @@ int trigger_modify(struct config_elements * config, const char * trigger_name, j
                           "at_message_match", json_object_get(j_trigger, "message_match")!=NULL?json_integer_value(json_object_get(j_trigger, "message_match")):0,
                         "where",
                           "at_name", trigger_name);
-    free(str_options);
-    free(str_conditions);
+    o_free(str_options);
+    o_free(str_conditions);
     
     if (j_query == NULL) {
       y_log_message(Y_LOG_LEVEL_ERROR, "trigger_modify - Error Allocating resources for j_query");
@@ -602,8 +602,8 @@ json_t * trigger_get_script_list(struct config_elements * config, const char * t
   size_t index;
   
   res = h_query_select_json(config->conn, query, &j_result);
-  free(escaped);
-  free(query);
+  o_free(escaped);
+  o_free(query);
   
   if (res != H_OK) {
     y_log_message(Y_LOG_LEVEL_ERROR, "trigger_get_script_list - Error getting trigger");
@@ -639,7 +639,7 @@ int trigger_set_script_list(struct config_elements * config, const char * trigge
                           "raw",
                           "value",
                           tmp);
-  free(tmp);
+  o_free(tmp);
   
   if (j_query == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "trigger_set_script_list - Error allocating resources for j_query");
@@ -650,8 +650,8 @@ int trigger_set_script_list(struct config_elements * config, const char * trigge
   json_decref(j_query);
   if (res != H_OK) {
     y_log_message(Y_LOG_LEVEL_ERROR, "trigger_set_script_list - Error deleting script list");
-    free(t_escaped);
-    free(t_clause);
+    o_free(t_escaped);
+    o_free(t_clause);
     return A_ERROR_DB;
   } else {
     j_query = json_pack("{ssso}",
@@ -661,8 +661,8 @@ int trigger_set_script_list(struct config_elements * config, const char * trigge
                           json_array());
     if (j_query == NULL) {
       y_log_message(Y_LOG_LEVEL_ERROR, "trigger_set_script_list - Error allocating resources for j_query");
-      free(t_escaped);
-      free(t_clause);
+      o_free(t_escaped);
+      o_free(t_clause);
       return A_ERROR_MEMORY;
     }
     json_array_foreach(script_list, index, script) {
@@ -678,14 +678,14 @@ int trigger_set_script_list(struct config_elements * config, const char * trigge
                     sc_clause,
                   "ats_enabled",
                     json_object_get(script, "enabled")));
-      free(sc_escaped);
-      free(sc_clause);
+      o_free(sc_escaped);
+      o_free(sc_clause);
     }
     
     res = h_insert(config->conn, j_query, NULL);
     json_decref(j_query);
-    free(t_escaped);
-    free(t_clause);
+    o_free(t_escaped);
+    o_free(t_clause);
     if (res == H_OK) {
       return A_OK;
     } else {
