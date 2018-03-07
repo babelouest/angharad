@@ -1,0 +1,18 @@
+angular.module("sagremorApp")
+.constant("angharadConfig", {
+        "baseUrl": "http://localhost:2473/",
+        "prefixAngharad": "angharad/",
+        "prefixBenoic": "benoic/",
+        "prefixCarleon": "carleon/",
+        "prefixGareth": "gareth/",
+        oauth2: {
+            site: "https://oauth2.url/",
+            clientId: "sagremor",
+            responseType: "code",
+            redirectUri: "https://client.url/",
+            profileUri: "https://profile.url/",
+            scope: "angharad",
+            authorizePath: "auth",
+            tokenPath: "token",
+        }
+	})
