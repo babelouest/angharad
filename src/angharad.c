@@ -779,6 +779,8 @@ int main(int argc, char ** argv) {
   config->glewlwyd_resource_config->oauth_scope = NULL;
   config->glewlwyd_resource_config->method = G_METHOD_HEADER;
   config->glewlwyd_resource_config->realm = NULL;
+  config->glewlwyd_resource_config->accept_access_token = 1;
+  config->glewlwyd_resource_config->accept_client_token = 1;
   config->static_file_config->files_path = NULL;
   config->static_file_config->url_prefix = NULL;
   config->static_file_config->mime_types = o_malloc(sizeof(struct _u_map));
