@@ -28,7 +28,7 @@
 PREFIX=/usr/local
 CC=gcc
 CFLAGS=-c -Wall -D_REENTRANT -I$(PREFIX)/include $(ADDITIONALFLAGS)
-LIBS=-L$(PREFIX)/lib -lc -lm -lpthread -ldl -ljansson -lulfius -lhoel -lyder -lorcania -ljwt
+LIBS=-L$(PREFIX)/lib -lc -lm -lpthread -ldl -ljansson -lulfius -lhoel -lyder -lorcania -ljwt -lmicrohttpd
 
 # subprojects locations
 GARETH_LOCATION=gareth
