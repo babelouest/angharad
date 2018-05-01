@@ -1,5 +1,10 @@
 # Angharad changelog
 
+## 1.2.2
+
+- Sync version number
+- Fix carleon/service-mpd bug
+
 ## 1.2.1
 
 - Cleanup webapp files
