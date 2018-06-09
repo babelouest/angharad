@@ -1,5 +1,10 @@
 # Angharad changelog
 
+## 1.2.3
+
+- Add new static_file_callback
+- Redirect to / on error 404
+
 ## 1.2.2
 
 - Sync version number
