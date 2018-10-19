@@ -734,7 +734,7 @@ time_t scheduler_calculate_next_time(time_t from, int schedule_type, unsigned in
  */
 json_t * scheduler_get_script_list(struct config_elements * config, const char * scheduler_name) {
   char * escaped = h_escape_string(config->conn, scheduler_name),
-        * query = msprintf("SELECT a_script.asc_name AS name, a_scheduler_script.ass_enabled AS i_enabled FROM a_script, a_scheduler_script WHERE a_scheduler_script.ash_id = (SELECT ash_id FROM a_scheduler WHERE ash_name = '%s') AND a_script.asc_id = a_scheduler_script.asc_id", scheduler_name);
+        * query = msprintf("SELECT a_script.asc_name AS name, a_scheduler_script.ass_enabled AS i_enabled FROM a_script, a_scheduler_script WHERE a_scheduler_script.ash_id = (SELECT ash_id FROM a_scheduler WHERE ash_name = '%s') AND a_script.asc_id = a_scheduler_script.asc_id", escaped);
   int res;
   json_t * j_result, * j_script;
   size_t index;
