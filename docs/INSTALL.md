@@ -64,9 +64,9 @@ For example, to install Hutch with the `hutch-full_1.2.0_Debian_stretch_x86_64.t
 
 ```shell
 $ sudo apt-get install -y libmicrohttpd-dev libjansson-dev libcurl4-gnutls-dev libmysqlclient-dev libsqlite3-dev libconfig-dev libssl-dev libopenzwave1.5-dev libmpdclient-dev
-$ wget https://github.com/benmcollins/libjwt/archive/v1.9.tar.gz
-$ tar -zxvf v1.9.tar.gz
-$ cd libjwt-1.9
+$ wget https://github.com/benmcollins/libjwt/archive/v1.9.0.tar.gz
+$ tar -zxvf v1.9.0.tar.gz
+$ cd libjwt-1.9.0
 $ autoreconf -i
 $ ./configure
 $ make && sudo make install
