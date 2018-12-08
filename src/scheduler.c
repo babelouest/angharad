@@ -91,8 +91,7 @@ void * thread_scheduler_run(void * args) {
                 add_message(config->conn, j_message);
                 json_decref(j_message);
                 o_free(str_message_text);
-          
-                next_time = now;
+
                 json_array_foreach(json_object_get(scheduler, "scripts"), index_sc, script) {
                   if (json_object_get(script, "enabled") == json_true() && json_is_string(json_object_get(script, "name"))) {
                     y_log_message(Y_LOG_LEVEL_INFO, "thread_scheduler_run - run script %s", json_string_value(json_object_get(script, "name")));

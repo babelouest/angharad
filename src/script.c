@@ -672,10 +672,18 @@ int action_run(struct config_elements * config, json_t * j_action) {
       
       if (i_element_type == BENOIC_ELEMENT_TYPE_SWITCH && json_is_integer(command)) {
         command_res = set_switch(config->b_config, j_device, json_string_value(element), json_integer_value(command));
+        if (command_res != B_OK) {
+          y_log_message(Y_LOG_LEVEL_ERROR, "error in benoic command_res");
+          res = A_ERROR;
+        }
       } else if (i_element_type == BENOIC_ELEMENT_TYPE_DIMMER && json_is_integer(command)) {
         j_result = set_dimmer(config->b_config, j_device, json_string_value(element), json_integer_value(command));
         command_res = json_integer_value(json_object_get(j_result, "result"));
         json_decref(j_result);
+        if (command_res != B_OK) {
+          y_log_message(Y_LOG_LEVEL_ERROR, "error in benoic command_res");
+          res = A_ERROR;
+        }
       } else if (i_element_type == BENOIC_ELEMENT_TYPE_HEATER && json_is_integer(command)) {
         str_heater_mode = (char*)json_string_value(json_object_get(parameters, "mode"));
         command_res = set_heater(config->b_config, j_device, json_string_value(element), str_heater_mode, json_number_value(command));
