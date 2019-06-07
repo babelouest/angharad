@@ -173,6 +173,9 @@ int init_angharad(struct config_elements * config);
 int close_angharad(struct config_elements * config);
 int angharad_run_thread(struct config_elements * config);
 
+int check_result_value(json_t * result, const int value);
+json_t * json_search(json_t * haystack, json_t * needle);
+
 void * thread_scheduler_run(void * args);
 
 int alert_received(struct config_elements * config, const char * submodule_name, const char * source, const char * element, const char * message);
