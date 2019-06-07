@@ -4,6 +4,8 @@
  *
  * Copyright 2016-2018 Nicolas Mora <mail@babelouest.org>
  *
+ * Version 20180607
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * License as published by the Free Software Foundation;
@@ -26,6 +28,17 @@
 #include <jansson.h>
 
 #include "glewlwyd_resource.h"
+
+/**
+ * Check if the result json object has a "result" element that is equal to value
+ */
+static int check_result_value(json_t * result, const int value) {
+  return (result != NULL && 
+          json_is_object(result) && 
+          json_object_get(result, "result") != NULL && 
+          json_is_integer(json_object_get(result, "result")) && 
+          json_integer_value(json_object_get(result, "result")) == value);
+}
 
 /**
  * check if bearer token has some of the specified scope
@@ -71,7 +84,10 @@ int callback_check_glewlwyd_access_token (const struct _u_request * request, str
             o_free(response_value);
           } else {
             res = U_CALLBACK_CONTINUE;
-            response->shared_data += 1;
+            response->shared_data = (void*)json_pack("{sssO}", "username", json_string_value(json_object_get(json_object_get(j_access_token, "grants"), "username")), "scope", json_object_get(j_res_scope, "scope"));
+            if (response->shared_data == NULL) {
+              res = U_CALLBACK_ERROR;
+            }
           }
           json_decref(j_res_scope);
         } else if (res_validity == G_ERROR_INVALID_TOKEN) {
@@ -152,24 +168,14 @@ int access_token_check_validity(struct _glewlwyd_resource_config * config, json_
     // Token is valid, check type and expiration date
     time(&now);
     expiration = json_integer_value(json_object_get(j_access_token, "iat")) + json_integer_value(json_object_get(j_access_token, "expires_in"));
-    if (now < expiration &&
+    if (now < expiration && 
         json_object_get(j_access_token, "type") != NULL &&
-        json_is_string(json_object_get(j_access_token, "type"))) {
-      if (config->accept_access_token &&
+        json_is_string(json_object_get(j_access_token, "type")) &&
         0 == o_strcmp("access_token", json_string_value(json_object_get(j_access_token, "type"))) &&
         json_object_get(j_access_token, "username") != NULL &&
         json_is_string(json_object_get(j_access_token, "username")) &&
         json_string_length(json_object_get(j_access_token, "username")) > 0) {
-        res = G_OK;
-      } else if (config->accept_client_token &&
-        0 == o_strcmp("client_token", json_string_value(json_object_get(j_access_token, "type"))) &&
-        json_object_get(j_access_token, "client_id") != NULL &&
-        json_is_string(json_object_get(j_access_token, "client_id")) &&
-        json_string_length(json_object_get(j_access_token, "client_id")) > 0) {
-        res = G_OK;
-      } else {
-        res = G_ERROR_INVALID_REQUEST;
-      }
+      res = G_OK;
     } else {
       res = G_ERROR_INVALID_REQUEST;
     }
