@@ -1,5 +1,10 @@
 # Angharad changelog
 
+## 1.2.4
+
+- Add http compression
+- Update authentication backend to OpenID Connect with JSON Web Token (JWT) Profile for OAuth 2.0 Access Tokens
+
 ## 1.2.3
 
 - Add new static_file_callback

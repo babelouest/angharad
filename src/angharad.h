@@ -29,7 +29,7 @@
 #ifndef __ANGHARAD_H_
 #define __ANGHARAD_H_
 
-#define _ANGHARAD_VERSION_ "1.2.3"
+#define _ANGHARAD_VERSION_ "1.2.4"
 
 // Angharad libraries
 #include <orcania.h>

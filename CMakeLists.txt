@@ -24,13 +24,13 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror")
 
 set(PROGRAM_VERSION_MAJOR "1")
 set(PROGRAM_VERSION_MINOR "2")
-set(PROGRAM_VERSION_PATCH "3")
+set(PROGRAM_VERSION_PATCH "4")
 set(PROJECT_DESCRIPTION "Online password and secret locker")
 set(PROJECT_BUGREPORT_PATH "https://github.com/babelouest/angharad/issues")
-set(ORCANIA_VERSION_DOWNLOAD "1.2.9")
-set(YDER_VERSION_DOWNLOAD "1.4.4")
-set(ULFIUS_VERSION_DOWNLOAD "2.4.4")
-set(HOEL_VERSION_DOWNLOAD "1.4.6")
+set(ORCANIA_VERSION_REQUIRED "2.2.0")
+set(YDER_VERSION_REQUIRED "1.4.13")
+set(ULFIUS_VERSION_REQUIRED "2.7.2")
+set(HOEL_VERSION_REQUIRED "1.4.17")
 
 set(BENOIC_MODULES_SRC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/device-modules/")
 set(CARLEON_MODULES_SRC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src/carleon/service-modules/")
@@ -131,7 +131,7 @@ if (NOT YDER_FOUND)
     option(CHECK_ORCANIA "specific param" off)
     option(INSTALL_HEADER "specific param" off)
     download_project(PROJ yder # ... otherwise, download archive
-            URL "https://github.com/babelouest/yder/archive/v${YDER_VERSION_DOWNLOAD}.tar.gz"
+            URL "https://github.com/babelouest/yder/archive/v${YDER_VERSION_REQUIRED}.tar.gz"
             QUIET)
     add_subdirectory(${yder_SOURCE_DIR} ${yder_BINARY_DIR})
     include_directories(${yder_SOURCE_DIR}/include)
@@ -150,7 +150,7 @@ if (NOT ULFIUS_FOUND)
     option(INSTALL_HEADER "specific param" off)
     option(CHECK_YDER "specific param" off)
     download_project(PROJ ulfius
-            URL "https://github.com/babelouest/ulfius/archive/v${ULFIUS_VERSION_DOWNLOAD}.tar.gz"
+            URL "https://github.com/babelouest/ulfius/archive/v${ULFIUS_VERSION_REQUIRED}.tar.gz"
             QUIET)
     add_subdirectory(${ulfius_SOURCE_DIR} ${ulfius_BINARY_DIR})
     include_directories(${yder_SOURCE_DIR}/include)
@@ -170,7 +170,7 @@ if (NOT HOEL_FOUND)
     option(INSTALL_HEADER "specific param" off)
     option(CHECK_YDER "specific param" off)
     download_project(PROJ hoel
-            URL "https://github.com/babelouest/hoel/archive/v${HOEL_VERSION_DOWNLOAD}.tar.gz"
+            URL "https://github.com/babelouest/hoel/archive/v${HOEL_VERSION_REQUIRED}.tar.gz"
             QUIET)
     add_subdirectory(${hoel_SOURCE_DIR} ${hoel_BINARY_DIR})
     include_directories(${hoel_SOURCE_DIR}/include)
