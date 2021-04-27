@@ -34,19 +34,16 @@
 // Angharad libraries
 #include <orcania.h>
 #include <yder.h>
-#define U_DISABLE_WEBSOCKET
 #include <ulfius.h>
-#define _HOEL_MARIADB
-#define _HOEL_SQLITE
 #include <hoel.h>
-
-#include <jwt.h>
 
 // Angharad submodules
 #include "benoic/benoic.h"
 #include "carleon/carleon.h"
 #include "gareth/gareth.h"
-#include "static_file_callback.h"
+#include "static_compressed_inmemory_website_callback.h"
+#include "http_compression_callback.h"
+#include "iddawc_resource.h"
 
 #define ANGHARAD_RUNNING  0
 #define ANGHARAD_STOP     1
@@ -124,7 +121,7 @@
 #define ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION 1
 #define ANGHARAD_CALLBACK_PRIORITY_APPLICATION    2
 #define ANGHARAD_CALLBACK_PRIORITY_FILES          3
-#define ANGHARAD_CALLBACK_PRIORITY_CLEAN          4
+#define ANGHARAD_CALLBACK_PRIORITY_COMPRESSION    4
 
 struct _auth_ldap {
   char * uri;
@@ -136,23 +133,32 @@ struct _auth_ldap {
 };
 
 struct config_elements {
-  char *                             config_file;
-  char *                             url_prefix_angharad;
-  char *                             url_prefix_benoic;
-  char *                             url_prefix_carleon;
-  char *                             url_prefix_gareth;
-  char *                             alert_url;
-  char *                             allow_origin;
-  unsigned long                      log_mode;
-  unsigned long                      log_level;
-  char *                             log_file;
-  struct _u_instance               * instance;
-  struct _h_connection             * conn;
-  struct _benoic_config            * b_config;
-  struct _carleon_config           * c_config;
-  unsigned int                       angharad_status;
-  struct _glewlwyd_resource_config * glewlwyd_resource_config;
-  struct _static_file_config       * static_file_config;
+  char                                         * config_file;
+  char                                         * server_remote_address;
+  char                                         * url_prefix_angharad;
+  char                                         * url_prefix_benoic;
+  char                                         * url_prefix_carleon;
+  char                                         * url_prefix_gareth;
+  char                                         * alert_url;
+  char                                         * allow_origin;
+  unsigned long                                  log_mode;
+  unsigned long                                  log_level;
+  char                                         * log_file;
+  struct _u_instance                           * instance;
+  struct _h_connection                         * conn;
+  struct _benoic_config                        * b_config;
+  struct _carleon_config                       * c_config;
+  unsigned int                                   angharad_status;
+  char                                         * oidc_server_remote_config;
+  unsigned int                                   oidc_server_remote_config_verify_cert;
+  char                                         * oidc_server_public_jwks;
+  char                                         * oidc_scope;
+  char                                         * oidc_iss;
+  char                                         * oidc_realm;
+  char                                         * oidc_aud;
+  time_t                                         oidc_dpop_max_iat;
+  struct _iddawc_resource_config               * iddawc_resource_config;
+  struct _u_compressed_inmemory_website_config * static_file_config;
 };
 
 pthread_mutex_t global_handler_close_lock;

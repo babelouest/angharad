@@ -749,10 +749,3 @@ int callback_angharad_options (const struct _u_request * request, struct _u_resp
   u_map_put(response->map_header, "Access-Control-Max-Age", "1800");
   return U_CALLBACK_COMPLETE;
 }
-
-/**
- * Last endpoint called, clean response->shared_data
- */
-int callback_clean (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  return U_CALLBACK_COMPLETE;
-}

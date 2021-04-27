@@ -28,51 +28,27 @@
 PREFIX=/usr/local
 CC=gcc
 CFLAGS=-c -Wall -D_REENTRANT -I$(PREFIX)/include $(ADDITIONALFLAGS)
-LIBS=-L$(PREFIX)/lib -lc -lm -lpthread -ldl -ljansson -lulfius -lhoel -lyder -lorcania -ljwt -lmicrohttpd
+LIBS=-L$(PREFIX)/lib -lc -lm -lpthread -ldl -ljansson -lulfius -lhoel -lyder -lorcania -liddawc -lmicrohttpd -lz
 
 # subprojects locations
 GARETH_LOCATION=gareth
 BENOIC_LOCATION=benoic
 CARLEON_LOCATION=carleon
 
-GARETH_LIBS=$(GARETH_LOCATION)/gareth.o $(GARETH_LOCATION)/alert.o $(GARETH_LOCATION)/filter.o $(GARETH_LOCATION)/message.o
-BENOIC_LIBS=$(BENOIC_LOCATION)/benoic.o $(BENOIC_LOCATION)/device.o $(BENOIC_LOCATION)/device-element.o
-CARLEON_LIBS=$(CARLEON_LOCATION)/carleon.o $(CARLEON_LOCATION)/service.o
-ANGHARAD_LIBS=angharad.o condition.o scheduler.o trigger.o script.o profile.o webservice.o glewlwyd_resource.o static_file_callback.o
+GARETH_OBJECTS=$(GARETH_LOCATION)/gareth.o $(GARETH_LOCATION)/alert.o $(GARETH_LOCATION)/filter.o $(GARETH_LOCATION)/message.o
+BENOIC_OBJECTS=$(BENOIC_LOCATION)/benoic.o $(BENOIC_LOCATION)/device.o $(BENOIC_LOCATION)/device-element.o
+CARLEON_OBJECTS=$(CARLEON_LOCATION)/carleon.o $(CARLEON_LOCATION)/service.o
+ANGHARAD_OBJECTS=angharad.o condition.o scheduler.o trigger.o script.o profile.o webservice.o iddawc_resource.o static_compressed_inmemory_website_callback.o http_compression_callback.o
+
+%.o: %.c angharad.h glewlwyd-common.h static_compressed_inmemory_website_callback.h http_compression_callback.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) $<
 
 all: release
 	cd $(BENOIC_LOCATION)/device-modules && $(MAKE)
 	cd $(CARLEON_LOCATION)/service-modules && $(MAKE)
 
-angharad: $(ANGHARAD_LIBS) $(GARETH_LIBS) $(BENOIC_LIBS) $(CARLEON_LIBS)
-	$(CC) -o angharad $(ANGHARAD_LIBS) $(GARETH_LIBS) $(BENOIC_LIBS) $(CARLEON_LIBS) $(LIBS) -lconfig
-
-angharad.o: angharad.c angharad.h
-	$(CC) $(CFLAGS) angharad.c
-
-condition.o: condition.c angharad.h
-	$(CC) $(CFLAGS) condition.c
-
-scheduler.o: scheduler.c angharad.h
-	$(CC) $(CFLAGS) scheduler.c
-
-trigger.o: trigger.c angharad.h
-	$(CC) $(CFLAGS) trigger.c
-
-script.o: script.c angharad.h
-	$(CC) $(CFLAGS) script.c
-
-profile.o: profile.c angharad.h
-	$(CC) $(CFLAGS) profile.c
-
-webservice.o: webservice.c angharad.h
-	$(CC) $(CFLAGS) webservice.c
-
-glewlwyd_resource.o: glewlwyd_resource.c glewlwyd_resource.h angharad.h
-	$(CC) $(CFLAGS) glewlwyd_resource.c
-
-static_file_callback.o: static_file_callback.c static_file_callback.h angharad.h
-	$(CC) $(CFLAGS) static_file_callback.c
+angharad: $(ANGHARAD_OBJECTS) $(GARETH_OBJECTS) $(BENOIC_OBJECTS) $(CARLEON_OBJECTS)
+	$(CC) -o angharad $(ANGHARAD_OBJECTS) $(GARETH_OBJECTS) $(BENOIC_OBJECTS) $(CARLEON_OBJECTS) $(LIBS) -lconfig
 
 debug: ADDITIONALFLAGS=-DDEBUG -g -O0
 
@@ -93,6 +69,9 @@ clean:
 	cd $(GARETH_LOCATION) && $(MAKE) clean
 	cd $(BENOIC_LOCATION) && $(MAKE) clean
 	cd $(CARLEON_LOCATION) && $(MAKE) clean
+
+test-debug: debug
+	./angharad --config-file=../angharad.conf
 
 memcheck: debug
 	cd $(BENOIC_LOCATION)/device-modules && $(MAKE) debug
