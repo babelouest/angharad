@@ -1,0 +1,61 @@
+<div>
+    <h1 data-translate="dashboard_title"></h1>
+    <h2 data-ng-bind="DashboardCtrl.profileName"></h2>
+
+    <div class="row" data-ng-if="DashboardCtrl.sagremorParams.adminMode">
+      <button type="button" class="btn btn-primary" name="addTitleLine" id="addTitleLine" data-ng-click="DashboardCtrl.addTitleLine()" data-translate="dashboard_button_add_title_line"></button>
+      <hr>
+    </div>
+  
+    <div class="row">
+        <div class="col-md-12">
+            <div data-gridstack class="grid-stack grid1"
+                 data-options="DashboardCtrl.options"
+                 data-on-change="DashboardCtrl.onChange(event, items)">
+                <div data-gridstack-item
+                     data-ng-repeat="w in DashboardCtrl.dashboardWidgetsDisplay"
+                     class="grid-stack-item"
+                     data-gs-no-resize="true"
+                     data-gs-item-x="w.x"
+                     data-gs-item-y="w.y"
+                     data-gs-item-width="w.width"
+                     data-gs-item-height="w.height"
+                     data-gs-min-width="3"
+                     data-gs-item-autopos="0"
+                     data-sag-type="{{w.type}}"
+                     data-sag-device="{{w.device}}"
+                     data-sag-name="{{w.name}}"
+                     data-sag-profile="{{w.profile}}">
+                    <div class="grid-stack-item-content" data-ng-if="w.type !== 'separator'">
+                        <data-sag-container data-menu="DashboardCtrl.menu"
+                                            data-size="1"
+                                            data-title="w.element.display || w.element.name"
+                                            data-element="w"
+                                            data-dashboard="true"
+                                            data-type="w.type"
+                                            data-sag-params="DashboardCtrl.sagremorParams"
+                                            data-icon="w.icon">
+                            <div data-sag-generic-injector data-type="w.type" data-elt="w.element"></div>
+                        </data-sag-container>
+                    </div>
+                    <div data-ng-if="w.type === 'separator'">
+                      <div class="sag-container-header-menu" data-uib-dropdown>
+                        <button class="btn btn-primary text-left" data-ng-if="DashboardCtrl.sagremorParams.adminMode" type="button" data-uib-dropdown-toggle data-ng-click="">#</button>
+                        <ul data-uib-dropdown-menu>
+                          <li><a href="" data-ng-click="DashboardCtrl.removeFromDashboard(w)" data-translate="remove_from_dashboard"></a></li>
+                        </ul>
+                        <fieldset class="grid-stack-item-content" dir="ltr">
+                          <legend data-ng-bind="w.name" class="sag-separator"></legend>
+                        </fieldset>
+                      </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" data-ng-if="!DashboardCtrl.connected">
+        <div class="col-md-12">
+            <h3 data-translate="connect_message"></h2>
+        </div>
+    </div>
+</div>

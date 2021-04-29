@@ -1,0 +1,29 @@
+<div data-ng-class="{'sag-container': !$ctrl.dashboard, 'sag-container-dashboard': ($ctrl.dashboard && $ctrl.element.type !== 'script')}">
+	<div class="row">
+        <div class="sag-container-header-menu col-xs-2" 
+			 data-ng-if="(!!$ctrl.menu && !$ctrl.dashboard) || $ctrl.dashboard && $ctrl.sagParams.adminMode" 
+			 data-uib-dropdown>
+            <button class="btn btn-primary text-left" type="button" data-uib-dropdown-toggle data-ng-click="">
+				<i data-ng-class="{'fa fa-{{$ctrl.icon}} fa-fw': !!$ctrl.icon, 'fa fa-bars': !$ctrl.icon}" aria-hidden="true"></i>
+            </button>
+            <ul data-uib-dropdown-menu>
+                <li data-ng-repeat="menuItem in $ctrl.menu" data-ng-if="menuItem.name !== 'monitor' || $ctrl.element.monitored"><a href="" data-ng-click="$ctrl.menuSelect(menuItem, $ctrl.element)" data-ng-bind="menuItem.display"></a></li>
+            </ul>
+        </div>
+        <div data-ng-if="$ctrl.element.type !== 'script'" class="sag-container-header-title col-xs-10" data-ng-class="{'sag-container-header-title-dashboard': $ctrl.dashboard}">
+            <i data-ng-class="{'fa fa-{{$ctrl.icon}}': !!$ctrl.icon}" aria-hidden="true" data-ng-if="$ctrl.dashboard"></i>
+            <span data-toggle="tooltip" data-ng-attr-title="{{$ctrl.title + '\n' + $ctrl.element.description}}">
+				<span data-ng-bind="$ctrl.title" class="text-center"></span>
+            </span>
+        </div>
+    </div>
+	<div data-ng-transclude class="sag-container-element">
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<span data-ng-repeat="script in $ctrl.scripts" class="script-small">
+				<button type="button" class="btn btn-xs btn-primary" data-ng-bind="script.name" data-ng-click="$ctrl.runScript(script)"></button>
+			</span>
+		</div>
+    </div>
+</div>

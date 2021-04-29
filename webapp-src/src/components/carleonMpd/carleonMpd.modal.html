@@ -1,0 +1,85 @@
+<div class="modal-content">
+    <div class="modal-carleon-mpd">
+        <h3 class="modal-title" data-translate="carleon_mpd_modal_title"></h3>
+    </div>
+    <div class="modal-body">
+        <div class="row control-group">
+            <span class="col-xs-6" data-translate="carleon_mpd_modal_name"></span>
+            <div class="col-xs-6 controls">
+                <input type="text" 
+									 name="carleonMpdName" 
+									 id="carleonMpdName" 
+									 class="modal-input-text form-control"
+									 data-ng-model="carleonMpdModalCtrl.mpd.name" 
+									 data-ng-disabled="!carleonMpdModalCtrl.add"
+									 size="10"
+									 maxlength="64">
+            </div>
+        </div>
+        <div class="row control-group">
+            <span class="col-xs-6" data-translate="carleon_mpd_modal_description"></span>
+            <div class="col-xs-6 controls">
+                <input type="text" 
+										name="carleonMpdDescription" 
+										id="carleonMpdDescription" 
+										class="modal-input-text form-control"
+										data-ng-model="carleonMpdModalCtrl.mpd.description" 
+										size="10"
+										maxlength="128">
+            </div>
+        </div>
+        <div class="row control-group">
+            <span class="col-xs-6" data-translate="carleon_mpd_modal_host"></span>
+            <div class="col-xs-6 controls">
+                <input type="text" 
+										name="carleonMpdDescription" 
+										id="carleonMpdDescription" 
+										class="modal-input-text form-control"
+										data-ng-model="carleonMpdModalCtrl.mpd.host" 
+										size="10"
+										maxlength="128">
+            </div>
+        </div>
+        <div class="row control-group">
+            <span class="col-xs-6" data-translate="carleon_mpd_modal_port"></span>
+            <div class="col-xs-6 controls">
+                <input type="number" 
+										name="carleonMpdDescription" 
+										id="carleonMpdDescription" 
+										class="modal-input-text form-control"
+										data-ng-model="carleonMpdModalCtrl.mpd.port" 
+										size="10"
+										step="1"
+										maxlength="5">
+            </div>
+        </div>
+        <div class="row control-group">
+            <span class="col-xs-6" data-translate="carleon_mpd_modal_password"></span>
+            <div class="col-xs-6 controls">
+                <input type="text" 
+										name="carleonMpdDescription" 
+										id="carleonMpdDescription" 
+										class="modal-input-text form-control"
+										data-ng-model="carleonMpdModalCtrl.mpd.password" 
+										size="10"
+										maxlength="128">
+            </div>
+        </div>
+        <div class="row control-group">
+            <span class="col-xs-6" data-translate="carleon_mpd_modal_switch"></span>
+            <div class="col-xs-6 controls">
+								<select id="newActionSwitch" 
+										name="newActionSwitch" 
+										class="form-control"
+										data-ng-model="carleonMpdModalCtrl.switchAttached" 
+										data-ng-options="switch as switch.display for switch in carleonMpdModalCtrl.switches"
+										data-ng-change="carleonMpdModalCtrl.changeSwitch()">
+								</select>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-primary" type="button" data-ng-click="carleonMpdModalCtrl.save()" data-translate="btn_ok" data-ng-disabled="!carleonMpdModalCtrl.isMpdValid()"></button>
+        <button class="btn btn-warning" type="button" data-ng-click="carleonMpdModalCtrl.cancel()" data-dismiss="modal" data-translate="btn_cancel"></button>
+    </div>
+</div>

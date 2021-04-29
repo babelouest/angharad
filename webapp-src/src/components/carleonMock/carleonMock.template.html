@@ -1,0 +1,35 @@
+<div class="text-center">
+	<div class="row">
+		<div class="span6">
+			command
+		</div>
+		<div class="span6">
+			<select id="mockCommand" data-ng-model="$ctrl.param.command" data-ng-options="command for command in $ctrl.commandList"></select>
+		</div>
+	</div>
+	<div class="row" data-ng-if="$ctrl.param.command === 'exec1' || $ctrl.param.command === 'exec2'">
+		<div class="span6">
+			param1
+		</div>
+		<div class="span6">
+			<input type="text" data-ng-model="$ctrl.param.param1" size="4">
+		</div>
+	</div>
+	<div class="row" data-ng-if="$ctrl.param.command === 'exec1'">
+		<div class="span6">
+			param2
+		</div>
+		<div class="span6">
+			<input type="number" data-ng-model="$ctrl.param.param2" style="width: 7em">
+		</div>
+	</div>
+	<div class="row" data-ng-if="$ctrl.param.command === 'exec1'">
+		<div class="span6">
+			param3
+		</div>
+		<div class="span6">
+			<input type="number" step="0.01" data-ng-model="$ctrl.param.param3" style="width: 7em">
+		</div>
+	</div>
+	<button type="button" data-ng-click="$ctrl.command()">Execute</button>
+</div>

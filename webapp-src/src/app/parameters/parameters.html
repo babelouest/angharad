@@ -1,0 +1,195 @@
+<div>
+	<h1 data-translate="parameters_title"></h1>
+	<!-- submodues enable -->
+	<h3 data-translate="param_submodule_title"></h3>
+	<div class="row">
+		<div class="col-xs-2">
+			<label for="submodule-benoic" data-translate="param_submodule_benoic"></label>
+		</div>
+	</div>
+	<h4 data-translate="param_benoic_device_type_list"></h4>
+	<div class="row" data-ng-repeat="type in ParametersCtrl.deviceTypes track by $index">
+		<div class="col-xs-2" data-ng-bind="type.name">
+		</div>
+		<div class="col-xs-2">
+			<input data-toggle="toggle" data-bs-switch data-switch-size="mini" type="checkbox" data-ng-model="type.enabled" data-switch-active="false">
+		</div>
+	</div>
+	<hr>
+	<div class="row">
+		<div class="col-xs-2">
+			<label for="submodule-carleon" data-translate="param_submodule_carleon"></label>
+		</div>
+	</div>
+	<h4 data-translate="param_carleon_service_list"></h4>
+	<div class="row" data-ng-repeat="service in ParametersCtrl.serviceList track by $index">
+		<div class="col-xs-2" data-ng-bind="service.name">
+		</div>
+		<div class="col-xs-2">
+			<input data-toggle="toggle" data-bs-switch data-switch-size="mini" type="checkbox" data-ng-model="service.enabled" data-switch-active="false">
+		</div>
+	</div>
+	<hr>
+	<div class="row">
+		<div class="col-xs-2">
+			<label for="submodule-gareth" data-translate="param_submodule_gareth"></label>
+		</div>
+	</div>
+	<!-- Benoic Device list -->
+	<div data-ng-if="ParametersCtrl.sagremorParams.benoicEnabled">
+		<h3 data-translate="param_device_list"></h3>
+		<form name="deviceList" class="css-form">
+			<button type="button" data-ng-click="ParametersCtrl.addDevice()" class="btn">
+			<i class="fa fa-plus" aria-hidden="true"></i>
+			</button>
+			<table class="table table-hover">
+				<thead>
+					<tr>
+						<th data-translate="device_name"></th>
+						<th data-translate="device_description"></th>
+						<th data-translate="device_type"></th>
+						<th data-translate="device_connected"></th>
+						<th data-translate="device_action"></th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr data-ng-repeat="(name, device) in ParametersCtrl.deviceList track by name" 
+						data-ng-class="{'device-disabled': !device.enabled}">
+						<td>{{device.name}}</td>
+						<td data-ng-if="!device.update">{{device.description}}</td>
+						<td data-ng-if="device.update"><input type="text" name="deviceDesc" id="deviceDesc" data-ng-model="device.newDescription" value="{{device.newDescription}}"></td>
+						<td>{{device.type_uid + '_device_type' | translate}}</td>
+						<td>
+							<input data-toggle="toggle" data-bs-switch data-switch-size="mini" type="checkbox" data-ng-model="device.connected" data-ng-change="ParametersCtrl.connectDevice(device)">
+						</td>
+						<td data-ng-if="!device.update">
+							<button type="button" class="btn" data-ng-click="ParametersCtrl.editDevice(device)">
+							<i class="fa fa-pencil" aria-hidden="true"></i>
+							</button>
+							<button type="button" class="btn" data-ng-click="ParametersCtrl.removeDevice(device)">
+							<i class="fa fa-trash" aria-hidden="true"></i>
+							</button>
+						</td>
+						<td data-ng-if="device.update">
+							<button type="button" class="btn" data-ng-click="ParametersCtrl.saveDevice(device)">
+							<i class="fa fa-check" aria-hidden="true"></i>
+							</button>
+							<button type="button" class="btn" data-ng-click="ParametersCtrl.cancelEditDevice(device)">
+							<i class="fa fa-times" aria-hidden="true"></i>
+							</button>
+						</td>
+					</tr>
+					<tr data-ng-if="ParametersCtrl.deviceAdded">
+						<td><input type="text" data-ng-model="ParametersCtrl.newDeviceName" data-ng-required data-ng-maxlength="64" maxlength="64"placeholder="{{'device_name_placeholder' | translate}}"></td>
+						<td><input type="text" data-ng-model="ParametersCtrl.newDeviceDescription" data-ng-maxlength="128" maxlength="128"placeholder="{{'device_description_placeholder' | translate}}"></td>
+						<td>
+							<select data-ng-required data-ng-model="ParametersCtrl.newDeviceType" data-ng-options="device.uid as device.translate for device in ParametersCtrl.deviceTypesEnabled" data-ng-change="ParametersCtrl.setDeviceOptions()"></select>
+						</td>
+						<td>
+							<input data-toggle="toggle" data-bs-switch data-switch-size="mini" type="checkbox" data-ng-model="ParametersCtrl.newDeviceConnect">
+						</td>
+						<td></td>
+						<td>
+							<button type="button" class="btn" data-ng-click="ParametersCtrl.postNewDevice()" data-ng-disabled="!ParametersCtrl.isDeviceValid()">
+							<i class="fa fa-check" aria-hidden="true"></i>
+							</button>
+							<button type="button" class="btn" data-ng-click="ParametersCtrl.cancelNewDevice()">
+							<i class="fa fa-times" aria-hidden="true"></i>
+							</button>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<h3 data-ng-if="(ParametersCtrl.deviceAdded || ParametersCtrl.deviceUpdated) && ParametersCtrl.deviceOptionListDisplay" data-translate="device_options_title"></h3>
+			<div data-ng-if="(ParametersCtrl.deviceAdded || ParametersCtrl.deviceUpdated) && ParametersCtrl.deviceOptionListDisplay" data-ng-repeat="(optionName, option) in ParametersCtrl.deviceOptionList track by optionName" class="container">
+				<div class="row">
+					<div class="col-xs-3" data-ng-class="{'device-option-required': !option.optional}">{{ParametersCtrl.newDeviceType + "_" + option.name | translate}}</div>
+					<div class="col-xs-3" data-ng-if="option.type === 'string'">
+						<input type="text" data-ng-model="option.value" data-ng-required="!option.optional" placeholder="{{ParametersCtrl.newDeviceType + '_' + option.name + '_placeholder' | translate}}">
+					</div>
+					<div class="col-xs-3" data-ng-if="option.type === 'numeric'">
+						<input type="number" data-ng-model="option.value" data-ng-required="!option.optional" placeholder="{{ParametersCtrl.newDeviceType + '_' + option.name + '_placeholder' | translate}}">
+					</div>
+					<div class="col-xs-3" data-ng-if="option.type === 'boolean'">
+						<input data-toggle="toggle" type="checkbox" data-ng-model="option.value" data-ng-required="!option.optional">
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+	<!-- Carleon profiles list -->
+	<div data-ng-if="ParametersCtrl.sagremorParams.carleonEnabled">
+		<h3 data-translate="param_profiles_list"></h3>
+		<button type="button" data-ng-click="ParametersCtrl.addProfile()" class="btn">
+		<i class="fa fa-plus" aria-hidden="true"></i>
+		</button>
+		<table class="table table-hover">
+			<thead>
+				<tr>
+					<th data-translate="profile_name"></th>
+					<th data-translate="profile_description"></th>
+					<th data-translate="profile_default"></th>
+					<th data-translate="profile_use"></th>
+					<th data-translate="profile_action"></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr data-ng-repeat="profile in ParametersCtrl.profileList track by profile.name" >
+					<td data-ng-if="!profile.update">{{profile.name}}</td>
+					<td data-ng-if="!profile.update">{{profile.description}}</td>
+					<td data-ng-if="profile.update">
+						<input type="text" name="profileName" id="profileName" data-ng-model="profile.newName" placeholder="{{'profile_name_placeholder' | translate}}">
+					</td>
+					<td data-ng-if="profile.update">
+						<input type="text" name="profileDescription" id="profileDescription" data-ng-model="profile.newDescription" placeholder="{{'profile_description_placeholder' | translate}}">
+					</td>
+					<td>
+						<input data-toggle="toggle" data-bs-switch data-switch-size="mini" type="checkbox" data-ng-model="profile.default" data-ng-change="ParametersCtrl.setDefaultProfile(profile)">
+					</td>
+					<td>
+						<button type="button" class="btn" name="useProfile" id="useProfile" data-ng-click="ParametersCtrl.useProfile(profile)" data-ng-if="profile.name !== ParametersCtrl.currentProfile.name">
+						<i class="fa fa-check" aria-hidden="true"></i>
+						</button>
+						<span data-ng-if="profile.name === ParametersCtrl.currentProfile.name" data-translate="profile_used"></span>
+					</td>
+					<td data-ng-if="!profile.update">
+						<button type="button" class="btn" data-ng-click="ParametersCtrl.editProfile(profile)">
+						<i class="fa fa-pencil" aria-hidden="true"></i>
+						</button>
+						<button type="button" class="btn" data-ng-click="ParametersCtrl.cleanProfile(profile)">
+						<i class="fa fa-eraser" aria-hidden="true"></i>
+						</button>
+						<button type="button" class="btn" data-ng-click="ParametersCtrl.removeProfile(profile)">
+						<i class="fa fa-trash" aria-hidden="true"></i>
+						</button>
+					</td>
+					<td data-ng-if="profile.update">
+						<button type="button" class="btn" data-ng-click="ParametersCtrl.saveProfile(profile)" data-ng-disabled="!ParametersCtrl.isUpdateProfileValid(profile)">
+						<i class="fa fa-check" aria-hidden="true"></i>
+						</button>
+						<button type="button" class="btn" data-ng-click="ParametersCtrl.cancelEditProfile(profile)">
+						<i class="fa fa-times" aria-hidden="true"></i>
+						</button>
+					</td>
+				</tr>
+				<tr data-ng-if="ParametersCtrl.profileAdded">
+					<td><input type="text" data-ng-model="ParametersCtrl.newProfileName" data-ng-required data-ng-maxlength="64" maxlength="64" placeholder="{{'profile_name_placeholder' | translate}}"></td>
+					<td><input type="text" data-ng-model="ParametersCtrl.newProfileDescription" data-ng-maxlength="128" maxlength="128" placeholder="{{'profile_description_placeholder' | translate}}"></td>
+					<td>
+						<input data-toggle="toggle" data-bs-switch data-switch-size="mini" type="checkbox" data-ng-model="ParametersCtrl.newProfileDefault">
+					</td>
+					<td>
+					</td>
+					<td>
+						<button type="button" class="btn" data-ng-click="ParametersCtrl.saveNewProfile()" data-ng-disabled="!ParametersCtrl.isProfileValid()">
+						<i class="fa fa-check" aria-hidden="true"></i>
+						</button>
+						<button type="button" class="btn" data-ng-click="ParametersCtrl.cancelNewProfile()">
+						<i class="fa fa-times" aria-hidden="true"></i>
+						</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>

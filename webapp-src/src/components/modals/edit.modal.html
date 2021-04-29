@@ -1,0 +1,18 @@
+<div class="modal-content">
+    <div class="modal-header">
+        <h3 class="modal-title" data-ng-bind="EditModalCtrl.title"></h3>
+    </div>
+    <div class="modal-body">
+        <div class="row" style="margin: 5px;">
+            <span data-ng-bind="EditModalCtrl.message"></span>
+        </div>
+        <div class="row control-group" style="margin: 5px;">
+			<div class="controls">
+				<input type="text" name="editInput" id="editInput" class="form-control" data-ng-model="EditModalCtrl.value" placeholder="{{EditModalCtrl.placeholder}}">
+			</div>
+        </div>
+    <div class="modal-footer">
+        <button class="btn btn-primary" type="button" data-ng-click="EditModalCtrl.ok()" data-translate="modal_button_ok"></button>
+        <button class="btn btn-warning" type="button" data-ng-click="EditModalCtrl.cancel()" data-translate="modal_button_cancel"></button>
+    </div>
+</div>

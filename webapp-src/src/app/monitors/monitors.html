@@ -1,0 +1,19 @@
+<div>
+    <h1 data-translate="monitors_title"></h1>
+
+    <div class="row" data-ng-if="monitorsCtrl.sagremorParams.adminMode">
+		<button type="button" class="btn btn-primary" name="addMonitor" id="addMonitor" data-ng-click="monitorsCtrl.newMonitor()" data-translate="monitors_button_add"></button>
+    </div>
+    <hr>
+    <div class="row">
+        <div data-ng-repeat="monitor in monitorsCtrl.monitorList track by monitor.name" class="col-sm-6">
+            <data-sag-container data-menu="monitorsCtrl.menu"
+                                data-title="monitor.name"
+                                data-type="'monitor'"
+                                data-element="monitor"
+                                data-icon="'bar-chart'">
+				<data-sag-monitor data-element="monitor"></data-sag-monitor>
+			</data-sag-container>
+        </div>
+    </div>
+</div>

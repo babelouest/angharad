@@ -1,0 +1,26 @@
+<div class="modal-content">
+    <div class="modal-header">
+        <h3 class="modal_title" data-ng-bind="MonitorModalCtrl.displayTitle()"></h3>
+    </div>
+    <div class="modal-body">
+		<div class="row control-group">
+			<div class="col-xs-6">
+				<label for="monitorSelectDuration" data-translate="monitor_select_duration"></label>
+			</div>
+			<div class="col-xs-6 controls">
+				<select id="monitorSelectDuration"
+						class="form-control"
+						data-ng-model="MonitorModalCtrl.duration"
+						data-ng-change="MonitorModalCtrl.getMonitor()"
+						data-ng-options="duration as MonitorModalCtrl.tr(duration.label) for duration in MonitorModalCtrl.durationList track by duration.value">
+				</select>
+			</div>
+		</div>
+		<div class="row">
+			<data-nvd3 data-options="MonitorModalCtrl.options" data="MonitorModalCtrl.data"></data-nvd3>
+		</div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-primary" type="button" data-ng-click="MonitorModalCtrl.close()" data-translate="monitor_close"></button>
+    </div>
+</div>

@@ -1,0 +1,82 @@
+<div class="container-fluid">
+	<div class="row control-group">
+		<div data-radio data-src="$ctrl.radio.radio_url"></div>
+	</div>
+	<div class="row control-group">
+		<data-uib-accordion>
+			<div data-uib-accordion-group data-heading="{{'carleon_liquidsoap_control_header' | translate}}" data-is-open="$ctrl.controlAccordionOpen">
+				<div class="row control-group">
+					<div class="col-xs-6">
+						<button type="button" class="btn" data-ng-click="$ctrl.commandRadio('stop')" data-ng-if="$ctrl.status === 'on'">
+							<i class="fa fa-stop" aria-hidden="true"></i>
+						</button>
+						<button type="button" class="btn" data-ng-click="$ctrl.commandRadio('start')" data-ng-if="$ctrl.status === 'off'">
+							<i class="fa fa-play" aria-hidden="true"></i>
+						</button>
+						<button type="button" class="btn" data-ng-click="$ctrl.commandRadio('skip')" data-ng-if="$ctrl.status === 'on'">
+							<i class="fa fa-step-forward" aria-hidden="true"></i>
+						</button>
+					</div>
+				</div>
+			</div>
+			<div data-uib-accordion-group data-heading="{{'carleon_liquidsoap_on_air_header' | translate}}" data-is-open="$ctrl.onAirAccordionOpen">
+				<div class="row control-group">
+					<dl>
+						<dt data-translate="carleon_liquidsoap_song_title">
+						</dt>
+						<dd data-ng-bind="$ctrl.onAir.title">
+						</dd>
+						<dt data-translate="carleon_liquidsoap_song_artist">
+						</dt>
+						<dd data-ng-bind="$ctrl.onAir.artist">
+						</dd>
+						<dt data-translate="carleon_liquidsoap_song_album">
+						</dt>
+						<dd data-ng-bind="$ctrl.onAir.album">
+						</dd>
+						<dt data-translate="carleon_liquidsoap_song_album_artist">
+						</dt>
+						<dd data-ng-bind="$ctrl.onAir.albumartist">
+						</dd>
+						<dt data-translate="carleon_liquidsoap_song_year">
+						</dt>
+						<dd data-ng-bind="$ctrl.onAir.year">
+						</dd>
+					</dl>
+				</div>
+			</div>
+			<div data-uib-accordion-group data-heading="{{'carleon_liquidsoap_list_header' | translate}}" data-is-open="$ctrl.listAccordionOpen">
+				<div class="row control-group">
+					<select class="form-control" 
+							data-ng-model="$ctrl.listSelected" 
+							data-ng-options="song as song.artist + ' - ' + song.title for song in $ctrl.list track by song.artist + ' - ' + song.title">
+					</select>
+				</div>
+				<div class="row control-group">
+					<dl>
+						<dt data-translate="carleon_liquidsoap_song_title">
+						</dt>
+						<dd data-ng-bind="$ctrl.listSelected.title">
+						</dd>
+						<dt data-translate="carleon_liquidsoap_song_artist">
+						</dt>
+						<dd data-ng-bind="$ctrl.listSelected.artist">
+						</dd>
+						<dt data-translate="carleon_liquidsoap_song_album">
+						</dt>
+						<dd data-ng-bind="$ctrl.listSelected.album">
+						</dd>
+						<dt data-translate="carleon_liquidsoap_song_album_artist">
+						</dt>
+						<dd data-ng-bind="$ctrl.listSelected.albumartist">
+						</dd>
+						<dt data-translate="carleon_liquidsoap_song_year">
+						</dt>
+						<dd data-ng-bind="$ctrl.listSelected.year">
+						</dd>
+					</dl>
+				</div>
+			</div>
+		</data-uib-accordion>
+	</div>
+</div>

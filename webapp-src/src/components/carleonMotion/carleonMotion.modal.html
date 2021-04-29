@@ -1,0 +1,136 @@
+<div class="modal-content">
+    <div class="modal-carleon-motion">
+        <h3 class="modal-title" data-translate="carleon_motion_modal_title"></h3>
+    </div>
+    <div class="modal-body">
+        <div class="row control-group">
+            <span class="col-xs-6" data-translate="carleon_motion_modal_name"></span>
+            <div class="col-xs-6 controls">
+                <input type="text" 
+					   name="carleonMotionName" 
+					   id="carleonMotionName" 
+					   class="modal-input-text form-control"
+					   data-ng-model="carleonMotionModalCtrl.motion.name" 
+					   data-ng-disabled="!carleonMotionModalCtrl.add"
+					   size="10"
+					   maxlength="64">
+            </div>
+        </div>
+        <div class="row control-group">
+            <span class="col-xs-6" data-translate="carleon_motion_modal_description"></span>
+            <div class="col-xs-6 controls">
+                <input type="text" 
+						name="carleonMotionDescription" 
+						id="carleonMotionDescription" 
+						class="modal-input-text form-control"
+						data-ng-model="carleonMotionModalCtrl.motion.description" 
+						size="10"
+						maxlength="128">
+            </div>
+        </div>
+        <div class="row control-group">
+            <span class="col-xs-6" data-translate="carleon_motion_modal_config_uri"></span>
+            <div class="col-xs-6 controls">
+                <input type="text" 
+						name="carleonMotionDescription" 
+						id="carleonMotionDescription" 
+						class="modal-input-text form-control"
+						data-ng-model="carleonMotionModalCtrl.motion.config_uri" 
+						size="10"
+						maxlength="128">
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+			<h3 data-translate="carleon_motion_modal_file_list"></h3>
+			<button type="button" data-ng-click="carleonMotionModalCtrl.addNewFileList()" class="btn">
+				<i class="fa fa-plus" aria-hidden="true"></i>
+			</button>
+		</div>
+        <div class="row control-group">
+			<table class="table table-hover controls">
+				<thead>
+					<tr>
+						<th data-translate="carleon_motion_file_list_name"></th>
+						<th data-translate="carleon_motion_file_list_path"></th>
+						<th data-translate="carleon_motion_file_list_thumbnail_path"></th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr data-ng-repeat="fileList in carleonMotionModalCtrl.motion.file_list track by $index">
+						<td data-ng-bind="fileList.name"></td>
+						<td data-ng-bind="fileList.path"></td>
+						<td data-ng-bind="fileList.thumbnail_path"></td>
+						<td>
+							<button type="button" class="btn" data-ng-click="carleonMotionModalCtrl.removeFileList($index)">
+								<i class="fa fa-trash" aria-hidden="true"></i>
+							</button>
+						</td>
+					</tr>
+					<tr data-ng-if="carleonMotionModalCtrl.addFileList">
+						<td><input type="text" class="modal-input-text form-control" data-ng-model="carleonMotionModalCtrl.newFileList.name" data-ng-required data-ng-maxlength="64" maxlength="64"></td>
+						<td><input type="text" class="modal-input-text form-control" data-ng-model="carleonMotionModalCtrl.newFileList.path" data-ng-required data-ng-maxlength="512" maxlength="512"></td>
+						<td><input type="text" class="modal-input-text form-control" data-ng-model="carleonMotionModalCtrl.newFileList.thumbnail_path" data-ng-required data-ng-maxlength="512" maxlength="512"></td>
+						<td>
+							<button type="button" class="btn" data-ng-click="carleonMotionModalCtrl.saveNewFileList()" data-ng-disabled="!carleonMotionModalCtrl.isFileListValid()">
+								<i class="fa fa-check" aria-hidden="true"></i>
+							</button>
+							<button type="button" class="btn" data-ng-click="carleonMotionModalCtrl.cancelNewFileList()">
+								<i class="fa fa-times" aria-hidden="true"></i>
+							</button>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+        <hr>
+        <div class="row">
+			<h3 data-translate="carleon_motion_modal_stream_list"></h3>
+			<button type="button" data-ng-click="carleonMotionModalCtrl.addNewStream()" class="btn">
+				<i class="fa fa-plus" aria-hidden="true"></i>
+			</button>
+		</div>
+        <div class="row control-group">
+			<table class="table table-hover controls">
+				<thead>
+					<tr>
+						<th data-translate="carleon_motion_stream_list_name"></th>
+						<th data-translate="carleon_motion_stream_list_uri"></th>
+						<th data-translate="carleon_motion_stream_list_snapshot_uri"></th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr data-ng-repeat="streamList in carleonMotionModalCtrl.motion.stream_list track by $index">
+						<td data-ng-bind="streamList.name"></td>
+						<td data-ng-bind="streamList.uri"></td>
+						<td data-ng-bind="streamList.snapshot_uri"></td>
+						<td>
+							<button type="button" class="btn" data-ng-click="carleonMotionModalCtrl.removeStream($index)">
+								<i class="fa fa-trash" aria-hidden="true"></i>
+							</button>
+						</td>
+					</tr>
+					<tr data-ng-if="carleonMotionModalCtrl.addStream">
+						<td><input type="text" class="modal-input-text form-control" data-ng-model="carleonMotionModalCtrl.newStream.name" data-ng-required data-ng-maxlength="64" maxlength="64"></td>
+						<td><input type="text" class="modal-input-text form-control" data-ng-model="carleonMotionModalCtrl.newStream.uri" data-ng-required data-ng-maxlength="512" maxlength="512"></td>
+						<td><input type="text" class="modal-input-text form-control" data-ng-model="carleonMotionModalCtrl.newStream.snapshot_uri" data-ng-maxlength="512" maxlength="512"></td>
+						<td>
+							<button type="button" class="btn" data-ng-click="carleonMotionModalCtrl.saveNewStream()" data-ng-disabled="!carleonMotionModalCtrl.isStreamValid()">
+								<i class="fa fa-check" aria-hidden="true"></i>
+							</button>
+							<button type="button" class="btn" data-ng-click="carleonMotionModalCtrl.cancelNewStream()">
+								<i class="fa fa-times" aria-hidden="true"></i>
+							</button>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-primary" type="button" data-ng-click="carleonMotionModalCtrl.save()" data-translate="btn_ok" data-ng-disabled="!carleonMotionModalCtrl.isCameraValid()"></button>
+        <button class="btn btn-warning" type="button" data-ng-click="carleonMotionModalCtrl.cancel()" data-dismiss="modal" data-translate="btn_cancel"></button>
+    </div>
+</div>

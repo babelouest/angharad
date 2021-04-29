@@ -1,0 +1,42 @@
+{
+  "name": "sagremor",
+  "version": "0.5.0",
+  "description": "Angharad web client application",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/babelouest/sagremor.git"
+  },
+  "keywords": [
+    "gulp",
+    "build",
+    "tasks",
+    "application",
+    "examples"
+  ],
+  "author": "Nicolas Mora",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/babelouest/sagremor/issues"
+  },
+  "homepage": "https://github.com/babelouest/sagremor",
+  "devDependencies": {
+    "gulp": "*",
+    "gulp-app-build-tasks": "https://github.com/babelouest/gulp-app-build-tasks.git",
+    "gulp-build": "^0.5.3",
+    "jasmine-core": "*",
+    "jasmine-terminal-reporter": "*",
+    "jshint": "^2.9.2",
+    "karma": "*",
+    "karma-angular-filesort": "^1.0.1",
+    "karma-coverage": "^1.1.0",
+    "karma-jasmine": "*",
+    "karma-ng-html2js-preprocessor": "^1.0.0",
+    "karma-phantomjs-launcher": "^1.0.1"
+  },
+  "dependencies": {
+    "chart.js": "^2.2.1"
+  }
+}

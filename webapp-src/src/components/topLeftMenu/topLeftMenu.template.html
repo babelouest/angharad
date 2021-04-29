@@ -1,0 +1,54 @@
+<div data-ng-if="topLeftMenuCtrl.sagremorParams.loggedIn">
+    <ul class="nav nav-tabs nav-stacked nav-pills topnav">
+        <li id="tabDashboard" class="sag-menu active text-center">
+            <a data-ui-sref="dashboard" data-toggle="tab" data-ng-click="topLeftMenuCtrl.selectTab('#tabDashboard')" title="{{'menu_home'|translate}}">
+                <i class="fa fa-home fa-fw fa-3x"></i>
+            </a>
+        </li>
+        <li id="tabSwitches" class="sag-menu text-center" data-ng-if="topLeftMenuCtrl.sagremorParams.benoicEnabled">
+            <a data-ui-sref="switches" data-toggle="tab" data-ng-click="topLeftMenuCtrl.selectTab('#tabSwitches')" title="{{'menu_lights'|translate}}">
+                <i class="fa fa-lightbulb-o fa-fw fa-3x"></i>
+            </a>
+        </li>
+        <li id="tabHeaters" class="sag-menu text-center" data-ng-if="topLeftMenuCtrl.sagremorParams.benoicEnabled">
+            <a data-ui-sref="heaters" data-toggle="tab" data-ng-click="topLeftMenuCtrl.selectTab('#tabHeaters')" title="{{'menu_heaters'|translate}}">
+                <i class="fa fa-fire fa-3x"></i>
+            </a>
+        </li>
+        <li id="tabSensors" class="sag-menu text-center" data-ng-if="topLeftMenuCtrl.sagremorParams.benoicEnabled">
+            <a data-ui-sref="sensors" data-toggle="tab" data-ng-click="topLeftMenuCtrl.selectTab('#tabSensors')" title="{{'menu_sensors'|translate}}">
+                <i class="fa fa-line-chart fa-fw fa-3x"></i>
+            </a>
+        </li>
+        <li id="tabService{{service.target}}" class="sag-menu text-center" data-ng-repeat="service in topLeftMenuCtrl.serviceList" data-ng-if="topLeftMenuCtrl.sagremorParams.carleonEnabled">
+            <a data-ui-sref="service({service: service.target})" data-toggle="tab" data-ng-click="topLeftMenuCtrl.selectTab('#tabService' + service.target)" title="{{service.name|translate}}">
+                <i data-ng-class="{'fa fa-{{service.icon}} fa-fw fa-3x': true}"></i>
+            </a>
+        </li>
+        <li id="tabScripts" class="sag-menu text-center">
+            <a data-ui-sref="scripts" data-toggle="tab" data-ng-click="topLeftMenuCtrl.selectTab('#tabScripts')" title="{{'menu_scripts'|translate}}">
+                <i class="fa fa-tasks fa-fw fa-3x"></i>
+            </a>
+        </li>
+        <li id="tabEvents" class="sag-menu text-center">
+            <a data-ui-sref="events" data-toggle="tab" data-ng-click="topLeftMenuCtrl.selectTab('#tabEvents')" title="{{'menu_events'|translate}}">
+                <i class="fa fa-calendar fa-fw fa-3x"></i>
+            </a>
+        </li>
+        <li id="tabMonitors" class="sag-menu text-center">
+            <a data-ui-sref="monitors" data-toggle="tab" data-ng-click="topLeftMenuCtrl.selectTab('#tabMonitors')" title="{{'menu_monitor'|translate}}">
+                <i class="fa fa-bar-chart fa-fw fa-3x"></i>
+            </a>
+        </li>
+        <li id="tabLogs" class="sag-menu text-center" data-ng-if="topLeftMenuCtrl.sagremorParams.garethEnabled" title="{{'menu_logs'|translate}}">
+            <a data-ui-sref="logs" data-toggle="tab" data-ng-click="topLeftMenuCtrl.selectTab('#tabLogs')">
+                <i class="fa fa-history fa-fw fa-3x"></i>
+            </a>
+        </li>
+        <li id="tabParameters" class="sag-menu text-center">
+            <a data-ui-sref="parameters" data-toggle="tab" data-ng-click="topLeftMenuCtrl.selectTab('#tabParameters')" title="{{'menu_parameters'|translate}}">
+                <i class="fa fa-cogs fa-fw fa-3x"></i>
+            </a>
+        </li>
+    </ul>
+</div>

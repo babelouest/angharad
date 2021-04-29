@@ -1,0 +1,58 @@
+<div class="modal-content">
+    <div class="modal-header">
+        <h3 class="modal-title" data-translate="sensor_update_title"></h3>
+    </div>
+    <div class="modal-body">
+        <div class="row control-group">
+            <span class="col-xs-6" data-translate="sensor_update_name"></span>
+            <div class="col-xs-6 controls">
+                <input type="text" name="sensorDisplay" id="sensorDisplay" data-ng-model="SensorsModalCtrl.sensor.newDisplay" class="modal-input-text form-control">
+            </div>
+        </div>
+        <div class="row control-group">
+            <span class="col-xs-6" data-translate="sensor_update_unit"></span>
+            <div class="col-xs-6 controls">
+                <input type="text" name="sensorUnit" id="sensorUnit" data-ng-model="SensorsModalCtrl.sensor.options.unit" class="modal-input-text form-control" placeholder="{{'sensor_unit_placeholder' | translate}}">
+            </div>
+        </div>
+        <div class="row control-group">
+            <span class="col-xs-6" data-translate="sensor_update_enabled"></span>
+            <div class="col-xs-6 controls">
+				<input type="checkbox" 
+						data-bs-switch 
+						class="form-control"
+						data-toggle="toggle" 
+						data-switch-size="mini" 
+						data-ng-model="SensorsModalCtrl.sensor.enabled">
+            </div>
+        </div>
+        <div class="row">
+            <hr>
+        </div>
+        <div class="row control-group">
+            <span class="col-xs-6" data-translate="sensor_update_monitor"></span>
+            <div class="col-xs-6">
+				<input type="checkbox" 
+						data-bs-switch 
+						class="form-control"
+						data-toggle="toggle" 
+						data-switch-size="mini" 
+						data-ng-model="SensorsModalCtrl.sensor.monitored">
+            </div>
+        </div>
+        <div class="row control-group" data-ng-if="SensorsModalCtrl.sensor.monitored">
+            <span class="col-xs-6" data-translate="sensor_update_monitor_every"></span>
+            <div class="col-xs-6">
+                <select id="bddAddUserGrant"
+						class="form-control"
+						data-ng-model="SensorsModalCtrl.sensor.monitored_every"
+						data-ng-options="monitorEvery.value as SensorsModalCtrl.tr(monitorEvery.label) for monitorEvery in SensorsModalCtrl.monitorEveryEnum">
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-primary" type="button" data-ng-click="SensorsModalCtrl.saveSensor()" data-translate="sensor_btn_ok"></button>
+        <button class="btn btn-warning" type="button" data-ng-click="SensorsModalCtrl.cancel()" data-dismiss="modal" data-translate="sensor_btn_cancel"></button>
+    </div>
+</div>

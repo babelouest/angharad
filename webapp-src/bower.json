@@ -1,0 +1,79 @@
+{
+  "name": "angular-project",
+  "version": "0.5.0",
+  "homepage": "https://github.com/babelouest/sagremor",
+  "authors": [
+    "Nicolas Mora",
+    "Jimmy Fortin"
+  ],
+  "description": "Angharad web client application",
+  "main": "",
+  "moduleType": [],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "overrides": {
+    "bootstrap": {
+      "main": [
+        "dist/css/bootstrap.css",
+        "dist/fonts/glyphicons-halflings-regular.eot",
+        "dist/fonts/glyphicons-halflings-regular.svg",
+        "dist/fonts/glyphicons-halflings-regular.ttf",
+        "dist/fonts/glyphicons-halflings-regular.woff",
+        "dist/fonts/glyphicons-halflings-regular.woff2"
+      ]
+    },
+    "font-awesome": {
+      "main": [
+        "css/font-awesome.min.css"
+      ]
+    }
+  },
+  "dependencies": {
+    "angular": "1.5.5",
+    "angular-animate": "1.5.5",
+    "angular-cookies": "1.5.5",
+    "angular-sanitize": "1.5.5",
+    "bootstrap": "3.3.6",
+    "angular-ui-router": "0.2.15",
+    "angular-translate": "2.11.0",
+    "angular-fontawesome": "1.0.0",
+    "bootstrap-sidebar": "0.2.2",
+    "lodash": "4.7.0",
+    "angular-oauth2": "4.0.0",
+    "angular-bootstrap-switch": "0.5.0",
+    "angular-bootstrap": "1.3.2",
+    "AngularJS-Toaster": "angularjs-toaster#2.0.0",
+    "angular-bootstrap-contextmenu": "0.9.7",
+    "angular-translate-loader-partial": "2.11.0",
+    "angular-translate-storage-cookie": "2.11.0",
+    "angular-moment": "0.10.3",
+    "bootstrap-ui": "ui.bootstrap#1.3.3",
+    "angular-gridstack": "0.1.0",
+    "ui-navbar": "0.4.3",
+    "gridstack": "0.2.5",
+    "bootstrap-ui-datetime-picker": "2.4.0",
+    "components-font-awesome": "4.6.3",
+    "angular-datatables": "0.5.4",
+    "gridstack-angular": "0.4.0",
+    "angular-nvd3": "1.0.8",
+    "angular-img-http-src": "1.0.1",
+    "oauth-ng": "https://github.com/babelouest/oauth-ng.git"
+  },
+  "devDependencies": {
+    "angular-mocks": "~1.6.3"
+  },
+  "resolutions": {
+    "bootstrap": "~3.3.6",
+    "angular": "~1.5.3",
+    "d3": "^3.4.4",
+    "nvd3": "^1.7.1",
+    "angular-cookies": "~1.6.3",
+    "jquery": ">= 3.1.0"
+  }
+}

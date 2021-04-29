@@ -1,0 +1,16 @@
+<div>
+    <h1 data-translate="sensors_title"></h1>
+
+    <div class="row">
+        <div data-ng-repeat="sensor in sensorsCtrl.sensorList" class="col-sm-3" data-ng-if="sensor.enabled || sensorsCtrl.sagremorParams.adminMode">
+            <data-sag-container data-menu="sensorsCtrl.menuSensor"
+                                data-size="1"
+                                data-title="sensor.display"
+                                data-type="'sensor'"
+                                data-element="sensor"
+                                data-icon="'line-chart'">
+                <data-sag-sensor data-element="sensor"></data-sag-sensor>
+            </data-sag-container>
+        </div>
+    </div>
+</div>

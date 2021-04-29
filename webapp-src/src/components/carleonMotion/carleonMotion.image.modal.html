@@ -1,0 +1,39 @@
+<div class="container-fluid">
+	<div class="modal-content">
+		<div class="modal-header">
+			<h3 class="modal_title" data-ng-bind="carleonMotionImageModalCtrl.displayTitle()"></h3>
+		</div>
+		<div class="modal-body">
+			<div class="row control-group">
+				<div class="col-xs-12" data-ng-if="!!carleonMotionImageModalCtrl.currentImage.stream">
+					<img data-ng-src="{{carleonMotionImageModalCtrl.currentImage.stream}}" alt="{{carleonMotionImageModalCtrl.currentImage.title}}" class="img-responsive img-thumbnail">
+				</div>
+				<div class="col-xs-12" data-ng-if="!!carleonMotionImageModalCtrl.currentImage.img">
+					<img data-http-src="{{carleonMotionImageModalCtrl.currentImage.img}}" alt="{{carleonMotionImageModalCtrl.currentImage.title}}" class="img-responsive img-thumbnail">
+				</div>
+			</div>
+			<div class="row control-group">
+				<div class="col-xs-5">
+					<button type="button" class="btn pull-right" data-ng-click="carleonMotionImageModalCtrl.changeImage(-1)" data-ng-if="carleonMotionImageModalCtrl.canPrevious()">
+						<i class="fa fa-arrow-left" aria-hidden="true"></i>
+					</button>
+				</div>
+				<div class="col-xs-2 text-center">
+					<span data-ng-bind="carleonMotionImageModalCtrl.showIndex()"></span>
+				</div>
+				<div class="col-xs-5">
+					<button type="button" class="btn pull-left" data-ng-click="carleonMotionImageModalCtrl.changeImage(1)" data-ng-if="carleonMotionImageModalCtrl.canNext()">
+						<i class="fa fa-arrow-right" aria-hidden="true"></i>
+					</button>
+				</div>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<button class="btn btn-primary" type="button" data-ng-click="carleonMotionImageModalCtrl.snapshot()" data-ng-if="!!carleonMotionImageModalCtrl.currentImage.snapshotUri">
+				<span data-translate="carleon_motion_snapshot"></span>
+				<i class="fa fa-camera" aria-hidden="true"></i>
+			</button>
+			<button class="btn btn-primary" type="button" data-ng-click="carleonMotionImageModalCtrl.close()" data-translate="monitor_close"></button>
+		</div>
+	</div>
+</div>

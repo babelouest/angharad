@@ -1,0 +1,42 @@
+<div class="container-fluid" data-ng-class="{'text-italic': $ctrl.adminMode}" data-ng-if="$ctrl.element.enabled || $ctrl.adminMode">
+	<div class="text-center row control-group">
+		<span class="heater-on">
+			<i class="fa fa-fire" aria-hidden="true" data-ng-if="$ctrl.element.value.on"></i>
+		</span>
+	</div>
+	<div class="row control-group">
+		<div class="ring control-group">
+			<div class="quarter quarter-plus-1" data-ng-click="$ctrl.setHeater(1)">
+				<span class="quarter-value" data-ng-bind="$ctrl.displayCommand(1)"></span>
+			</div>
+			<div class="quarter quarter-plus-5" data-ng-click="$ctrl.setHeater(5)">
+				<span class="quarter-value" data-ng-bind="$ctrl.displayCommand(5)"></span>
+			</div>
+			<div class="quarter quarter-minus-1" data-ng-click="$ctrl.setHeater(-1)">
+				<span class="quarter-value" data-ng-bind="$ctrl.displayCommand(-1)"></span>
+			</div>
+			<div class="quarter quarter-minus-5" data-ng-click="$ctrl.setHeater(-5)">
+				<span class="quarter-value" data-ng-bind="$ctrl.displayCommand(-5)"></span>
+			</div>
+			<div class="cutout-heater">
+				<div class="ring-value" data-ng-bind="$ctrl.displayCommandValue()">
+				</div>
+			</div>
+		</div>
+	</div>
+	<hr class="heater-hr">
+	<div class="row control-group">
+		<div class="col-xs-4 controls">
+			<label for="heaterMode" data-translate="heater_mode_title"></label>
+		</div>
+		<div class="col-xs-8 controls">
+			<select class="form-control" 
+					name="heaterMode" 
+					value="heaterMode" 
+					data-ng-model="$ctrl.element.value.mode" 
+					data-ng-change="$ctrl.setHeater(null)"
+					data-ng-options="mode as $ctrl.modeDisplay(mode) for mode in $ctrl.availableModes">
+			</select>
+		</div>
+	</div>
+</div>

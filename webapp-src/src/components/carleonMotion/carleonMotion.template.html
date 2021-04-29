@@ -1,0 +1,67 @@
+<div class="container-fluid">
+	<div class="row control-group">
+		<!-- select file list -->
+		<div class="col-xs-4 controls" class="bg-info" data-ng-class="{'text-success': $ctrl.online, 'text-danger': !$ctrl.online}">
+			<label data-translate="carleon_motion_online" data-ng-if="$ctrl.online"></label>
+			<label data-translate="carleon_motion_offline" data-ng-if="!$ctrl.online"></label>
+			<i class="fa fa-power-off" aria-hidden="true"></i>
+		</div>
+		<div class="col-xs-4 controls" data-ng-if="$ctrl.fileListName.length > 1">
+			<div>
+				<label for="motionImagesList" data-translate="carleon_motion_file_list"></label>
+			</div>
+		</div>
+		<div class="col-xs-4 controls" data-ng-if="$ctrl.fileListName.length > 1">
+			<select id="motionImagesList" 
+					class="form-control"
+					data-ng-change="$ctrl.changeSelectedFileList()"
+					data-ng-model="$ctrl.selectedFileList"
+					data-ng-options="fileListName as fileListName for fileListName in $ctrl.fileListName track by fileListName">
+			</select>
+		</div>
+		<div class="col-xs-8 controls" data-ng-if="$ctrl.fileListName.length <= 1">
+			<span data-ng-bind="$ctrl.selectedFileList"></span>
+		</div>
+	</div>
+	<!-- type file, select file lists -->
+	<div class="row control-group">
+		<div class="col-xs-4">
+			<button type="button" class="btn btn-primary" data-ng-click="$ctrl.refresh()">
+				<span data-translate="carleon_motion_refresh"></span>
+				<i class="fa fa-refresh" aria-hidden="true"></i>
+			</button>
+		</div>
+		<div class="col-xs-4 controls">
+			<button type="button" class="btn btn-primary" data-ng-click="$ctrl.openStream()">
+				<span data-translate="carleon_motion_stream_open"></span>
+				<i class="fa fa-video-camera" aria-hidden="true"></i>
+			</button>
+		</div>
+		
+	</div>
+	<hr>
+	<!-- images grid -->
+	<div class="row control-group" data-ng-if="!!$ctrl.selectedFileList">
+		<div class="col-xs-3" data-ng-repeat="image in $ctrl.images track by $index">
+			<a href="" data-ng-click="$ctrl.openPopupImage($ctrl.images, $index)" alt="{{image.title}}">
+				<img data-http-src="{{image.thumb}}" title="{{image.title}}" class="img-responsive">
+			</a>
+			<span class="small text-center" data-ng-bind="image.title"></span>
+		</div>
+	</div>
+	<div class="row control-group" data-ng-if="!!$ctrl.selectedFileList">
+		<div class="col-xs-5">
+			<button type="button" class="btn pull-right" data-ng-click="$ctrl.previousList()" data-ng-if="$ctrl.canPrevious()">
+				<i class="fa fa-arrow-left" aria-hidden="true"></i>
+			</button>
+		</div>
+		<div class="col-xs-2 text-center">
+			<span data-ng-bind="$ctrl.offset"></span>
+		</div>
+		<div class="col-xs-5">
+			<button type="button" class="btn pull-left" data-ng-click="$ctrl.nextList()" data-ng-if="$ctrl.canNext()">
+				<i class="fa fa-arrow-right" aria-hidden="true"></i>
+			</button>
+		</div>
+	</div>
+</div>
