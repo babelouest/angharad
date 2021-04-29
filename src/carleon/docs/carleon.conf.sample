@@ -1,0 +1,44 @@
+#
+#
+# Carleon server
+#
+# Copyright 2016 Nicolas Mora <mail@babelouest.org>
+# Gnu Public License V3 <http://fsf.org/>
+#
+#
+
+# port to open for remote commands
+port=2756
+
+# prefix for the webserver
+url_prefix="carleon"
+
+# log mode (console, syslog, file)
+log_mode="console,file"
+
+# log level: NONE, ERROR, WARNING, INFO, DEBUG
+log_level="DEBUG"
+
+# output to log file (required if log_mode is file)
+log_file="/tmp/carleon.log"
+
+# path to modules folder
+services_path="service-modules"
+
+# MariaDB/Mysql database connection
+database =
+{
+  type = "mariadb";
+  host = "localhost";
+  user = "carleon";
+  password = "carleon";
+  dbname = "carleon_dev";
+  port = 0;
+};
+
+# SQLite database connection
+# database =
+# {
+#    type = "sqlite3";
+#    path = "/tmp/carleon.db";
+# };

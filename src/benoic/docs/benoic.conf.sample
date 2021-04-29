@@ -1,0 +1,44 @@
+#
+#
+# Benoic server
+#
+# Copyright 2016 Nicolas Mora <mail@babelouest.org>
+# Gnu Public License V3 <http://fsf.org/>
+#
+#
+
+# port to open for remote commands
+port=2642
+
+# prefix for the webserver
+url_prefix="benoic"
+
+# log mode (console, syslog, file)
+log_mode="console,file"
+
+# log level: NONE, ERROR, WARNING, INFO, DEBUG
+log_level="DEBUG"
+
+# output to log file (required if log_mode is file)
+log_file="/tmp/benoic.log"
+
+# path to modules folder
+modules_path="device-modules"
+
+# MariaDB/Mysql database connection
+database =
+{
+  type = "mariadb";
+  host = "localhost";
+  user = "benoic";
+  password = "benoic";
+  dbname = "benoic_dev";
+  port = 0;
+};
+
+# SQLite database connection
+# database =
+# {
+#    type = "sqlite3";
+#    path = "/tmp/benoic.db";
+# };

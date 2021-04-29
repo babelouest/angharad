@@ -1,0 +1,45 @@
+#
+#
+# Gareth server
+#
+# Get messages from a REST Webservice
+# Send messages or digested data when previously parametered filters are triggered
+# Send protocols available: http, smtp
+#
+# Copyright 2015-2016 Nicolas Mora <mail@babelouest.org>
+# Gnu Public License V3 <http://fsf.org/>
+#
+#
+
+# port to open for remote commands
+port=4784
+
+# prefix for the webserver
+url_prefix="gareth"
+
+# log mode (console, syslog, file)
+log_mode="file"
+
+# log level: NONE, ERROR, WARNING, INFO, DEBUG
+log_level="INFO"
+
+# output to log file (required if log_mode is file)
+log_file="/usr/local/var/log/angharad/gareth.log"
+
+# MariaDB/Mysql database connection
+database =
+{
+  type = "mariadb";
+  host = "localhost";
+  user = "gareth";
+  password = "gareth";
+  dbname = "gareth";
+  port = 0;
+};
+
+# SQLite database connection
+# database =
+# {
+#   type = "sqlite3";
+#   path = "/path/to/sqlite/database.db";
+# };
