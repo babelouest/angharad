@@ -7,16 +7,15 @@
 #include <time.h>
 
 #include <check.h>
-#include <ulfius.h>
 #include <orcania.h>
 #include <yder.h>
+#include <ulfius.h>
+#include <rhonabwy.h>
 
 #include "unit-tests.h"
 
-#define AUTH_SERVER_URI "http://localhost:4593/api"
 #define ANGHARAD_SERVER_URI "http://localhost:2473"
 #define USER_LOGIN "user1"
-#define USER_PASSWORD "MyUser1Password!"
 #define USER_SCOPE_LIST "angharad"
 
 struct _u_request user_req;
@@ -193,32 +192,49 @@ int main(int argc, char *argv[])
   int number_failed;
   Suite *s;
   SRunner *sr;
-  struct _u_request auth_req;
-  struct _u_response auth_resp;
-  int res;
-	char * bearer_token;
+  jwt_t * jwt;
+  jwks_t * jwks;
+  char * str_jwks, * token, * bearer_token;
+  json_t * j_claims;
+  time_t now;
   
-  y_init_logs("Benoic test", Y_LOG_MODE_CONSOLE, Y_LOG_LEVEL_DEBUG, NULL, "Starting Benoic test");
+  y_init_logs("Taliesin test", Y_LOG_MODE_CONSOLE, Y_LOG_LEVEL_DEBUG, NULL, "Starting Taliesin test");
   
-  // Getting a refresh_token
-  ulfius_init_request(&auth_req);
-  ulfius_init_request(&user_req);
-  ulfius_init_response(&auth_resp);
-  angharad_uri = argc>5?argv[5]:ANGHARAD_SERVER_URI;
-  auth_req.http_verb = strdup("POST");
-  auth_req.http_url = msprintf("%s/token/", argc>4?argv[4]:AUTH_SERVER_URI);
-  u_map_put(auth_req.map_post_body, "grant_type", "password");
-  u_map_put(auth_req.map_post_body, "username", argc>1?argv[1]:USER_LOGIN);
-  u_map_put(auth_req.map_post_body, "password", argc>2?argv[2]:USER_PASSWORD);
-  u_map_put(auth_req.map_post_body, "scope", argc>3?argv[3]:USER_SCOPE_LIST);
-  res = ulfius_send_http_request(&auth_req, &auth_resp);
-  if (res == U_OK && auth_resp.status == 200) {
-    json_t * json_body = ulfius_get_json_body_response(&auth_resp, NULL);
-    bearer_token = msprintf("Bearer %s", json_string_value(json_object_get(json_body, "access_token")));
-	  y_log_message(Y_LOG_LEVEL_INFO, "User %s authenticated", argc>1?argv[1]:USER_LOGIN, json_dumps(json_body, JSON_ENCODE_ANY), auth_resp.status);
+  angharad_uri = argc>2?argv[2]:ANGHARAD_SERVER_URI;
+
+  if (argv[1] != NULL) {
+    str_jwks = read_file(argv[1]);
+    
+    // Generate user and admin access tokens
+    ulfius_init_request(&user_req);
+    r_jwt_init(&jwt);
+    r_jwt_set_header_str_value(jwt, "typ", "at+jwt");
+    r_jwks_init(&jwks);
+    r_jwks_import_from_str(jwks, str_jwks);
+    r_jwt_add_sign_jwks(jwt, jwks, NULL);
+    o_free(str_jwks);
+    
+    time(&now);
+    j_claims = json_pack("{ss ss ss ss ss si si si ss}",
+                         "iss", "https://glewlwyd.tld/",
+                         "sub", USER_LOGIN,
+                         "client_id", "client",
+                         "jti", "abcdxyz1234",
+                         "type", "access_token",
+                         "iat", now,
+                         "exp", now+3600,
+                         "nbf", now,
+                         "scope", USER_SCOPE_LIST);
+    r_jwt_set_full_claims_json_t(jwt, j_claims);
+    token = r_jwt_serialize_signed(jwt, NULL, 0);
+    bearer_token = msprintf("Bearer %s", token);
     u_map_put(user_req.map_header, "Authorization", bearer_token);
-    free(bearer_token);
-    json_decref(json_body);
+    o_free(bearer_token);
+    o_free(token);
+    
+    json_decref(j_claims);
+    r_jwt_free(jwt);
+    r_jwks_free(jwks);
     
     s = carleon_suite();
     sr = srunner_create(s);
@@ -226,14 +242,12 @@ int main(int argc, char *argv[])
     srunner_run_all(sr, CK_VERBOSE);
     number_failed = srunner_ntests_failed(sr);
     srunner_free(sr);
-  
+    
+    ulfius_clean_request(&user_req);
   } else {
-    y_log_message(Y_LOG_LEVEL_ERROR, "Error authentication user %s", argc>1?argv[1]:USER_LOGIN);
+    y_log_message(Y_LOG_LEVEL_ERROR, "Error, no jwks file path specified");
+    number_failed = 1;
   }
-  ulfius_clean_request(&auth_req);
-  ulfius_clean_response(&auth_resp);
-  
-  ulfius_clean_request(&user_req);
   
   y_close_logs();
   
