@@ -31,6 +31,9 @@
 
 #define _ANGHARAD_VERSION_ "1.2.4"
 
+/** Macro to avoid compiler warning when some parameters are unused and that's ok **/
+#define UNUSED(x) (void)(x)
+
 // Angharad libraries
 #include <orcania.h>
 #include <yder.h>
@@ -160,9 +163,6 @@ struct config_elements {
   struct _iddawc_resource_config               * iddawc_resource_config;
   struct _u_compressed_inmemory_website_config * static_file_config;
 };
-
-pthread_mutex_t global_handler_close_lock;
-pthread_cond_t  global_handler_close_cond;
 
 int  build_config_from_args(int argc, char ** argv, struct config_elements * config);
 int  build_config_from_file(struct config_elements * config);

@@ -42,6 +42,7 @@ int callback_angharad_alert (const struct _u_request * request, struct _u_respon
 }
 
 int callback_angharad_submodule_list (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  UNUSED(request);
   json_t * j_result;
   
   if (user_data == NULL) {
@@ -62,6 +63,7 @@ int callback_angharad_submodule_list (const struct _u_request * request, struct 
 }
 
 int callback_angharad_submodule_get (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  UNUSED(request);
   json_t * j_result;
   
   if (user_data == NULL) {
@@ -82,6 +84,7 @@ int callback_angharad_submodule_get (const struct _u_request * request, struct _
 }
 
 int callback_angharad_script_list (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  UNUSED(request);
   json_t * j_script;
   
   if (user_data == NULL) {
@@ -272,6 +275,7 @@ int callback_angharad_script_run (const struct _u_request * request, struct _u_r
 }
 
 int callback_angharad_scheduler_list (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  UNUSED(request);
   json_t * j_scheduler;
   
   if (user_data == NULL) {
@@ -470,6 +474,7 @@ int callback_angharad_scheduler_remove_tag (const struct _u_request * request, s
 }
 
 int callback_angharad_trigger_list (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  UNUSED(request);
   json_t * j_trigger;
   
   if (user_data == NULL) {
@@ -668,6 +673,7 @@ int callback_angharad_trigger_remove_tag (const struct _u_request * request, str
 }
 
 int callback_carleon_profile_list (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  UNUSED(request);
   json_t * j_list;
   
   if (user_data == NULL) {
@@ -725,6 +731,8 @@ int callback_carleon_profile_set (const struct _u_request * request, struct _u_r
 }
 
 int callback_carleon_profile_remove (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  UNUSED(request);
+  UNUSED(user_data);
   int res;
   
   if (user_data == NULL) {
@@ -744,6 +752,8 @@ int callback_carleon_profile_remove (const struct _u_request * request, struct _
 }
 
 int callback_angharad_options (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  UNUSED(request);
+  UNUSED(user_data);
   u_map_put(response->map_header, "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   u_map_put(response->map_header, "Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
   u_map_put(response->map_header, "Access-Control-Max-Age", "1800");

@@ -32,6 +32,9 @@
 
 #include "angharad.h"
 
+pthread_mutex_t global_handler_close_lock;
+pthread_cond_t  global_handler_close_cond;
+
 static char * read_file(const char * filename) {
   char * buffer = NULL;
   long length;
@@ -906,6 +909,7 @@ int check_config(struct config_elements * config) {
  * return status 404
  */
 int callback_default (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  UNUSED(user_data);
   set_response_json_body_and_clean(response, 404, json_pack("{ssssss}", "error", "page not found", "message", "The page can not be found, check documentation", "method", request->http_verb, "url", request->http_url));
   return U_CALLBACK_CONTINUE;
 }
