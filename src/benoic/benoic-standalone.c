@@ -470,7 +470,7 @@ int main(int argc, char ** argv) {
 
   if (config == NULL) {
     fprintf(stderr, "Memory error - config\n");
-    return 1;
+    exit_server(&config, BENOIC_ERROR);
   }
   
   config->config_file = NULL;
@@ -482,7 +482,7 @@ int main(int argc, char ** argv) {
   config->b_config = malloc(sizeof(struct _benoic_config));
   if (config->instance == NULL || config->b_config == NULL) {
     fprintf(stderr, "Memory error - config->instance || config->b_config\n");
-    return 1;
+    exit_server(&config, BENOIC_ERROR);
   }
   config->b_config->modules_path = NULL;
   config->b_config->conn = NULL;

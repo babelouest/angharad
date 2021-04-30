@@ -291,12 +291,11 @@ ValueID * get_device_value_id_by_element_name(zwave_context * zcontext, const ch
   str_node_id = strtok_r(NULL, "$", &save_ptr);
   str_label = strtok_r(NULL, "$", &save_ptr);
   
-  cur_node = get_device_node(zcontext, strtol(str_node_id, NULL, 10));
-  
   if (str_type == NULL || str_node_id == NULL) {
     o_free(dup_name_save);
     return NULL;
   } else {
+    cur_node = get_device_node(zcontext, strtol(str_node_id, NULL, 10));
     if (0 == o_strcmp(str_type, "se")) {
       // This is a sensor
       if (str_label == NULL) {

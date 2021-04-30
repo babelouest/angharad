@@ -444,7 +444,7 @@ int main(int argc, char ** argv) {
   struct config_elements * config = malloc(sizeof(struct config_elements));
   if (config == NULL) {
     fprintf(stderr, "Memory error - config\n");
-    return 1;
+    exit_server(&config, GARETH_ERROR);
   }
   
   config->config_file = NULL;
@@ -456,7 +456,7 @@ int main(int argc, char ** argv) {
   config->instance = malloc(sizeof(struct _u_instance));
   if (config->instance == NULL) {
     fprintf(stderr, "Memory error - config->instance\n");
-    return 1;
+    exit_server(&config, GARETH_ERROR);
   }
   ulfius_init_instance(config->instance, 1, NULL, NULL);
 

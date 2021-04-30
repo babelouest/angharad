@@ -472,7 +472,7 @@ int main(int argc, char ** argv) {
 
   if (config == NULL) {
     fprintf(stderr, "Memory error - config\n");
-    return 1;
+    exit_server(&config, CARLEON_ERROR);
   }
   
   config->config_file = NULL;
@@ -482,12 +482,12 @@ int main(int argc, char ** argv) {
   config->c_config = malloc(sizeof(struct _carleon_config));
   if (config->c_config == NULL) {
     fprintf(stderr, "Memory error - config->c_config\n");
-    return 1;
+    exit_server(&config, CARLEON_ERROR);
   }
   config->c_config->instance = malloc(sizeof(struct _u_instance));
   if (config->c_config->instance == NULL) {
     fprintf(stderr, "Memory error - config->instance\n");
-    return 1;
+    exit_server(&config, CARLEON_ERROR);
   }
   config->c_config->url_prefix = NULL;
   config->c_config->services_path = NULL;

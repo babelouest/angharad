@@ -578,7 +578,7 @@ int script_remove_tag(struct config_elements * config, const char * script_name,
  * Execute the specified script
  */
 int script_run(struct config_elements * config, const char * script_name) {
-  json_t * j_result = script_get(config, script_name), * j_script, * j_message, * j_action_list, * j_action;
+  json_t * j_result, * j_script, * j_message, * j_action_list, * j_action;
   int res = A_OK;
   char * str_message_text;
   size_t index;
@@ -586,38 +586,41 @@ int script_run(struct config_elements * config, const char * script_name) {
   if (config == NULL || script_name == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "script_run - Error input parameters");
     res = A_ERROR_PARAM;
-  } else if (j_result == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "script_run - Error getting script");
-    res = A_ERROR_NOT_FOUND;
   } else {
-    if (json_integer_value(json_object_get(j_result, "result")) == A_ERROR_NOT_FOUND) {
-      json_decref(j_result);
+    j_result = script_get(config, script_name);
+    if (j_result == NULL) {
+      y_log_message(Y_LOG_LEVEL_ERROR, "script_run - Error getting script");
       res = A_ERROR_NOT_FOUND;
-    } else if (json_integer_value(json_object_get(j_result, "result")) == A_OK) {
-      // Send a message via gareth submodule
-      j_script = json_object_get(j_result, "script");
-      str_message_text = msprintf("Running script %s", script_name);
-      j_message = json_pack("{sssssss[s]}", "priority", "LOW", "source", "angharad", "text", str_message_text, "tags", "script");
-      add_message(config->conn, j_message);
-      json_decref(j_message);
-      o_free(str_message_text);
-      
-      j_action_list = json_object_get(j_script, "actions");
-      if (j_action_list != NULL && json_is_array(j_action_list)) {
-        json_array_foreach(j_action_list, index, j_action) {
-          if (action_run(config, j_action) != A_OK) {
-            y_log_message(Y_LOG_LEVEL_ERROR, "script_run - Error executing action %d in script %s", index, script_name);
-            res = A_ERROR;
+    } else {
+      if (json_integer_value(json_object_get(j_result, "result")) == A_ERROR_NOT_FOUND) {
+        json_decref(j_result);
+        res = A_ERROR_NOT_FOUND;
+      } else if (json_integer_value(json_object_get(j_result, "result")) == A_OK) {
+        // Send a message via gareth submodule
+        j_script = json_object_get(j_result, "script");
+        str_message_text = msprintf("Running script %s", script_name);
+        j_message = json_pack("{sssssss[s]}", "priority", "LOW", "source", "angharad", "text", str_message_text, "tags", "script");
+        add_message(config->conn, j_message);
+        json_decref(j_message);
+        o_free(str_message_text);
+        
+        j_action_list = json_object_get(j_script, "actions");
+        if (j_action_list != NULL && json_is_array(j_action_list)) {
+          json_array_foreach(j_action_list, index, j_action) {
+            if (action_run(config, j_action) != A_OK) {
+              y_log_message(Y_LOG_LEVEL_ERROR, "script_run - Error executing action %d in script %s", index, script_name);
+              res = A_ERROR;
+            }
           }
+        } else {
+          y_log_message(Y_LOG_LEVEL_ERROR, "script_run - Error getting action list");
+          res = A_ERROR;
         }
       } else {
-        y_log_message(Y_LOG_LEVEL_ERROR, "script_run - Error getting action list");
         res = A_ERROR;
       }
-    } else {
-      res = A_ERROR;
+      json_decref(j_result);
     }
-    json_decref(j_result);
   }
   return res;
 }
