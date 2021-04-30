@@ -1,4 +1,5 @@
 *.o
+*.so
 angharad
 angharad.conf
 valgrind.txt
