@@ -49,12 +49,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libconfig-dev libsystemd-dev libjansson-dev libcurl4-gnutls-dev libmicrohttpd-dev libsqlite3-dev sqlite3 default-mysql-client default-libmysqlclient-dev cmake pkg-config check libsubunit-dev cppcheck gnutls-bin libopenzwave1.5-dev libmpdclient-dev
 
-    # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
-    # If this step fails, then you should remove it and run the build manually (see below)
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@v1
-    - name: cppcheck
-      run: cppcheck --force --enable=warning,missingInclude --error-exitcode=1 src/
     - name: build
       run: |
         mkdir build
