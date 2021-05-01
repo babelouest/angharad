@@ -36,7 +36,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake -DBUILD_IDWCC=OFF -DBUILD_TESTING=on -DWITH_PGSQL=off -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=lib ..
+          cmake -DBUILD_IDWCC=OFF -DWITH_MOCKSERVICE=ON -DWITH_MOCKDEV=ON -DBUILD_TESTING=ON -DWITH_PGSQL=OFF -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=lib ..
           make
           sudo make install
           rnbyc -j -g ECDSA256 -x -o ../private-test.jwks -p ../public-test.jwks
