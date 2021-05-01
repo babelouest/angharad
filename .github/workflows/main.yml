@@ -43,5 +43,5 @@ jobs:
           sqlite3 /tmp/angharad.db < ../docs/angharad.sqlite3.sql
           angharad -c ../test/angharad-ci.conf &
           export G_PID=$!
-          make test
+          make test || (cat Testing/Temporary/LastTest.log && cat /tmp/angharad.log && false)
           kill $G_PID
