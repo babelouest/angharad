@@ -266,7 +266,7 @@ int main(int argc, char ** argv) {
  */
 int build_config_from_args(int argc, char ** argv, struct config_elements * config) {
   int next_option;
-  const char * short_options = "c::p::u::v::w::x::m::l::f::h::b::s";
+  const char * short_options = "c:p:u:v:w:x:m:l:f:h::b:s:";
   char * tmp = NULL, * to_free = NULL, * one_log_mode = NULL;
   static const struct option long_options[]= {
     {"config-file", optional_argument,NULL, 'c'},
