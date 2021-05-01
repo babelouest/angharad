@@ -36,6 +36,12 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake -DBUILD_IDWCC=OFF  -DWITH_PGSQL=off -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=lib ..
+          cmake -DBUILD_IDWCC=OFF -DBUILD_TESTING=on -DWITH_PGSQL=off -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=lib ..
           make
           sudo make install
+          rnbyc -j -g ECDSA256 -x -o ../private-test.jwks -p ../public-test.jwks
+          sqlite3 /tmp/angharad.db < ../docs/angharad.sqlite3.sql
+          angharad -c ../test/angharad-ci.conf &
+          export G_PID=$!
+          make test
+          kill $G_PID
