@@ -49,30 +49,30 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake-modules)
 # check if _GNU_SOURCE is available
 
 if (NOT _GNU_SOURCE)
-    check_symbol_exists(__GNU_LIBRARY__ "features.h" _GNU_SOURCE)
+		check_symbol_exists(__GNU_LIBRARY__ "features.h" _GNU_SOURCE)
 
-    if (NOT _GNU_SOURCE)
-        unset(_GNU_SOURCE CACHE)
-        check_symbol_exists(_GNU_SOURCE "features.h" _GNU_SOURCE)
-    endif ()
+		if (NOT _GNU_SOURCE)
+				unset(_GNU_SOURCE CACHE)
+				check_symbol_exists(_GNU_SOURCE "features.h" _GNU_SOURCE)
+		endif ()
 endif ()
 
 if (_GNU_SOURCE)
-    add_definitions(-D_GNU_SOURCE)
+		add_definitions(-D_GNU_SOURCE)
 endif ()
 
 include(FindJansson)
 set(JANSSON_MIN_VERSION 2.4)
 find_package(Jansson ${JANSSON_MIN_VERSION} REQUIRED)
 if (JANSSON_FOUND)
-    set(LIBS ${JANSSON_LIBRARIES})
+		set(LIBS ${JANSSON_LIBRARIES})
 endif ()
 
 include(FindLibconfig)
 find_package(Libconfig REQUIRED)
 if (LIBCONFIG_FOUND)
-    set(LIBS ${LIBS} ${LIBCONFIG_LIBRARIES})
-    include_directories(${LIBCONFIG_INCLUDE_DIRS})
+		set(LIBS ${LIBS} ${LIBCONFIG_LIBRARIES})
+		include_directories(${LIBCONFIG_INCLUDE_DIRS})
 endif ()
 
 include(FindZLIB)
@@ -82,31 +82,31 @@ set(LIBS ${LIBS} ${ZLIB_LIBRARIES})
 # build
 
 add_executable(angharad ${CMAKE_CURRENT_SOURCE_DIR}/src/angharad.h
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/iddawc_resource.h
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/static_compressed_inmemory_website_callback.h
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/http_compression_callback.h
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/iddawc_resource.c
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/static_compressed_inmemory_website_callback.c
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/http_compression_callback.c
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/condition.c
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/profile.c
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/scheduler.c
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/script.c
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/trigger.c
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/webservice.c
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/benoic.h
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/benoic.c
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/device.c
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/device-element.c
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/carleon/carleon.h
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/carleon/carleon.c
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/carleon/service.c
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/gareth/gareth.h
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/gareth/gareth.c
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/gareth/alert.c
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/gareth/filter.c
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/gareth/message.c
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/angharad.c )
+								${CMAKE_CURRENT_SOURCE_DIR}/src/iddawc_resource.h
+								${CMAKE_CURRENT_SOURCE_DIR}/src/static_compressed_inmemory_website_callback.h
+								${CMAKE_CURRENT_SOURCE_DIR}/src/http_compression_callback.h
+								${CMAKE_CURRENT_SOURCE_DIR}/src/iddawc_resource.c
+								${CMAKE_CURRENT_SOURCE_DIR}/src/static_compressed_inmemory_website_callback.c
+								${CMAKE_CURRENT_SOURCE_DIR}/src/http_compression_callback.c
+								${CMAKE_CURRENT_SOURCE_DIR}/src/condition.c
+								${CMAKE_CURRENT_SOURCE_DIR}/src/profile.c
+								${CMAKE_CURRENT_SOURCE_DIR}/src/scheduler.c
+								${CMAKE_CURRENT_SOURCE_DIR}/src/script.c
+								${CMAKE_CURRENT_SOURCE_DIR}/src/trigger.c
+								${CMAKE_CURRENT_SOURCE_DIR}/src/webservice.c
+								${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/benoic.h
+								${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/benoic.c
+								${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/device.c
+								${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/device-element.c
+								${CMAKE_CURRENT_SOURCE_DIR}/src/carleon/carleon.h
+								${CMAKE_CURRENT_SOURCE_DIR}/src/carleon/carleon.c
+								${CMAKE_CURRENT_SOURCE_DIR}/src/carleon/service.c
+								${CMAKE_CURRENT_SOURCE_DIR}/src/gareth/gareth.h
+								${CMAKE_CURRENT_SOURCE_DIR}/src/gareth/gareth.c
+								${CMAKE_CURRENT_SOURCE_DIR}/src/gareth/alert.c
+								${CMAKE_CURRENT_SOURCE_DIR}/src/gareth/filter.c
+								${CMAKE_CURRENT_SOURCE_DIR}/src/gareth/message.c
+								${CMAKE_CURRENT_SOURCE_DIR}/src/angharad.c )
 target_link_libraries(angharad ${LIBS})
 
 set(SEARCH_ORCANIA OFF CACHE BOOL "Force to false") # Avoid to search and download orcania during orcania search and download
@@ -227,58 +227,58 @@ endif ()
 set(LIBS ${LIBS} ${HOEL_LIBRARIES})
 
 if (DISABLE_OAUTH2)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DDISABLE_OAUTH2")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DDISABLE_OAUTH2")
 else ()
-  set(Rhonabwy_FIND_QUIETLY ON) # force to find Rhonabwy quietly
-  include(FindRhonabwy)
-  find_package(Rhonabwy ${RHONABWY_VERSION_REQUIRED} QUIET) # try to find rhonabwy
-  if (RHONABWY_FOUND)
-    include_directories(${rhonabwy_SOURCE_DIR}/include)
-  elseif (NOT RHONABWY_FOUND AND DOWNLOAD_DEPENDENCIES)
-    include(DownloadProject)
-    message(STATUS "Download Rhonabwy ${RHONABWY_VERSION_REQUIRED}")
-    download_project(PROJ rhonabwy # ... otherwise, download archive
-        URL "https://github.com/babelouest/rhonabwy/archive/v${RHONABWY_VERSION_REQUIRED}.tar.gz"
-        QUIET)
-    add_subdirectory(${rhonabwy_SOURCE_DIR} ${rhonabwy_BINARY_DIR})
-    include_directories(${rhonabwy_SOURCE_DIR}/include)
-    set(RHONABWY_LIBRARIES rhonabwy)
-    include_directories(${rhonabwy_BINARY_DIR})
-    add_dependencies(rhonabwy orcania)
-    add_dependencies(rhonabwy yder)
-    add_dependencies(rhonabwy ulfius)
-    add_dependencies(angharad rhonabwy)
-    set (RHONABWY_FOUND ON)
-  else ()
-    message( FATAL_ERROR "Rhonabwy not found")
-  endif ()
-  set(LIBS ${LIBS} ${RHONABWY_LIBRARIES})
+	set(Rhonabwy_FIND_QUIETLY ON) # force to find Rhonabwy quietly
+	include(FindRhonabwy)
+	find_package(Rhonabwy ${RHONABWY_VERSION_REQUIRED} QUIET) # try to find rhonabwy
+	if (RHONABWY_FOUND)
+		include_directories(${rhonabwy_SOURCE_DIR}/include)
+	elseif (NOT RHONABWY_FOUND AND DOWNLOAD_DEPENDENCIES)
+		include(DownloadProject)
+		message(STATUS "Download Rhonabwy ${RHONABWY_VERSION_REQUIRED}")
+		download_project(PROJ rhonabwy # ... otherwise, download archive
+				URL "https://github.com/babelouest/rhonabwy/archive/v${RHONABWY_VERSION_REQUIRED}.tar.gz"
+				QUIET)
+		add_subdirectory(${rhonabwy_SOURCE_DIR} ${rhonabwy_BINARY_DIR})
+		include_directories(${rhonabwy_SOURCE_DIR}/include)
+		set(RHONABWY_LIBRARIES rhonabwy)
+		include_directories(${rhonabwy_BINARY_DIR})
+		add_dependencies(rhonabwy orcania)
+		add_dependencies(rhonabwy yder)
+		add_dependencies(rhonabwy ulfius)
+		add_dependencies(angharad rhonabwy)
+		set (RHONABWY_FOUND ON)
+	else ()
+		message( FATAL_ERROR "Rhonabwy not found")
+	endif ()
+	set(LIBS ${LIBS} ${RHONABWY_LIBRARIES})
 
-  set(Iddawc_FIND_QUIETLY ON) # force to find Iddawc quietly
-  include(FindIddawc)
-  find_package(Iddawc ${IDDAWC_VERSION_REQUIRED} QUIET) # try to find iddawc
-  if (IDDAWC_FOUND)
-    include_directories(${iddawc_SOURCE_DIR}/include)
-  elseif (NOT IDDAWC_FOUND AND DOWNLOAD_DEPENDENCIES)
-    include(DownloadProject)
-    message(STATUS "Download Iddawc ${IDDAWC_VERSION_REQUIRED}")
-    download_project(PROJ iddawc # ... otherwise, download archive
-        URL "https://github.com/babelouest/iddawc/archive/v${IDDAWC_VERSION_REQUIRED}.tar.gz"
-        QUIET)
-    add_subdirectory(${iddawc_SOURCE_DIR} ${iddawc_BINARY_DIR})
-    include_directories(${iddawc_SOURCE_DIR}/include)
-    set(IDDAWC_LIBRARIES iddawc)
-    include_directories(${iddawc_BINARY_DIR})
-    set (IDDAWC_FOUND ON)
-    add_dependencies(iddawc orcania)
-    add_dependencies(iddawc yder)
-    add_dependencies(iddawc ulfius)
-    add_dependencies(iddawc rhonabwy)
-    add_dependencies(angharad iddawc)
-  else ()
-    message( FATAL_ERROR "Iddawc not found")
-  endif ()
-  set(LIBS ${LIBS} ${IDDAWC_LIBRARIES})
+	set(Iddawc_FIND_QUIETLY ON) # force to find Iddawc quietly
+	include(FindIddawc)
+	find_package(Iddawc ${IDDAWC_VERSION_REQUIRED} QUIET) # try to find iddawc
+	if (IDDAWC_FOUND)
+		include_directories(${iddawc_SOURCE_DIR}/include)
+	elseif (NOT IDDAWC_FOUND AND DOWNLOAD_DEPENDENCIES)
+		include(DownloadProject)
+		message(STATUS "Download Iddawc ${IDDAWC_VERSION_REQUIRED}")
+		download_project(PROJ iddawc # ... otherwise, download archive
+				URL "https://github.com/babelouest/iddawc/archive/v${IDDAWC_VERSION_REQUIRED}.tar.gz"
+				QUIET)
+		add_subdirectory(${iddawc_SOURCE_DIR} ${iddawc_BINARY_DIR})
+		include_directories(${iddawc_SOURCE_DIR}/include)
+		set(IDDAWC_LIBRARIES iddawc)
+		include_directories(${iddawc_BINARY_DIR})
+		set (IDDAWC_FOUND ON)
+		add_dependencies(iddawc orcania)
+		add_dependencies(iddawc yder)
+		add_dependencies(iddawc ulfius)
+		add_dependencies(iddawc rhonabwy)
+		add_dependencies(angharad iddawc)
+	else ()
+		message( FATAL_ERROR "Iddawc not found")
+	endif ()
+	set(LIBS ${LIBS} ${IDDAWC_LIBRARIES})
 endif ()
 
 target_link_libraries(angharad ${LIBS} pthread m dl)
@@ -393,82 +393,99 @@ endif ()
 option(BUILD_TESTING "Build the testing tree." OFF)
 
 if (BUILD_TESTING)
-    include(FindCheck)
-    find_package(Check REQUIRED)
-    if (CHECK_FOUND)
-        include(FindSubunit)
-        find_package(Subunit REQUIRED)
+		include(FindCheck)
+		find_package(Check REQUIRED)
+		if (CHECK_FOUND)
+				include(FindSubunit)
+				find_package(Subunit REQUIRED)
 
-        enable_testing()
+				enable_testing()
 
-        set(CMAKE_CTEST_COMMAND ctest -V)
+				set(CMAKE_CTEST_COMMAND ctest -V)
 
-        set(TST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test)
-        set(LIBS ${LIBS} ${CHECK_LIBRARIES} ulfius yder orcania)
-        find_package(Threads REQUIRED)
-        set(LIBS ${LIBS} ${SUBUNIT_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} m rt)
+				set(TST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test)
+				set(LIBS ${LIBS} ${CHECK_LIBRARIES} ulfius yder orcania)
+				find_package(Threads REQUIRED)
+				set(LIBS ${LIBS} ${SUBUNIT_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} m rt)
 
-				set(TESTS angharad_submodule angharad_script angharad_scheduler angharad_trigger angharad_scheduler_trigger_exec angharad_profile benoic_device benoic_device_element benoic_monitor carleon_service carleon_liquidsoap carleon_motion carleon_mpd gareth_alert_smtp gareth_alert_http gareth_filter gareth_message gareth_trigger)
-            
+				set(TESTS angharad_submodule
+									angharad_script
+									angharad_scheduler
+									angharad_trigger
+									angharad_scheduler_trigger_exec
+									angharad_profile
+									benoic_device
+									benoic_device_element
+									benoic_monitor
+									carleon_service
+									carleon_liquidsoap
+									carleon_motion
+									carleon_mpd
+									gareth_alert_smtp
+									gareth_alert_http
+									gareth_filter
+									gareth_message
+									gareth_trigger)
+						
 
-        configure_file(
-                "${CMAKE_MODULE_PATH}/CTestCustom.cmake.in"
-                "${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake"
-                @ONLY)
+				configure_file(
+								"${CMAKE_MODULE_PATH}/CTestCustom.cmake.in"
+								"${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake"
+								@ONLY)
 
-        foreach (t ${TESTS})
-            add_executable(${t} EXCLUDE_FROM_ALL ${TST_DIR}/${t}.c ${TST_DIR}/unit-tests.c ${TST_DIR}/unit-tests.h)
-            target_include_directories(${t} PUBLIC ${TST_DIR})
-            target_link_libraries(${t} PUBLIC ${LIBS})
-            add_test(NAME ${t}
-                    WORKING_DIRECTORY ${TST_DIR}
-                    COMMAND ${t})
-        endforeach ()
-    endif ()
+				foreach (t ${TESTS})
+						add_executable(${t} EXCLUDE_FROM_ALL ${TST_DIR}/${t}.c ${TST_DIR}/unit-tests.c ${TST_DIR}/unit-tests.h)
+						target_include_directories(${t} PUBLIC ${TST_DIR})
+						target_link_libraries(${t} PUBLIC ${LIBS})
+						add_test(NAME ${t}
+										WORKING_DIRECTORY ${TST_DIR}
+										COMMAND ${t})
+				endforeach ()
+		endif ()
 endif ()
 
 # install target
 
 install(TARGETS angharad
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+				RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(FILES docs/angharad.conf.sample 
-        DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/angharad RENAME angharad.conf COMPONENT config)
+				DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/angharad RENAME angharad.conf COMPONENT config)
 install(TARGETS ${BENOIC_DEVICES}
 				DESTINATION ${CMAKE_INSTALL_LIBDIR}/angharad/benoic)
 install(TARGETS ${CARLEON_SERVICES}
 				DESTINATION ${CMAKE_INSTALL_LIBDIR}/angharad/carleon)
 install(DIRECTORY webapp/
-        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/angharad/webapp/ COMPONENT runtime)
+				DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/angharad/webapp/ COMPONENT runtime)
 install(FILES webapp/config.json.sample 
-        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/angharad/webapp/ RENAME config.json COMPONENT config)
+				DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/angharad/webapp/ RENAME config.json COMPONENT config)
 install(FILES README.md
-        DESTINATION ${CMAKE_INSTALL_DOCDIR}/ COMPONENT runtime)
+				DESTINATION ${CMAKE_INSTALL_DOCDIR}/ COMPONENT runtime)
 install(FILES docs/API.md
-        DESTINATION ${CMAKE_INSTALL_DOCDIR}/ COMPONENT runtime)
+				DESTINATION ${CMAKE_INSTALL_DOCDIR}/ COMPONENT runtime)
 install(FILES docs/angharad-init
-        DESTINATION ${CMAKE_INSTALL_DOCDIR}/ COMPONENT runtime)
+				DESTINATION ${CMAKE_INSTALL_DOCDIR}/ COMPONENT runtime)
 install(FILES docs/angharad.service
-        DESTINATION ${CMAKE_INSTALL_DOCDIR}/ COMPONENT runtime)
+				DESTINATION ${CMAKE_INSTALL_DOCDIR}/ COMPONENT runtime)
 install(FILES docs/angharad.mariadb.sql
-        DESTINATION ${CMAKE_INSTALL_DOCDIR}/ COMPONENT runtime)
+				DESTINATION ${CMAKE_INSTALL_DOCDIR}/ COMPONENT runtime)
 install(FILES docs/angharad.sqlite3.sql
-        DESTINATION ${CMAKE_INSTALL_DOCDIR}/ COMPONENT runtime)
+				DESTINATION ${CMAKE_INSTALL_DOCDIR}/ COMPONENT runtime)
 
 set(TARGETS angharad)
 
 install(TARGETS ${TARGETS}
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        CONFIGURATIONS Release)
+				RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+				CONFIGURATIONS Release)
 
 # uninstall target
 
 if (NOT TARGET uninstall)
-    configure_file(
-            "${CMAKE_MODULE_PATH}/CMakeUninstall.cmake.in"
-            "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-            IMMEDIATE @ONLY)
-    add_custom_target(uninstall
-            COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+		configure_file(
+						"${CMAKE_MODULE_PATH}/CMakeUninstall.cmake.in"
+						"${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+						IMMEDIATE @ONLY)
+		add_custom_target(uninstall
+						COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 endif ()
 
 # packaging
@@ -478,10 +495,10 @@ set(CPACK_PACKAGE_VERSION_MINOR ${PROGRAM_VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${PROGRAM_VERSION_PATCH})
 
 set(PACKAGE_FILE_NAME
-        "${CMAKE_PROJECT_NAME}_${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
+				"${CMAKE_PROJECT_NAME}_${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
 
 set(PACKAGE_IGNORED_FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/;/.git/;.gitignore;~$;${CPACK_SOURCE_IGNORE_FILES}")
+				"${CMAKE_CURRENT_BINARY_DIR}/;/.git/;.gitignore;~$;${CPACK_SOURCE_IGNORE_FILES}")
 
 set(CPACK_GENERATOR "TGZ;DEB")
 
@@ -498,4 +515,4 @@ set(CPACK_SOURCE_IGNORE_FILES ${PACKAGE_IGNORED_FILES})
 include(CPack)
 
 add_custom_target(dist
-        COMMAND ${CMAKE_MAKE_PROGRAM} package_source)
+				COMMAND ${CMAKE_MAKE_PROGRAM} package_source)
