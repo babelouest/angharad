@@ -17,6 +17,7 @@
 #define ANGHARAD_SERVER_URI "http://localhost:2473"
 #define USER_LOGIN "user1"
 #define USER_SCOPE_LIST "angharad"
+#define DEFAULT_JWKS_PATH "../private-test.jwks"
 
 struct _u_request user_req;
 char * angharad_uri;
@@ -370,52 +371,47 @@ int main(int argc, char *argv[])
   
   angharad_uri = argc>2?argv[2]:ANGHARAD_SERVER_URI;
 
-  if (argv[1] != NULL) {
-    str_jwks = read_file(argv[1]);
-    
-    // Generate user and admin access tokens
-    ulfius_init_request(&user_req);
-    r_jwt_init(&jwt);
-    r_jwt_set_header_str_value(jwt, "typ", "at+jwt");
-    r_jwks_init(&jwks);
-    r_jwks_import_from_str(jwks, str_jwks);
-    r_jwt_add_sign_jwks(jwt, jwks, NULL);
-    o_free(str_jwks);
-    
-    time(&now);
-    j_claims = json_pack("{ss ss ss ss ss si si si ss}",
-                         "iss", "https://glewlwyd.tld/",
-                         "sub", USER_LOGIN,
-                         "client_id", "client",
-                         "jti", "abcdxyz1234",
-                         "type", "access_token",
-                         "iat", now,
-                         "exp", now+3600,
-                         "nbf", now,
-                         "scope", USER_SCOPE_LIST);
-    r_jwt_set_full_claims_json_t(jwt, j_claims);
-    token = r_jwt_serialize_signed(jwt, NULL, 0);
-    bearer_token = msprintf("Bearer %s", token);
-    u_map_put(user_req.map_header, "Authorization", bearer_token);
-    o_free(bearer_token);
-    o_free(token);
-    
-    json_decref(j_claims);
-    r_jwt_free(jwt);
-    r_jwks_free(jwks);
-    
-    s = carleon_suite();
-    sr = srunner_create(s);
+  str_jwks = read_file(argc>1?argv[1]:DEFAULT_JWKS_PATH);
+  
+  // Generate user and admin access tokens
+  ulfius_init_request(&user_req);
+  r_jwt_init(&jwt);
+  r_jwt_set_header_str_value(jwt, "typ", "at+jwt");
+  r_jwks_init(&jwks);
+  r_jwks_import_from_str(jwks, str_jwks);
+  r_jwt_add_sign_jwks(jwt, jwks, NULL);
+  o_free(str_jwks);
+  
+  time(&now);
+  j_claims = json_pack("{ss ss ss ss ss si si si ss}",
+                       "iss", "https://glewlwyd.tld/",
+                       "sub", USER_LOGIN,
+                       "client_id", "client",
+                       "jti", "abcdxyz1234",
+                       "type", "access_token",
+                       "iat", now,
+                       "exp", now+3600,
+                       "nbf", now,
+                       "scope", USER_SCOPE_LIST);
+  r_jwt_set_full_claims_json_t(jwt, j_claims);
+  token = r_jwt_serialize_signed(jwt, NULL, 0);
+  bearer_token = msprintf("Bearer %s", token);
+  u_map_put(user_req.map_header, "Authorization", bearer_token);
+  o_free(bearer_token);
+  o_free(token);
+  
+  json_decref(j_claims);
+  r_jwt_free(jwt);
+  r_jwks_free(jwks);
+  
+  s = carleon_suite();
+  sr = srunner_create(s);
 
-    srunner_run_all(sr, CK_VERBOSE);
-    number_failed = srunner_ntests_failed(sr);
-    srunner_free(sr);
-    
-    ulfius_clean_request(&user_req);
-  } else {
-    y_log_message(Y_LOG_LEVEL_ERROR, "Error, no jwks file path specified");
-    number_failed = 1;
-  }
+  srunner_run_all(sr, CK_VERBOSE);
+  number_failed = srunner_ntests_failed(sr);
+  srunner_free(sr);
+  
+  ulfius_clean_request(&user_req);
   
   y_close_logs();
   
