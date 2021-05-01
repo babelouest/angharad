@@ -51,8 +51,9 @@ json_t * b_device_get_heater (json_t * device, const char * heater_name, void * 
  */
 double get_sensor_value(const char * sensor_name) {
   time_t now = time(0);
-  struct tm * local = localtime(&now);
-  int current_nb_seconds = local->tm_sec + (60 * local->tm_min) + (60 * 60 * local->tm_hour);
+  struct tm local;
+  gmtime_r(&now, &local);
+  int current_nb_seconds = local.tm_sec + (60 * local.tm_min) + (60 * 60 * local.tm_hour);
   if (0 == o_strcmp(sensor_name, "se1")) {
     return sin((double)current_nb_seconds / (double)NB_SECONDS_PER_DAY);
   } else {

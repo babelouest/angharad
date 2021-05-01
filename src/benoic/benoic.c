@@ -174,7 +174,7 @@ void * thread_monitor_run(void * args) {
     while (config->benoic_status == BENOIC_STATUS_RUN) {
       // Run monitoring task every minute
       time(&now);
-      ts = *localtime(&now);
+      gmtime_r(&now, &ts);
       if (ts.tm_sec == 0) {
         j_query = json_pack("{sss{sis{ssss}}}", "table", BENOIC_TABLE_ELEMENT, "where", "be_monitored", 1, "be_monitored_next", "operator", "raw", "value", "<= CURRENT_TIMESTAMP");
         if (j_query != NULL) {

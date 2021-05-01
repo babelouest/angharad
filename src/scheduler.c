@@ -47,7 +47,7 @@ void * thread_scheduler_run(void * args) {
     while (config->angharad_status == ANGHARAD_STATUS_RUN) {
       // Run monitoring task every minute
       time(&now);
-      ts = *localtime(&now);
+      gmtime_r(&now, &ts);
       if (ts.tm_sec == 0) {
         // Check schedules and events
         scheduler_list_names = scheduler_get_next_schedules(config);
@@ -662,10 +662,11 @@ int scheduler_remove_tag(struct config_elements * config, const char * scheduler
  * Calculate the next time for a scheduler or a monitor
  */
 time_t scheduler_calculate_next_time(time_t from, int schedule_type, unsigned int schedule_value) {
-  struct tm ts = *localtime(&from);
+  struct tm ts;
   time_t to_return;
   int isdst_from, isdst_to;
   
+  gmtime_r(&from, &ts);
   isdst_from = ts.tm_isdst;
   
   switch (schedule_type) {

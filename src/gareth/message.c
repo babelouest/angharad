@@ -729,11 +729,11 @@ char * parse_string_with_message(const char * format, const json_t * message) {
     
     if (strstr(to_return, "{date}") != NULL) {
       time_t mytime;
-      struct tm * timeinfo;
+      struct tm timeinfo;
       char buffer[26] = {0};
       time(&mytime);
-      timeinfo = localtime(&mytime);
-      strftime(buffer, 26, "%Y/%m/%d - %H:%M:%S", timeinfo);
+      gmtime_r(&mytime, &timeinfo);
+      strftime(buffer, 26, "%Y/%m/%d - %H:%M:%S", &timeinfo);
       tmp = str_replace(to_return, "{date}", buffer);
       o_free(to_return);
       to_return = tmp;
