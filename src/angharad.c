@@ -88,6 +88,7 @@ int main(int argc, char ** argv) {
   config->log_file = NULL;
   config->angharad_status = ANGHARAD_STATUS_STOP;
   config->alert_url = NULL;
+  config->use_oidc_authentication = 0;
   config->oidc_server_remote_config = NULL;
   config->oidc_server_remote_config_verify_cert = 1;
   config->oidc_server_public_jwks = NULL;
@@ -156,43 +157,6 @@ int main(int argc, char ** argv) {
     exit_server(&config, ANGHARAD_ERROR);
   }
   
-  if (i_jwt_profile_access_token_init_config(config->iddawc_resource_config, I_METHOD_HEADER, NULL, NULL, config->oidc_scope, NULL, 1, 1, config->oidc_dpop_max_iat) == I_TOKEN_OK) {
-    if (config->oidc_server_remote_config != NULL) {
-      if (!i_jwt_profile_access_token_load_config(config->iddawc_resource_config, config->oidc_server_remote_config, config->oidc_server_remote_config_verify_cert)) {
-        fprintf(stderr, "Error i_jwt_profile_access_token_load_config\n");
-        exit_server(&config, ANGHARAD_ERROR);
-      }
-      y_log_message(Y_LOG_LEVEL_INFO, "Load remote authentification config: %s\n", config->oidc_server_remote_config);
-    } else if (config->oidc_server_public_jwks != NULL) {
-      res = 1;
-      if ((str_jwks = read_file(config->oidc_server_public_jwks)) != NULL) {
-        if ((j_jwks = json_loads(str_jwks, JSON_DECODE_ANY, NULL)) != NULL) {
-          if (!i_jwt_profile_access_token_load_jwks(config->iddawc_resource_config, j_jwks, config->oidc_iss)) {
-            fprintf(stderr, "Error i_jwt_profile_access_token_load_jwks\n");
-          }
-        } else {
-          fprintf(stderr, "Error parsing jwks\n");
-          res = 0;
-        }
-        json_decref(j_jwks);
-      } else {
-        fprintf(stderr, "Error reading jwks file\n");
-        res = 0;
-      }
-      o_free(str_jwks);
-      if (!res) {
-        exit_server(&config, ANGHARAD_ERROR);
-      }
-      y_log_message(Y_LOG_LEVEL_INFO, "Load signature key from file: %s\n", config->oidc_server_public_jwks);
-    } else {
-      fprintf(stderr, "Error oidc config\n");
-      exit_server(&config, ANGHARAD_ERROR);
-    }
-  } else {
-    fprintf(stderr, "Error i_jwt_profile_access_token_init_config\n");
-    exit_server(&config, ANGHARAD_ERROR);
-  }
-
   // Setting connection pointer for carleon and benoic
   config->b_config->conn = config->conn;
   config->c_config->conn = config->conn;
@@ -238,6 +202,47 @@ int main(int argc, char ** argv) {
   }
   json_decref(submodule);
   
+  if (config->use_oidc_authentication) {
+    if (i_jwt_profile_access_token_init_config(config->iddawc_resource_config, I_METHOD_HEADER, NULL, NULL, config->oidc_scope, NULL, 1, 1, config->oidc_dpop_max_iat) == I_TOKEN_OK) {
+      if (config->oidc_server_remote_config != NULL) {
+        if (!i_jwt_profile_access_token_load_config(config->iddawc_resource_config, config->oidc_server_remote_config, config->oidc_server_remote_config_verify_cert)) {
+          y_log_message(Y_LOG_LEVEL_ERROR, "OIDC authentication - Error i_jwt_profile_access_token_load_config");
+          exit_server(&config, ANGHARAD_ERROR);
+        }
+        y_log_message(Y_LOG_LEVEL_INFO, "OIDC authentication - Load remote authentification config: %s", config->oidc_server_remote_config);
+      } else if (config->oidc_server_public_jwks != NULL) {
+        res = 1;
+        if ((str_jwks = read_file(config->oidc_server_public_jwks)) != NULL) {
+          if ((j_jwks = json_loads(str_jwks, JSON_DECODE_ANY, NULL)) != NULL) {
+            if (!i_jwt_profile_access_token_load_jwks(config->iddawc_resource_config, j_jwks, config->oidc_iss)) {
+              y_log_message(Y_LOG_LEVEL_ERROR, "OIDC authentication - Error i_jwt_profile_access_token_load_jwks");
+            }
+          } else {
+            y_log_message(Y_LOG_LEVEL_ERROR, "OIDC authentication - Error parsing jwks");
+            res = 0;
+          }
+          json_decref(j_jwks);
+        } else {
+          y_log_message(Y_LOG_LEVEL_ERROR, "OIDC authentication - Error reading jwks file");
+          res = 0;
+        }
+        o_free(str_jwks);
+        if (!res) {
+          exit_server(&config, ANGHARAD_ERROR);
+        }
+        y_log_message(Y_LOG_LEVEL_INFO, "OIDC authentication - Load signature key from file: %s", config->oidc_server_public_jwks);
+      } else {
+        y_log_message(Y_LOG_LEVEL_ERROR, "OIDC authentication - Error oidc config");
+        exit_server(&config, ANGHARAD_ERROR);
+      }
+    } else {
+      y_log_message(Y_LOG_LEVEL_ERROR, "OIDC authentication - Error i_jwt_profile_access_token_init_config");
+      exit_server(&config, ANGHARAD_ERROR);
+    }
+  } else {
+    y_log_message(Y_LOG_LEVEL_INFO, "OIDC authentication disabled");
+  }
+
   // Initialize angharad webservice
   res = init_angharad(config);
   if (res != A_OK) {
@@ -552,7 +557,7 @@ int build_config_from_file(struct config_elements * config) {
   const char * cur_prefix_angharad, * cur_prefix_benoic, * cur_prefix_carleon, * cur_prefix_gareth, * cur_log_mode, * cur_log_level, * cur_log_file = NULL, * one_log_mode, * carleon_services_path, * benoic_modules_path, * cur_allow_origin, * db_type, * db_sqlite_path, * db_mariadb_host = NULL, * db_mariadb_user = NULL, * db_mariadb_password = NULL, * db_mariadb_dbname = NULL, * cur_static_files_path = NULL, * extension = NULL, * mime_type_value = NULL;
   int db_mariadb_port = 0, i;
   const char * cur_oidc_server_remote_config = NULL, * cur_oidc_server_public_jwks = NULL, * cur_oidc_iss = NULL, * cur_oidc_realm = NULL, * cur_oidc_aud = NULL, * cur_oidc_scope = NULL;
-  int cur_oidc_dpop_max_iat = 0, cur_oidc_server_remote_config_verify_cert = 0;
+  int cur_oidc_dpop_max_iat = 0, cur_oidc_server_remote_config_verify_cert = 0, cur_use_oidc_authentication = 0;
   
   config_init(&cfg);
   
@@ -779,47 +784,53 @@ int build_config_from_file(struct config_elements * config) {
     }
   }
   
-  oidc_cfg = config_lookup(&cfg, "oidc");
-  if (config_setting_lookup_string(oidc_cfg, "server_remote_config", &cur_oidc_server_remote_config) == CONFIG_TRUE) {
-    if ((config->oidc_server_remote_config = o_strdup(cur_oidc_server_remote_config)) == NULL) {
-      fprintf(stderr, "Error allocating config->oidc_server_remote_config, exiting\n");
-      config_destroy(&cfg);
-      return 0;
+  if (config_lookup_bool(&cfg, "use_oidc_authentication", &cur_use_oidc_authentication) == CONFIG_TRUE) {
+    config->use_oidc_authentication = cur_use_oidc_authentication;
+  }
+
+  if (config->use_oidc_authentication) {
+    oidc_cfg = config_lookup(&cfg, "oidc");
+    if (config_setting_lookup_string(oidc_cfg, "server_remote_config", &cur_oidc_server_remote_config) == CONFIG_TRUE) {
+      if ((config->oidc_server_remote_config = o_strdup(cur_oidc_server_remote_config)) == NULL) {
+        fprintf(stderr, "Error allocating config->oidc_server_remote_config, exiting\n");
+        config_destroy(&cfg);
+        return 0;
+      }
     }
-  }
-  if (config_setting_lookup_bool(oidc_cfg, "server_remote_config_verify_cert", &cur_oidc_server_remote_config_verify_cert) == CONFIG_TRUE) {
-    config->oidc_server_remote_config_verify_cert = (time_t)cur_oidc_server_remote_config_verify_cert;
-  }
-  if (config_setting_lookup_string(oidc_cfg, "server_public_jwks", &cur_oidc_server_public_jwks) == CONFIG_TRUE) {
-    if ((config->oidc_server_public_jwks = o_strdup(cur_oidc_server_public_jwks)) == NULL) {
-      fprintf(stderr, "Error allocating config->oidc_server_public_jwks, exiting\n");
-      config_destroy(&cfg);
-      return 0;
+    if (config_setting_lookup_bool(oidc_cfg, "server_remote_config_verify_cert", &cur_oidc_server_remote_config_verify_cert) == CONFIG_TRUE) {
+      config->oidc_server_remote_config_verify_cert = (time_t)cur_oidc_server_remote_config_verify_cert;
     }
-  }
-  if (config_setting_lookup_string(oidc_cfg, "iss", &cur_oidc_iss) == CONFIG_TRUE) {
-    if ((config->oidc_iss = o_strdup(cur_oidc_iss)) == NULL) {
-      fprintf(stderr, "Error allocating config->oidc_iss, exiting\n");
-      config_destroy(&cfg);
-      return 0;
+    if (config_setting_lookup_string(oidc_cfg, "server_public_jwks", &cur_oidc_server_public_jwks) == CONFIG_TRUE) {
+      if ((config->oidc_server_public_jwks = o_strdup(cur_oidc_server_public_jwks)) == NULL) {
+        fprintf(stderr, "Error allocating config->oidc_server_public_jwks, exiting\n");
+        config_destroy(&cfg);
+        return 0;
+      }
     }
-  }
-  if (config_setting_lookup_string(oidc_cfg, "realm", &cur_oidc_realm) == CONFIG_TRUE) {
-    if ((config->oidc_realm = o_strdup(cur_oidc_realm)) == NULL) {
-      fprintf(stderr, "Error allocating config->oidc_realm, exiting\n");
-      config_destroy(&cfg);
-      return 0;
+    if (config_setting_lookup_string(oidc_cfg, "iss", &cur_oidc_iss) == CONFIG_TRUE) {
+      if ((config->oidc_iss = o_strdup(cur_oidc_iss)) == NULL) {
+        fprintf(stderr, "Error allocating config->oidc_iss, exiting\n");
+        config_destroy(&cfg);
+        return 0;
+      }
     }
-  }
-  if (config_setting_lookup_string(oidc_cfg, "aud", &cur_oidc_aud) == CONFIG_TRUE) {
-    if ((config->oidc_aud = o_strdup(cur_oidc_aud)) == NULL) {
-      fprintf(stderr, "Error allocating config->oidc_aud, exiting\n");
-      config_destroy(&cfg);
-      return 0;
+    if (config_setting_lookup_string(oidc_cfg, "realm", &cur_oidc_realm) == CONFIG_TRUE) {
+      if ((config->oidc_realm = o_strdup(cur_oidc_realm)) == NULL) {
+        fprintf(stderr, "Error allocating config->oidc_realm, exiting\n");
+        config_destroy(&cfg);
+        return 0;
+      }
     }
-  }
-  if (config_setting_lookup_int(oidc_cfg, "dpop_max_iat", &cur_oidc_dpop_max_iat) == CONFIG_TRUE) {
-    config->oidc_dpop_max_iat = (time_t)cur_oidc_dpop_max_iat;
+    if (config_setting_lookup_string(oidc_cfg, "aud", &cur_oidc_aud) == CONFIG_TRUE) {
+      if ((config->oidc_aud = o_strdup(cur_oidc_aud)) == NULL) {
+        fprintf(stderr, "Error allocating config->oidc_aud, exiting\n");
+        config_destroy(&cfg);
+        return 0;
+      }
+    }
+    if (config_setting_lookup_int(oidc_cfg, "dpop_max_iat", &cur_oidc_dpop_max_iat) == CONFIG_TRUE) {
+      config->oidc_dpop_max_iat = (time_t)cur_oidc_dpop_max_iat;
+    }
   }
 
   if (config_lookup_string(&cfg, "oauth_scope", &cur_oidc_scope)) {
@@ -1003,10 +1014,17 @@ int init_angharad(struct config_elements * config) {
   int thread_scheduler_ret = 0, thread_scheduler_detach = 0;
 
   if (config != NULL && config->instance != NULL && config->url_prefix_angharad) {
-    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_check_jwt_profile_access_token, (void*)config->iddawc_resource_config);
-    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_benoic, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_check_jwt_profile_access_token, (void*)config->iddawc_resource_config);
-    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_carleon, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_check_jwt_profile_access_token, (void*)config->iddawc_resource_config);
-    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_gareth, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_check_jwt_profile_access_token, (void*)config->iddawc_resource_config);
+    if (config->use_oidc_authentication) {
+      ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_check_jwt_profile_access_token, (void*)config->iddawc_resource_config);
+      ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_benoic, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_check_jwt_profile_access_token, (void*)config->iddawc_resource_config);
+      ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_carleon, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_check_jwt_profile_access_token, (void*)config->iddawc_resource_config);
+      ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_gareth, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_check_jwt_profile_access_token, (void*)config->iddawc_resource_config);
+    } else {
+      ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_oauth2_disabled, (void*)config->iddawc_resource_config);
+      ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_benoic, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_oauth2_disabled, (void*)config->iddawc_resource_config);
+      ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_carleon, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_oauth2_disabled, (void*)config->iddawc_resource_config);
+      ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_gareth, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_oauth2_disabled, (void*)config->iddawc_resource_config);
+    }
     
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/alert/@submodule_name/@source/@element/@message/", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_alert, (void*)config);
     

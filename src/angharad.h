@@ -126,6 +126,8 @@
 #define ANGHARAD_CALLBACK_PRIORITY_FILES          3
 #define ANGHARAD_CALLBACK_PRIORITY_COMPRESSION    4
 
+#define ANGHARAD_NO_AUTHENTICATION_USERNAME "Myrddin"
+
 struct _auth_ldap {
   char * uri;
   char * bind_dn;
@@ -152,6 +154,7 @@ struct config_elements {
   struct _benoic_config                        * b_config;
   struct _carleon_config                       * c_config;
   unsigned int                                   angharad_status;
+  unsigned short                                 use_oidc_authentication;
   char                                         * oidc_server_remote_config;
   unsigned int                                   oidc_server_remote_config_verify_cert;
   char                                         * oidc_server_public_jwks;
@@ -299,5 +302,6 @@ int callback_carleon_profile_remove (const struct _u_request * request, struct _
 
 int callback_angharad_options (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_clean (const struct _u_request * request, struct _u_response * response, void * user_data);
+int callback_oauth2_disabled (const struct _u_request * request, struct _u_response * response, void * user_data);
 
 #endif
