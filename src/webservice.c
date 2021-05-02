@@ -759,3 +759,11 @@ int callback_angharad_options (const struct _u_request * request, struct _u_resp
   u_map_put(response->map_header, "Access-Control-Max-Age", "1800");
   return U_CALLBACK_COMPLETE;
 }
+
+int callback_oauth2_disabled (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  UNUSED(request);
+  struct config_elements * config = (struct config_elements *)user_data;
+  
+  ulfius_set_response_shared_data(response, json_pack("{ss ss}", "sub", ANGHARAD_NO_AUTHENTICATION_USERNAME, "scope", config->oidc_scope), (void (*)(void *))&json_decref);
+  return U_CALLBACK_CONTINUE;
+}
