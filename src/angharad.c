@@ -9,7 +9,7 @@
  * 
  * Angharad server entry point
  *
- * Copyright 2016 Nicolas Mora <mail@babelouest.org>
+ * Copyright 2016-2021 Nicolas Mora <mail@babelouest.org>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU GENERAL PUBLIC LICENSE
@@ -34,29 +34,6 @@
 
 pthread_mutex_t global_handler_close_lock;
 pthread_cond_t  global_handler_close_cond;
-
-static char * read_file(const char * filename) {
-  char * buffer = NULL;
-  long length;
-  FILE * f;
-  if (filename != NULL) {
-    f = fopen (filename, "rb");
-    if (f) {
-      fseek (f, 0, SEEK_END);
-      length = ftell (f);
-      fseek (f, 0, SEEK_SET);
-      buffer = o_malloc (length + 1);
-      if (buffer) {
-        fread (buffer, 1, length, f);
-        buffer[length] = '\0';
-      }
-      fclose (f);
-    }
-    return buffer;
-  } else {
-    return NULL;
-  }
-}
 
 /**
  * Main function
@@ -121,6 +98,7 @@ int main(int argc, char ** argv) {
   }
   u_map_put(&config->static_file_config->mime_types, "*", "application/octet-stream");
 
+  i_global_init();
   ulfius_init_instance(config->instance, ANGHARAD_DEFAULT_PORT, NULL, NULL);
 
   if (pthread_mutex_init(&global_handler_close_lock, NULL) || 
@@ -212,7 +190,7 @@ int main(int argc, char ** argv) {
         y_log_message(Y_LOG_LEVEL_INFO, "OIDC authentication - Load remote authentification config: %s", config->oidc_server_remote_config);
       } else if (config->oidc_server_public_jwks != NULL) {
         res = 1;
-        if ((str_jwks = read_file(config->oidc_server_public_jwks)) != NULL) {
+        if ((str_jwks = get_file_content(config->oidc_server_public_jwks)) != NULL) {
           if ((j_jwks = json_loads(str_jwks, JSON_DECODE_ANY, NULL)) != NULL) {
             if (!i_jwt_profile_access_token_load_jwks(config->iddawc_resource_config, j_jwks, config->oidc_iss)) {
               y_log_message(Y_LOG_LEVEL_ERROR, "OIDC authentication - Error i_jwt_profile_access_token_load_jwks");
@@ -251,7 +229,7 @@ int main(int argc, char ** argv) {
   }
   
   // Start the webservice
-  y_log_message(Y_LOG_LEVEL_INFO, "Angharad started on port %d", config->instance->port);
+  y_log_message(Y_LOG_LEVEL_INFO, "Start Angharad on port %d, prefix: %s, scope %s", config->instance->port, config->url_prefix_angharad, config->iddawc_resource_config->oauth_scope);
   if (ulfius_start_framework(config->instance) == U_OK) {
     // Wait until stop signal is broadcasted
     pthread_mutex_lock(&global_handler_close_lock);
@@ -532,6 +510,7 @@ void exit_server(struct config_elements ** config, int exit_value) {
       pthread_cond_destroy(&global_handler_close_cond)) {
     y_log_message(Y_LOG_LEVEL_ERROR, "Error destroying global_handler_close_lock or global_handler_close_cond");
   }
+  i_global_close();
   y_close_logs();
   exit(exit_value);
 }
@@ -1063,10 +1042,10 @@ int init_angharad(struct config_elements * config) {
     ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/profile/@profile_id", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_carleon_profile_set, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/profile/@profile_id", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_carleon_profile_remove, (void*)config);
     
-    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, NULL, ANGHARAD_CALLBACK_PRIORITY_COMPRESSION, &callback_http_compression, NULL);
-    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_benoic, NULL, ANGHARAD_CALLBACK_PRIORITY_COMPRESSION, &callback_http_compression, NULL);
-    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_carleon, NULL, ANGHARAD_CALLBACK_PRIORITY_COMPRESSION, &callback_http_compression, NULL);
-    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_gareth, NULL, ANGHARAD_CALLBACK_PRIORITY_COMPRESSION, &callback_http_compression, NULL);
+    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, "*", ANGHARAD_CALLBACK_PRIORITY_COMPRESSION, &callback_http_compression, NULL);
+    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_benoic, "*", ANGHARAD_CALLBACK_PRIORITY_COMPRESSION, &callback_http_compression, NULL);
+    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_carleon, "*", ANGHARAD_CALLBACK_PRIORITY_COMPRESSION, &callback_http_compression, NULL);
+    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_gareth, "*", ANGHARAD_CALLBACK_PRIORITY_COMPRESSION, &callback_http_compression, NULL);
     ulfius_add_endpoint_by_val(config->instance, "GET", NULL, "*", ANGHARAD_CALLBACK_PRIORITY_FILES, &callback_static_compressed_inmemory_website, (void*)config->static_file_config);
     ulfius_add_endpoint_by_val(config->instance, "OPTIONS", NULL, "*", ANGHARAD_CALLBACK_PRIORITY_ZERO, &callback_angharad_options, (void*)config);
 
