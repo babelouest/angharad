@@ -981,7 +981,9 @@ extern "C" json_t * b_device_overview (json_t * device, void * device_ptr) {
             }
           }
         } catch (OpenZWave::OZWException &) {
+#ifdef DEBUG
           y_log_message(Y_LOG_LEVEL_DEBUG, "Exception refresh value binary (COMMAND_CLASS_SWITCH_BINARY) %s, genre %s, type %s", v.GetAsString().c_str(), v.GetGenreAsString().c_str(), v.GetTypeAsString().c_str());
+#endif
         }
         o_free(name);
       } else if ( v.GetCommandClassId() == COMMAND_CLASS_SWITCH_MULTILEVEL ) { // COMMAND_CLASS_SWITCH_MULTILEVEL - Dimmer
@@ -1005,7 +1007,9 @@ extern "C" json_t * b_device_overview (json_t * device, void * device_ptr) {
               }
             }
           } catch (OpenZWave::OZWException &) {
+#ifdef DEBUG
             y_log_message(Y_LOG_LEVEL_DEBUG, "Exception refresh value string (COMMAND_CLASS_SWITCH_MULTILEVEL) %s, genre %s, type %s", v.GetAsString().c_str(), v.GetGenreAsString().c_str(), v.GetTypeAsString().c_str());
+#endif
           }
           o_free(name);
         }
@@ -1027,7 +1031,9 @@ extern "C" json_t * b_device_overview (json_t * device, void * device_ptr) {
             }
           }
         } catch (OpenZWave::OZWException &) {
+#ifdef DEBUG
           y_log_message(Y_LOG_LEVEL_DEBUG, "Exception refresh value binary (COMMAND_CLASS_SENSOR_BINARY) %s, genre %s, type %s", v.GetAsString().c_str(), v.GetGenreAsString().c_str(), v.GetTypeAsString().c_str());
+#endif
         }
         o_free(name);
         free(named_label);
@@ -1056,7 +1062,9 @@ extern "C" json_t * b_device_overview (json_t * device, void * device_ptr) {
             json_decref(value);
           }
         } catch (OpenZWave::OZWException &) {
+#ifdef DEBUG
           y_log_message(Y_LOG_LEVEL_DEBUG, "Exception refresh value string (COMMAND_CLASS_SENSOR_MULTILEVEL) %s, genre %s, type %s", v.GetAsString().c_str(), v.GetGenreAsString().c_str(), v.GetTypeAsString().c_str());
+#endif
         }
         o_free(name);
         free(named_label);
