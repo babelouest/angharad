@@ -4,6 +4,7 @@
 
 - Add http compression
 - Update authentication backend to OpenID Connect with JSON Web Token (JWT) Profile for OAuth 2.0 Access Tokens
+- Update zwave module to adapt to openzwave 1.6
 
 ## 1.2.3
 
