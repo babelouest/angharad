@@ -7,7 +7,7 @@
  * Zwave device module
  * Provides all the commands for a zwave dongle
  *
- * Copyright 2016 Nicolas Mora <mail@babelouest.org>
+ * Copyright 2016-2021 Nicolas Mora <mail@babelouest.org>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU GENERAL PUBLIC LICENSE
@@ -606,13 +606,16 @@ extern "C" json_t * b_device_connect (json_t * device, void ** device_ptr) {
  */
 extern "C" json_t * b_device_disconnect (json_t * device, void * device_ptr) {
   if (device_ptr != NULL && strlen(((struct zwave_context *) device_ptr)->usb_file) > 0) {
-    Options::Destroy();
+    Manager::Get()->RemoveWatcher( on_notification_zwave, device_ptr );
     Manager::Destroy();
+    Options::Destroy();
     delete ((struct zwave_context *) device_ptr)->nodes_list;
     o_free(((struct zwave_context *) device_ptr)->alert_url);
     o_free(((struct zwave_context *) device_ptr)->device_name);
-    u_map_clean_full(((struct zwave_context *) device_ptr)->alarms);
-    u_map_clean_full(((struct zwave_context *) device_ptr)->dimmer_values);
+    u_map_clean(((struct zwave_context *) device_ptr)->alarms);
+    u_map_clean(((struct zwave_context *) device_ptr)->dimmer_values);
+    delete (((struct zwave_context *) device_ptr)->alarms);
+    delete (((struct zwave_context *) device_ptr)->dimmer_values);
     o_free(device_ptr);
   }
   return json_pack("{si}", "result", RESULT_OK);
@@ -966,15 +969,19 @@ extern "C" json_t * b_device_overview (json_t * device, void * device_ptr) {
         name = msprintf("sw$%02d", node->node_id);
         cur_node = "switches";
         unit = (char *)Manager::Get()->GetValueUnits(v).c_str();
-        if (Manager::Get()->GetValueAsBool(v, &b_status)) {
-          if (json_object_get(overview, cur_node) == NULL) {
-            json_object_set_new(overview, cur_node, json_object());
+        try {
+          if (Manager::Get()->GetValueAsBool(v, &b_status)) {
+            if (json_object_get(overview, cur_node) == NULL) {
+              json_object_set_new(overview, cur_node, json_object());
+            }
+            if (unit != NULL && strlen(unit) >0) {
+              json_object_set_new(json_object_get(overview, cur_node), name, json_pack("{sssi}", "unit", unit, "value", b_status?1:0));
+            } else {
+              json_object_set_new(json_object_get(overview, cur_node), name, json_integer(b_status?1:0));
+            }
           }
-          if (unit != NULL && strlen(unit) >0) {
-            json_object_set_new(json_object_get(overview, cur_node), name, json_pack("{sssi}", "unit", unit, "value", b_status?1:0));
-          } else {
-            json_object_set_new(json_object_get(overview, cur_node), name, json_integer(b_status?1:0));
-          }
+        } catch (OpenZWave::OZWException &) {
+          y_log_message(Y_LOG_LEVEL_DEBUG, "Exception refresh value binary (COMMAND_CLASS_SWITCH_BINARY) %s, genre %s, type %s", v.GetAsString().c_str(), v.GetGenreAsString().c_str(), v.GetTypeAsString().c_str());
         }
         o_free(name);
       } else if ( v.GetCommandClassId() == COMMAND_CLASS_SWITCH_MULTILEVEL ) { // COMMAND_CLASS_SWITCH_MULTILEVEL - Dimmer
@@ -983,18 +990,22 @@ extern "C" json_t * b_device_overview (json_t * device, void * device_ptr) {
           name = msprintf("di$%02d", node->node_id);
           cur_node = "dimmers";
           unit = (char *)Manager::Get()->GetValueUnits(v).c_str();
-          if (Manager::Get()->GetValueAsString(v, &s_status)) {
-            if (s_status.compare("0")) {
-              u_map_put(((zwave_context *)device_ptr)->dimmer_values, name, s_status.c_str());
+          try {
+            if (Manager::Get()->GetValueAsString(v, &s_status)) {
+              if (s_status.compare("0")) {
+                u_map_put(((zwave_context *)device_ptr)->dimmer_values, name, s_status.c_str());
+              }
+              if (json_object_get(overview, cur_node) == NULL) {
+                json_object_set_new(overview, cur_node, json_object());
+              }
+              if (unit != NULL && strlen(unit) >0) {
+                json_object_set_new(json_object_get(overview, cur_node), name, json_pack("{sssi}", "unit", unit, "value", strtol(s_status.c_str(), NULL, 10)));
+              } else {
+                json_object_set_new(json_object_get(overview, cur_node), name, json_integer(strtol(s_status.c_str(), NULL, 10)));
+              }
             }
-            if (json_object_get(overview, cur_node) == NULL) {
-              json_object_set_new(overview, cur_node, json_object());
-            }
-            if (unit != NULL && strlen(unit) >0) {
-              json_object_set_new(json_object_get(overview, cur_node), name, json_pack("{sssi}", "unit", unit, "value", strtol(s_status.c_str(), NULL, 10)));
-            } else {
-              json_object_set_new(json_object_get(overview, cur_node), name, json_integer(strtol(s_status.c_str(), NULL, 10)));
-            }
+          } catch (OpenZWave::OZWException &) {
+            y_log_message(Y_LOG_LEVEL_DEBUG, "Exception refresh value string (COMMAND_CLASS_SWITCH_MULTILEVEL) %s, genre %s, type %s", v.GetAsString().c_str(), v.GetGenreAsString().c_str(), v.GetTypeAsString().c_str());
           }
           o_free(name);
         }
@@ -1004,15 +1015,19 @@ extern "C" json_t * b_device_overview (json_t * device, void * device_ptr) {
         name = msprintf("se$%02d$%s", node->node_id, named_label);
         cur_node = "sensors";
         unit = (char *)Manager::Get()->GetValueUnits(v).c_str();
-        if (Manager::Get()->GetValueAsBool(v, &b_status)) {
-          if (json_object_get(overview, cur_node) == NULL) {
-            json_object_set_new(overview, cur_node, json_object());
+        try {
+          if (Manager::Get()->GetValueAsBool(v, &b_status)) {
+            if (json_object_get(overview, cur_node) == NULL) {
+              json_object_set_new(overview, cur_node, json_object());
+            }
+            if (unit != NULL && strlen(unit) >0) {
+              json_object_set_new(json_object_get(overview, cur_node), name, json_pack("{sssi}", "unit", unit, "value", b_status?1:0));
+            } else {
+              json_object_set_new(json_object_get(overview, cur_node), name, b_status?json_true():json_false());
+            }
           }
-          if (unit != NULL && strlen(unit) >0) {
-            json_object_set_new(json_object_get(overview, cur_node), name, json_pack("{sssi}", "unit", unit, "value", b_status?1:0));
-          } else {
-            json_object_set_new(json_object_get(overview, cur_node), name, b_status?json_true():json_false());
-          }
+        } catch (OpenZWave::OZWException &) {
+          y_log_message(Y_LOG_LEVEL_DEBUG, "Exception refresh value binary (COMMAND_CLASS_SENSOR_BINARY) %s, genre %s, type %s", v.GetAsString().c_str(), v.GetGenreAsString().c_str(), v.GetTypeAsString().c_str());
         }
         o_free(name);
         free(named_label);
@@ -1022,22 +1037,26 @@ extern "C" json_t * b_device_overview (json_t * device, void * device_ptr) {
         name = msprintf("se$%02d$%s", node->node_id, named_label);
         cur_node = "sensors";
         unit = (char *)Manager::Get()->GetValueUnits(v).c_str();
-        if (Manager::Get()->GetValueAsString(v, &s_status)) {
-          d_value = strtof(s_status.c_str(), &end_ptr_d);
-          if (end_ptr_d != s_status.c_str()) {
-            value = json_real(d_value);
-          } else {
-            value = json_string(s_status.c_str());
+        try {
+          if (Manager::Get()->GetValueAsString(v, &s_status)) {
+            d_value = strtof(s_status.c_str(), &end_ptr_d);
+            if (end_ptr_d != s_status.c_str()) {
+              value = json_real(d_value);
+            } else {
+              value = json_string(s_status.c_str());
+            }
+            if (json_object_get(overview, cur_node) == NULL) {
+              json_object_set_new(overview, cur_node, json_object());
+            }
+            if (unit != NULL && strlen(unit) >0) {
+              json_object_set_new(json_object_get(overview, cur_node), name, json_pack("{ssso}", "unit", unit, "value", json_copy(value)));
+            } else {
+              json_object_set_new(json_object_get(overview, cur_node), name, json_copy(value));
+            }
+            json_decref(value);
           }
-          if (json_object_get(overview, cur_node) == NULL) {
-            json_object_set_new(overview, cur_node, json_object());
-          }
-          if (unit != NULL && strlen(unit) >0) {
-            json_object_set_new(json_object_get(overview, cur_node), name, json_pack("{ssso}", "unit", unit, "value", json_copy(value)));
-          } else {
-            json_object_set_new(json_object_get(overview, cur_node), name, json_copy(value));
-          }
-          json_decref(value);
+        } catch (OpenZWave::OZWException &) {
+          y_log_message(Y_LOG_LEVEL_DEBUG, "Exception refresh value string (COMMAND_CLASS_SENSOR_MULTILEVEL) %s, genre %s, type %s", v.GetAsString().c_str(), v.GetGenreAsString().c_str(), v.GetTypeAsString().c_str());
         }
         o_free(name);
         free(named_label);

@@ -19,7 +19,6 @@
 # License along with this library.	If not, see <http://www.gnu.org/licenses/>.
 #
 
-VERSION=0.4.0
 PREFIX=/usr/local
 MODULES_TARGET=$(PREFIX)/lib/angharad/benoic
 LIBZWPATH=/usr/lib
@@ -29,9 +28,9 @@ CFLAGS=-c -fPIC -Wall -Wno-unknown-pragmas -D_REENTRANT -shared -nostartfiles -I
 LIBS=-L$(PREFIX)/lib -lc -ljansson -lyder -lorcania -lulfius -ldl
 LDFLAGS += -Wl,-R '-Wl,-R$$ORIGIN' -lopenzwave
 
-oz_include=/usr/include/openzwave/
+oz_include=$(shell pkg-config --cflags-only-I libopenzwave)
 
-OZINCLUDES:= -I $(oz_include) -I $(oz_include)command_classes -I $(oz_include)platform -I $(oz_include)value_classes
+OZINCLUDES:= $(oz_include) $(oz_include)command_classes $(oz_include)platform $(oz_include)value_classes
 
 all: release
 
@@ -45,7 +44,7 @@ device-zwave.o: device-zwave.cpp
 	$(CPP) $(CFLAGS) -Wno-write-strings $(FLAGS_YDER) $(OZINCLUDES) device-zwave.cpp
 
 libdevzwave.so: device-zwave.o
-	$(CC) -shared -Wl,-soname,libdevzwave.so -o libdevzwave.so device-zwave.o $(LIBS) $(LDFLAGS)
+	$(CC) -shared -Wl,-soname,libdevzwave.so -o libdevzwave.so device-zwave.o $(LIBS) $(LDFLAGS) $(shell pkg-config --libs libopenzwave)
 
 device-taulas.o: device-taulas.c
 	$(CC) $(CFLAGS) -Werror -Wextra $(FLAGS_YDER) device-taulas.c
@@ -58,7 +57,7 @@ clean:
 
 debug: ADDITIONALFLAGS=-DDEBUG -g -O0
 
-debug: libdevmock.so libdevzwave.so libdevtaulas.so
+debug: libdevzwave.so libdevtaulas.so
 
 release: ADDITIONALFLAGS=-O3
 

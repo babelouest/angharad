@@ -59,7 +59,7 @@ clean:
 
 debug: ADDITIONALFLAGS=-DDEBUG -g -O0
 
-debug: libservicemock.so libservicemotion.so libservicempd.so libserviceliquidsoap.so
+debug: libservicemotion.so libservicempd.so libserviceliquidsoap.so
 
 release: ADDITIONALFLAGS=-O3
 
