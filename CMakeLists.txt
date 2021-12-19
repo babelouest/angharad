@@ -433,14 +433,13 @@ if (BUILD_TESTING)
 								"${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake"
 								@ONLY)
 
-				foreach (t ${TESTS})
-						add_executable(${t} EXCLUDE_FROM_ALL ${TST_DIR}/${t}.c ${TST_DIR}/unit-tests.c ${TST_DIR}/unit-tests.h)
-						target_include_directories(${t} PUBLIC ${TST_DIR})
-						target_link_libraries(${t} PUBLIC ${LIBS})
-						add_test(NAME ${t}
-										WORKING_DIRECTORY ${TST_DIR}
-										COMMAND ${t})
-				endforeach ()
+        foreach (t ${TESTS})
+            add_executable(${t} EXCLUDE_FROM_ALL ${TST_DIR}/${t}.c ${TST_DIR}/unit-tests.c ${TST_DIR}/unit-tests.h)
+            target_include_directories(${t} PUBLIC ${TST_DIR})
+            target_link_libraries(${t} PUBLIC ${LIBS})
+            add_test(NAME ${t}
+                    COMMAND ${t} "private-test.jwks")
+        endforeach ()
 		endif ()
 endif ()
 
