@@ -220,7 +220,7 @@ int scheduler_modify(struct config_elements * config, const char * scheduler_nam
 int scheduler_delete(struct config_elements * config, const char * scheduler_name);
 int scheduler_add_tag(struct config_elements * config, const char * scheduler_name, const char * tag);
 int scheduler_remove_tag(struct config_elements * config, const char * scheduler_name, const char * tag);
-time_t scheduler_calculate_next_time(time_t from, int schedule_type, unsigned int schedule_value);
+time_t scheduler_calculate_next_time(time_t from, int schedule_type, json_int_t schedule_value);
 
 json_t * trigger_get(struct config_elements * config, const char * trigger_name);
 int trigger_enable(struct config_elements * config, json_t * j_trigger, int enabled);

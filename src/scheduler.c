@@ -6,7 +6,7 @@
  * - Benoic
  * - Gareth
  * - Carleon
- * 
+ *
  * Schedulers management functions
  *
  * Copyright 2016-2021 Nicolas Mora <mail@babelouest.org>
@@ -39,15 +39,15 @@ void * thread_scheduler_run(void * args) {
   struct tm ts;
   json_t * scheduler_list_names, * scheduler_name, * scheduler, * scheduler_result, * script;
   size_t index, index_sc;
-  
+
   char * str_message_text;
   json_t * j_message;
-  
+
   if (config != NULL) {
     while (config->angharad_status == ANGHARAD_STATUS_RUN) {
       // Run monitoring task every minute
       time(&now);
-      gmtime_r(&now, &ts);
+      localtime_r(&now, &ts);
       if (ts.tm_sec == 0) {
         // Check schedules and events
         scheduler_list_names = scheduler_get_next_schedules(config);
@@ -56,8 +56,8 @@ void * thread_scheduler_run(void * args) {
             scheduler_result = scheduler_get(config, json_string_value(json_object_get(scheduler_name, "name")), 1);
             if (scheduler_result != NULL && json_integer_value(json_object_get(scheduler_result, "result")) == A_OK) {
               scheduler = json_object_get(scheduler_result, "scheduler");
-              next_time = json_integer_value(json_object_get(scheduler, "next_time"));
-              
+              next_time = (time_t)json_integer_value(json_object_get(scheduler, "next_time"));
+
               // Calculate next time or remove scheduler if needed or disable it if it's in the past
               if (json_object_get(scheduler, "remove_after") == json_true() && json_integer_value(json_object_get(scheduler, "repeat")) < 0) {
                 y_log_message(Y_LOG_LEVEL_DEBUG, "Remove scheduler %s", json_string_value(json_object_get(scheduler, "name")));
@@ -69,8 +69,8 @@ void * thread_scheduler_run(void * args) {
                 while (next_time <= now) {
                   next_time = scheduler_calculate_next_time(next_time, json_integer_value(json_object_get(scheduler, "repeat")), json_integer_value(json_object_get(scheduler, "repeat_value")));
                 }
-                
-                if (next_time > 0) {
+
+                if (next_time) {
                   json_object_set_new(scheduler, "next_time", json_integer(next_time));
                   if (scheduler_modify(config, json_string_value(json_object_get(scheduler, "name")), scheduler) != A_OK) {
                     y_log_message(Y_LOG_LEVEL_ERROR, "Error updating scheduler %s", json_string_value(json_object_get(scheduler, "name")));
@@ -82,9 +82,9 @@ void * thread_scheduler_run(void * args) {
                   y_log_message(Y_LOG_LEVEL_ERROR, "Error updating scheduler %s", json_string_value(json_object_get(scheduler, "name")));
                 }
               }
-              
+
               // Execute scheduler scripts
-              if (json_integer_value(json_object_get(scheduler, "next_time")) >= (now - 60) && condition_list_check(config, json_object_get(scheduler, "conditions"))) {
+              if ((time_t)json_integer_value(json_object_get(scheduler, "next_time")) >= (now - 60) && condition_list_check(config, json_object_get(scheduler, "conditions"))) {
                 // Send a message via gareth submodule
                 str_message_text = msprintf("Running scheduled script %s", json_string_value(json_object_get(scheduler, "name")));
                 j_message = json_pack("{sssssss[s]}", "priority", "LOW", "source", "angharad", "text", str_message_text, "tags", "scheduler");
@@ -123,7 +123,7 @@ json_t * scheduler_get_next_schedules(struct config_elements * config) {
   int res;
   json_t * j_result;
   json_t * j_query = json_pack("{sss[s]s{s{ssss}si}}",
-                                "table", 
+                                "table",
                                   ANGHARAD_TABLE_SCHEDULER,
                                 "columns",
                                   "ash_name AS name",
@@ -135,7 +135,7 @@ json_t * scheduler_get_next_schedules(struct config_elements * config) {
                                     (config->conn->type == HOEL_DB_TYPE_MARIADB?"<= NOW()":"<= strftime('%s','now')"),
                                   "ash_enabled",
                                   1);
-  
+
   if (j_query == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_get - Error allocating resources for j_query");
     return json_pack("{si}", "result", A_ERROR_MEMORY);
@@ -156,42 +156,42 @@ json_t * scheduler_get(struct config_elements * config, const char * scheduler_n
   json_t * j_query, * j_result, * j_scheduler, * j_options, * j_conditions, * j_bool, * to_return, * j_repeat, * script_list;
   int res;
   size_t index;
-  
-  j_query = json_pack("{sss[ssssssss]}", 
-                        "table", 
-                          ANGHARAD_TABLE_SCHEDULER, 
-                        "columns", 
-                          "ash_name AS name", 
-                          "ash_description AS description", 
-                          "ash_enabled", 
-                          "ash_options", 
+
+  j_query = json_pack("{sss[ssssssss]}",
+                        "table",
+                          ANGHARAD_TABLE_SCHEDULER,
+                        "columns",
+                          "ash_name AS name",
+                          "ash_description AS description",
+                          "ash_enabled",
+                          "ash_options",
                           "ash_conditions",
-                          "ash_repeat AS s_repeat", 
-                          "ash_repeat_value AS repeat_value", 
+                          "ash_repeat AS s_repeat",
+                          "ash_repeat_value AS repeat_value",
                           "ash_remove_after");
   if (config->conn->type == HOEL_DB_TYPE_MARIADB) {
     json_array_append_new(json_object_get(j_query, "columns"), json_string("UNIX_TIMESTAMP(ash_next_time) AS next_time"));
   } else if (config->conn->type == HOEL_DB_TYPE_SQLITE) {
     json_array_append_new(json_object_get(j_query, "columns"), json_string("ash_next_time AS next_time"));
   }
-  
+
   if (j_query == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_get - Error allocating resources for j_query");
     return json_pack("{si}", "result", A_ERROR_MEMORY);
   }
-  
+
   if (scheduler_name != NULL || runnable) {
     json_object_set_new(j_query, "where", json_object());
   }
-  
+
   if (scheduler_name != NULL) {
     json_object_set_new(json_object_get(j_query, "where"), "ash_name", json_string(scheduler_name));
   }
-  
+
   if (runnable) {
     json_object_set_new(json_object_get(j_query, "where"), "ash_enabled", json_integer(1));
   }
-  
+
   res = h_select(config->conn, j_query, &j_result, NULL);
   json_decref(j_query);
   if (res == H_OK) {
@@ -217,7 +217,7 @@ json_t * scheduler_get(struct config_elements * config, const char * scheduler_n
         j_repeat = json_copy(json_object_get(j_scheduler, "s_repeat"));
         json_object_del(j_scheduler, "s_repeat");
         json_object_set_new(j_scheduler, "repeat", j_repeat);
-        
+
         script_list = scheduler_get_script_list(config, json_string_value(json_object_get(j_scheduler, "name")));
         if (json_integer_value(json_object_get(script_list, "result")) == A_OK) {
           json_object_set_new(j_scheduler, "scripts", json_copy(json_object_get(script_list, "scripts")));
@@ -226,7 +226,7 @@ json_t * scheduler_get(struct config_elements * config, const char * scheduler_n
           json_object_set_new(j_scheduler, "scripts", json_array());
         }
         json_decref(script_list);
-        
+
         json_array_append_new(to_return, json_copy(j_scheduler));
       }
       json_decref(j_result);
@@ -265,7 +265,7 @@ json_t * scheduler_get(struct config_elements * config, const char * scheduler_n
           json_object_set_new(j_scheduler, "scripts", json_array());
         }
         json_decref(script_list);
-        
+
         return json_pack("{siso}", "result", A_OK, "scheduler", j_scheduler);
       }
     }
@@ -280,7 +280,7 @@ json_t * scheduler_get(struct config_elements * config, const char * scheduler_n
  */
 int scheduler_enable(struct config_elements * config, json_t * j_scheduler, int enabled) {
   time_t now, next_time;
-  
+
   if (j_scheduler != NULL) {
     json_object_set(j_scheduler, "enabled", enabled?json_true():json_false());
     time(&now);
@@ -289,7 +289,7 @@ int scheduler_enable(struct config_elements * config, json_t * j_scheduler, int 
       while (next_time <= now) {
         next_time = scheduler_calculate_next_time(next_time, json_integer_value(json_object_get(j_scheduler, "repeat")), json_integer_value(json_object_get(j_scheduler, "repeat_value")));
       }
-      
+
       if (next_time > 0) {
         json_object_set_new(j_scheduler, "next_time", json_integer(next_time));
       } else {
@@ -310,12 +310,12 @@ int scheduler_add(struct config_elements * config, json_t * j_scheduler) {
   int res;
   char * str_options, * str_conditions, * str_next_time;
   json_error_t error;
-  
+
   if (j_scheduler == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_add - Error j_scheduler is NULL");
     return A_ERROR_MEMORY;
   }
-  
+
   if (config->conn->type == HOEL_DB_TYPE_MARIADB) {
     str_next_time = msprintf("FROM_UNIXTIME(%" JSON_INTEGER_FORMAT ")", json_integer_value(json_object_get(j_scheduler, "next_time")));
   } else if (config->conn->type == HOEL_DB_TYPE_SQLITE) {
@@ -324,7 +324,7 @@ int scheduler_add(struct config_elements * config, json_t * j_scheduler) {
     // Should not happen, but I don't like gcc warnings
     str_next_time = o_strdup("");
   }
-  
+
   if (json_object_get(j_scheduler, "options") != NULL) {
     str_options = json_dumps(json_object_get(j_scheduler, "options"), JSON_COMPACT);
   } else {
@@ -343,19 +343,19 @@ int scheduler_add(struct config_elements * config, json_t * j_scheduler) {
                         "ash_enabled", json_object_get(j_scheduler, "enabled")==json_false()?0:1,
                         "ash_options", str_options,
                         "ash_conditions", str_conditions,
-                        "ash_next_time", "raw", str_next_time, 
-                        "ash_repeat", json_integer_value(json_object_get(j_scheduler, "repeat")), 
-                        "ash_repeat_value", json_integer_value(json_object_get(j_scheduler, "repeat_value")), 
+                        "ash_next_time", "raw", str_next_time,
+                        "ash_repeat", json_integer_value(json_object_get(j_scheduler, "repeat")),
+                        "ash_repeat_value", json_integer_value(json_object_get(j_scheduler, "repeat_value")),
                         "ash_remove_after", json_object_get(j_scheduler, "remove_after")==json_false()?0:1);
   o_free(str_options);
   o_free(str_conditions);
   o_free(str_next_time);
-  
+
   if (j_query == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_add - Error Allocating resources for j_query: %s", error.text);
     return A_ERROR_MEMORY;
   }
-  
+
   res = h_insert(config->conn, j_query, NULL);
   json_decref(j_query);
   if (res == H_OK) {
@@ -372,12 +372,12 @@ int scheduler_add(struct config_elements * config, json_t * j_scheduler) {
 json_t * is_scheduler_valid(struct config_elements * config, json_t * j_scheduler, const int update) {
   json_t * j_result = json_array(), * j_element, * j_options_valid, * j_conditions_valid, * j_scripts_valid;
   size_t index;
-  
+
   if (j_result == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "is_scheduler_valid - Error allocating resources for j_result");
     return NULL;
   }
-  
+
   if (j_scheduler == NULL || !json_is_object(j_scheduler)) {
     json_array_append_new(j_result, json_pack("{ss}", "scheduler", "scheduler object is mandatory"));
   } else {
@@ -392,32 +392,32 @@ json_t * is_scheduler_valid(struct config_elements * config, json_t * j_schedule
     if (j_element != NULL && (!json_is_string(j_element) || json_string_length(j_element) > 128)) {
       json_array_append_new(j_result, json_pack("{ss}", "description", "description parameter must be a string, maximum 128 characters"));
     }
-    
+
     j_element = json_object_get(j_scheduler, "enabled");
     if (j_element != NULL && !json_is_boolean(j_element)) {
       json_array_append_new(j_result, json_pack("{ss}", "enabled", "enabled parameter must be a boolean"));
     }
-    
+
     j_element = json_object_get(j_scheduler, "next_time");
     if (j_element == NULL || !json_is_integer(j_element) || json_integer_value(j_element) < 0) {
       json_array_append_new(j_result, json_pack("{ss}", "next_time", "next_time parameter must be a valid epoch time"));
     }
-    
+
     j_element = json_object_get(j_scheduler, "repeat");
     if (j_element != NULL && (!json_is_integer(j_element) || json_integer_value(j_element) < -1 || json_integer_value(j_element) > 5)) {
       json_array_append_new(j_result, json_pack("{ss}", "repeat", "repeat parameter must be an integer between -1 and 5"));
     }
-    
+
     j_element = json_object_get(j_scheduler, "repeat_value");
     if (j_element != NULL && (!json_is_integer(j_element) || json_integer_value(j_element) < 0)) {
       json_array_append_new(j_result, json_pack("{ss}", "repeat_value", "repeat_value parameter must be a positive integer"));
     }
-    
+
     j_element = json_object_get(j_scheduler, "remove_after");
     if (j_element != NULL && !json_is_boolean(j_element)) {
       json_array_append_new(j_result, json_pack("{ss}", "remove_after", "remove_after parameter must be a boolean"));
     }
-    
+
     if (json_object_get(j_scheduler, "options") != NULL) {
       j_options_valid = is_option_valid(json_object_get(j_scheduler, "options"), BENOIC_ELEMENT_TYPE_NONE);
       if (j_options_valid != NULL && json_array_size(j_options_valid) > 0) {
@@ -433,7 +433,7 @@ json_t * is_scheduler_valid(struct config_elements * config, json_t * j_schedule
         return NULL;
       }
     }
-    
+
     j_conditions_valid = is_condition_list_valid(config, json_object_get(j_scheduler, "conditions"));
     if (j_conditions_valid != NULL && json_is_array(j_conditions_valid) && json_array_size(j_conditions_valid) > 0) {
       json_array_foreach(j_conditions_valid, index, j_element) {
@@ -447,7 +447,7 @@ json_t * is_scheduler_valid(struct config_elements * config, json_t * j_schedule
       json_decref(j_result);
       return NULL;
     }
-    
+
     j_scripts_valid = is_script_list_valid(config, json_object_get(j_scheduler, "scripts"));
     if (j_scripts_valid != NULL && json_is_array(j_scripts_valid) && json_array_size(j_scripts_valid) > 0) {
       json_array_foreach(j_scripts_valid, index, j_element) {
@@ -472,12 +472,12 @@ int scheduler_modify(struct config_elements * config, const char * scheduler_nam
   json_t * j_query, * cur_scheduler;
   int res, res_cur_scheduler;
   char * str_options, * str_conditions, * str_next_time;
-  
+
   if (j_scheduler == NULL || scheduler_name == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_modify - Error j_scheduler or scheduler_name is NULL");
     return A_ERROR_MEMORY;
   }
-  
+
   cur_scheduler = scheduler_get(config, scheduler_name, 0);
   res_cur_scheduler = (cur_scheduler != NULL?json_integer_value(json_object_get(cur_scheduler, "result")):A_ERROR);
   json_decref(cur_scheduler);
@@ -507,21 +507,21 @@ int scheduler_modify(struct config_elements * config, const char * scheduler_nam
                           "ash_enabled", json_object_get(j_scheduler, "enabled")==json_false()?0:1,
                           "ash_options", str_options,
                           "ash_conditions", str_conditions,
-                          "ash_next_time", "raw", str_next_time, 
-                          "ash_repeat", json_integer_value(json_object_get(j_scheduler, "repeat")), 
-                          "ash_repeat_value", json_integer_value(json_object_get(j_scheduler, "repeat_value")), 
+                          "ash_next_time", "raw", str_next_time,
+                          "ash_repeat", json_integer_value(json_object_get(j_scheduler, "repeat")),
+                          "ash_repeat_value", json_integer_value(json_object_get(j_scheduler, "repeat_value")),
                           "ash_remove_after", json_object_get(j_scheduler, "remove_after")==json_false()?0:1,
                         "where",
                           "ash_name", scheduler_name);
     o_free(str_options);
     o_free(str_conditions);
     o_free(str_next_time);
-    
+
     if (j_query == NULL) {
       y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_modify - Error Allocating resources for j_query");
       return A_ERROR_MEMORY;
     }
-    
+
     res = h_update(config->conn, j_query, NULL);
     json_decref(j_query);
     if (res == H_OK) {
@@ -543,12 +543,12 @@ int scheduler_modify(struct config_elements * config, const char * scheduler_nam
 int scheduler_delete(struct config_elements * config, const char * scheduler_name) {
   json_t * j_query, * cur_scheduler;
   int res, res_cur_scheduler;
-  
+
   if (scheduler_name == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_modify - Error scheduler_name is NULL");
     return A_ERROR_PARAM;
   }
-  
+
   cur_scheduler = scheduler_get(config, scheduler_name, 0);
   res_cur_scheduler = (cur_scheduler != NULL?json_integer_value(json_object_get(cur_scheduler, "result")):A_ERROR);
   json_decref(cur_scheduler);
@@ -557,12 +557,12 @@ int scheduler_delete(struct config_elements * config, const char * scheduler_nam
                         "table", ANGHARAD_TABLE_SCHEDULER,
                         "where",
                           "ash_name", scheduler_name);
-    
+
     if (j_query == NULL) {
       y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_delete - Error Allocating resources for j_query");
       return A_ERROR_MEMORY;
     }
-    
+
     res = h_delete(config->conn, j_query, NULL);
     json_decref(j_query);
     if (res == H_OK) {
@@ -584,7 +584,7 @@ int scheduler_delete(struct config_elements * config, const char * scheduler_nam
 int scheduler_add_tag(struct config_elements * config, const char * scheduler_name, const char * tag) {
   json_t * j_result = scheduler_get(config, scheduler_name, 0), * j_scheduler, * j_tags;
   int res;
-  
+
   if (j_result == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_add_tag - Error getting scheduler");
     return A_ERROR_PARAM;
@@ -624,7 +624,7 @@ int scheduler_add_tag(struct config_elements * config, const char * scheduler_na
 int scheduler_remove_tag(struct config_elements * config, const char * scheduler_name, const char * tag) {
   json_t * j_result = scheduler_get(config, scheduler_name, 0), * j_scheduler, * j_tags;
   int i, res;
-  
+
   if (j_result == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_remove_tag - Error getting scheduler");
     return A_ERROR;
@@ -661,27 +661,27 @@ int scheduler_remove_tag(struct config_elements * config, const char * scheduler
 /**
  * Calculate the next time for a scheduler or a monitor
  */
-time_t scheduler_calculate_next_time(time_t from, int schedule_type, unsigned int schedule_value) {
+time_t scheduler_calculate_next_time(time_t from, int schedule_type, json_int_t schedule_value) {
   struct tm ts;
   time_t to_return;
   int isdst_from, isdst_to;
-  
-  gmtime_r(&from, &ts);
+
+  localtime_r(&from, &ts);
   isdst_from = ts.tm_isdst;
-  
+
   switch (schedule_type) {
     case SCHEDULER_REPEAT_MINUTE:
-      ts.tm_min += (schedule_value);
+      ts.tm_min += (int)(schedule_value);
       to_return = mktime(&ts);
       isdst_to = ts.tm_isdst;
       break;
     case SCHEDULER_REPEAT_HOUR:
-      ts.tm_hour += (schedule_value);
+      ts.tm_hour += (int)(schedule_value);
       to_return = mktime(&ts);
       isdst_to = ts.tm_isdst;
       break;
     case SCHEDULER_REPEAT_DAY:
-      ts.tm_mday += (schedule_value);
+      ts.tm_mday += (int)(schedule_value);
       to_return = mktime(&ts);
       isdst_to = ts.tm_isdst;
       break;
@@ -700,12 +700,12 @@ time_t scheduler_calculate_next_time(time_t from, int schedule_type, unsigned in
       }
       break;
     case SCHEDULER_REPEAT_MONTH:
-      ts.tm_mon += schedule_value;
+      ts.tm_mon += (int)schedule_value;
       to_return = mktime(&ts);
       isdst_to = ts.tm_isdst;
       break;
     case SCHEDULER_REPEAT_YEAR:
-      ts.tm_year += schedule_value;
+      ts.tm_year += (int)schedule_value;
       to_return = mktime(&ts);
       isdst_to = ts.tm_isdst;
       break;
@@ -714,7 +714,7 @@ time_t scheduler_calculate_next_time(time_t from, int schedule_type, unsigned in
       isdst_to = ts.tm_isdst;
       break;
   }
-  
+
   // Adjusting next time with Daylight saving time if changed
   // when schedule_type is REPEAT_DAY, REPEAT_DAY_OF_WEEK, REPEAT_MONTH, REPEAT_YEAR
   if (schedule_type & (SCHEDULER_REPEAT_DAY|SCHEDULER_REPEAT_DAY_OF_WEEK|SCHEDULER_REPEAT_MONTH|SCHEDULER_REPEAT_YEAR)) {
@@ -738,11 +738,11 @@ json_t * scheduler_get_script_list(struct config_elements * config, const char *
   int res;
   json_t * j_result, * j_script;
   size_t index;
-  
+
   res = h_query_select_json(config->conn, query, &j_result);
   o_free(escaped);
   o_free(query);
-  
+
   if (res != H_OK) {
     y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_get_script_list - Error getting scheduler");
     return json_pack("{si}", "result", A_ERROR);
@@ -767,7 +767,7 @@ int scheduler_set_script_list(struct config_elements * config, const char * sche
   int res;
   size_t index;
   char * sch_escaped = h_escape_string(config->conn, scheduler_name), * sch_clause = msprintf("(SELECT ash_id FROM a_scheduler WHERE ash_name = '%s')", sch_escaped), * tmp = msprintf("= %s", sch_clause), * sc_escaped, * sc_clause;
-  
+
   j_query = json_pack("{sss{s{ssss}}}",
                       "table",
                       ANGHARAD_TABLE_SCHEDULER_SCRIPT,
@@ -778,12 +778,12 @@ int scheduler_set_script_list(struct config_elements * config, const char * sche
                           "value",
                           tmp);
   o_free(tmp);
-  
+
   if (j_query == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_set_script_list - Error allocating resources for j_query");
     return A_ERROR_MEMORY;
   }
-  
+
   res = h_delete(config->conn, j_query, NULL);
   json_decref(j_query);
   if (res != H_OK) {
@@ -806,8 +806,8 @@ int scheduler_set_script_list(struct config_elements * config, const char * sche
     json_array_foreach(script_list, index, script) {
       sc_escaped = h_escape_string(config->conn, json_string_value(json_object_get(script, "name")));
       sc_clause = msprintf("(SELECT asc_id FROM a_script WHERE asc_name = '%s')", sc_escaped);
-      json_array_append_new(json_object_get(j_query, "values"), 
-        json_pack("{s{ss}s{ss}so}", 
+      json_array_append_new(json_object_get(j_query, "values"),
+        json_pack("{s{ss}s{ss}so}",
                   "ash_id",
                     "raw",
                     sch_clause,
@@ -819,7 +819,7 @@ int scheduler_set_script_list(struct config_elements * config, const char * sche
       o_free(sc_escaped);
       o_free(sc_clause);
     }
-    
+
     res = h_insert(config->conn, j_query, NULL);
     json_decref(j_query);
     o_free(sch_escaped);
