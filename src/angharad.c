@@ -6,7 +6,7 @@
  * - Benoic
  * - Gareth
  * - Carleon
- * 
+ *
  * Angharad server entry point
  *
  * Copyright 2016-2021 Nicolas Mora <mail@babelouest.org>
@@ -48,12 +48,12 @@ int main(int argc, char ** argv) {
   json_t * submodule;
   char * str_jwks;
   json_t * j_jwks;
-  
+
   if (config == NULL) {
     fprintf(stderr, "Memory error - config\n");
     return 1;
   }
-  
+
   config->config_file = NULL;
   config->url_prefix_angharad = NULL;
   config->url_prefix_benoic = NULL;
@@ -91,7 +91,7 @@ int main(int argc, char ** argv) {
   config->b_config->device_type_list = NULL;
   config->b_config->device_data_list = NULL;
   config->b_config->benoic_status = BENOIC_STATUS_STOP;
-  
+
   if (u_init_compressed_inmemory_website_config(config->static_file_config) != U_OK) {
     fprintf(stderr, "Error u_init_compressed_inmemory_website_config\n");
     exit_server(&config, ANGHARAD_ERROR);
@@ -101,15 +101,15 @@ int main(int argc, char ** argv) {
   i_global_init();
   ulfius_init_instance(config->instance, ANGHARAD_DEFAULT_PORT, NULL, NULL);
 
-  if (pthread_mutex_init(&global_handler_close_lock, NULL) || 
+  if (pthread_mutex_init(&global_handler_close_lock, NULL) ||
       pthread_cond_init(&global_handler_close_cond, NULL)) {
     fprintf(stderr, "init - Error initializing global_handler_close_lock or global_handler_close_cond\n");
     return 1;
   }
   // Catch end signals to make a clean exit
-  if (signal (SIGQUIT, exit_handler) == SIG_ERR || 
-      signal (SIGINT, exit_handler) == SIG_ERR || 
-      signal (SIGTERM, exit_handler) == SIG_ERR || 
+  if (signal (SIGQUIT, exit_handler) == SIG_ERR ||
+      signal (SIGINT, exit_handler) == SIG_ERR ||
+      signal (SIGTERM, exit_handler) == SIG_ERR ||
       signal (SIGHUP, exit_handler) == SIG_ERR) {
     fprintf(stderr, "init - Error initializing end signal\n");
     return 1;
@@ -121,20 +121,20 @@ int main(int argc, char ** argv) {
     print_help(stderr);
     exit_server(&config, ANGHARAD_ERROR);
   }
-  
+
   // Then we parse configuration file
   // They have lower priority than command line parameters
   if (!build_config_from_file(config)) {
     fprintf(stderr, "Error config file\n");
     exit_server(&config, ANGHARAD_ERROR);
   }
-  
+
   // Check if all mandatory configuration variables are present and correctly typed
   if (!check_config(config)) {
     fprintf(stderr, "Error initializing configuration\n");
     exit_server(&config, ANGHARAD_ERROR);
   }
-  
+
   // Setting connection pointer for carleon and benoic
   config->b_config->conn = config->conn;
   config->c_config->conn = config->conn;
@@ -143,7 +143,7 @@ int main(int argc, char ** argv) {
   config->c_config->alert_url = config->alert_url;
   config->c_config->url_prefix = config->url_prefix_carleon;
   config->c_config->instance = config->instance;
-  
+
   // Initialize benoic webservice if enabled
   submodule = submodule_get(config, ANGHARAD_SUBMODULE_BENOIC);
   if (submodule != NULL && json_integer_value(json_object_get(submodule, "result")) == A_OK && json_object_get(json_object_get(submodule, "submodule"), "enabled") == json_true()) {
@@ -155,7 +155,7 @@ int main(int argc, char ** argv) {
     }
   }
   json_decref(submodule);
-  
+
   // Initialize carleon webservice if enabled
   submodule = submodule_get(config, ANGHARAD_SUBMODULE_CARLEON);
   if (submodule != NULL && json_integer_value(json_object_get(submodule, "result")) == A_OK && json_object_get(json_object_get(submodule, "submodule"), "enabled") == json_true()) {
@@ -179,7 +179,7 @@ int main(int argc, char ** argv) {
     }
   }
   json_decref(submodule);
-  
+
   if (config->use_oidc_authentication) {
     if (i_jwt_profile_access_token_init_config(config->iddawc_resource_config, I_METHOD_HEADER, NULL, NULL, config->oidc_scope, NULL, 1, 1, config->oidc_dpop_max_iat) == I_TOKEN_OK) {
       if (config->oidc_server_remote_config != NULL) {
@@ -227,7 +227,7 @@ int main(int argc, char ** argv) {
     y_log_message(Y_LOG_LEVEL_ERROR, "Error initializing angharad webservice: %d", res);
     exit_server(&config, ANGHARAD_ERROR);
   }
-  
+
   // Start the webservice
   y_log_message(Y_LOG_LEVEL_INFO, "Start Angharad on port %d, prefix: %s, scope %s", config->instance->port, config->url_prefix_angharad, config->iddawc_resource_config->oauth_scope);
   if (ulfius_start_framework(config->instance) == U_OK) {
@@ -266,11 +266,11 @@ int build_config_from_args(int argc, char ** argv, struct config_elements * conf
     {"carleon-services-path", optional_argument,NULL, 's'},
     {NULL, 0, NULL, 0}
   };
-  
+
   if (config != NULL) {
     do {
       next_option = getopt_long(argc, argv, short_options, long_options, NULL);
-      
+
       switch (next_option) {
         case 'c':
           if (optarg != NULL) {
@@ -418,20 +418,20 @@ int build_config_from_args(int argc, char ** argv, struct config_elements * conf
           exit_server(&config, ANGHARAD_STOP);
           break;
       }
-      
+
     } while (next_option != -1);
-    
+
     // If none exists, exit failure
     if (config->config_file == NULL) {
       fprintf(stderr, "No configuration file found, please specify a configuration file path\n");
       return 0;
     }
-    
+
     return 1;
   } else {
     return 0;
   }
-  
+
 }
 
 /**
@@ -530,29 +530,29 @@ void exit_handler(int signal) {
  * Read the config file, get mandatory variables and devices
  */
 int build_config_from_file(struct config_elements * config) {
-  
+
   config_t cfg;
   config_setting_t * root, * database, * mime_type_list, * mime_type, * oidc_cfg;
   const char * cur_prefix_angharad, * cur_prefix_benoic, * cur_prefix_carleon, * cur_prefix_gareth, * cur_log_mode, * cur_log_level, * cur_log_file = NULL, * one_log_mode, * carleon_services_path, * benoic_modules_path, * cur_allow_origin, * db_type, * db_sqlite_path, * db_mariadb_host = NULL, * db_mariadb_user = NULL, * db_mariadb_password = NULL, * db_mariadb_dbname = NULL, * cur_static_files_path = NULL, * extension = NULL, * mime_type_value = NULL;
   int db_mariadb_port = 0, i;
   const char * cur_oidc_server_remote_config = NULL, * cur_oidc_server_public_jwks = NULL, * cur_oidc_iss = NULL, * cur_oidc_realm = NULL, * cur_oidc_aud = NULL, * cur_oidc_scope = NULL;
   int cur_oidc_dpop_max_iat = 0, cur_oidc_server_remote_config_verify_cert = 0, cur_use_oidc_authentication = 0;
-  
+
   config_init(&cfg);
-  
+
   if (!config_read_file(&cfg, config->config_file)) {
     fprintf(stderr, "Error parsing config file %s\nOn line %d error: %s\n", config_error_file(&cfg), config_error_line(&cfg), config_error_text(&cfg));
     config_destroy(&cfg);
     return 0;
   }
-  
+
   if (config->instance->port == ANGHARAD_DEFAULT_PORT) {
     // Get Port number to listen to
     int port;
     config_lookup_int(&cfg, "port", &port);
     config->instance->port = (uint)port;
   }
-  
+
   if (config->url_prefix_angharad == NULL) {
     // Get prefix url for angharad
     if (config_lookup_string(&cfg, "url_prefix_angharad", &cur_prefix_angharad)) {
@@ -664,7 +664,7 @@ int build_config_from_file(struct config_elements * config) {
       }
     }
   }
-  
+
   if (config->log_level == Y_LOG_LEVEL_NONE) {
     // Get log level
     if (config_lookup_string(&cfg, "log_level", &cur_log_level)) {
@@ -686,7 +686,7 @@ int build_config_from_file(struct config_elements * config) {
     fprintf(stderr, "Error initializing logs\n");
     exit_server(&config, ANGHARAD_ERROR);
   }
-    
+
   root = config_root_setting(&cfg);
   database = config_setting_get_member(root, "database");
   if (database != NULL) {
@@ -762,7 +762,7 @@ int build_config_from_file(struct config_elements * config) {
       }
     }
   }
-  
+
   if (config_lookup_bool(&cfg, "use_oidc_authentication", &cur_use_oidc_authentication) == CONFIG_TRUE) {
     config->use_oidc_authentication = cur_use_oidc_authentication;
   }
@@ -820,7 +820,7 @@ int build_config_from_file(struct config_elements * config) {
       return 0;
     }
   }
-  
+
   config_destroy(&cfg);
   return 1;
 }
@@ -838,7 +838,7 @@ int check_config(struct config_elements * config) {
       return 0;
     }
   }
-  
+
   if (config->url_prefix_benoic == NULL) {
     config->url_prefix_benoic = o_strdup(BENOIC_DEFAULT_PREFIX);
     if (config->url_prefix_benoic == NULL) {
@@ -846,7 +846,7 @@ int check_config(struct config_elements * config) {
       return 0;
     }
   }
-  
+
   if (config->url_prefix_carleon == NULL) {
     config->url_prefix_carleon = o_strdup(CARLEON_DEFAULT_PREFIX);
     if (config->url_prefix_carleon == NULL) {
@@ -854,7 +854,7 @@ int check_config(struct config_elements * config) {
       return 0;
     }
   }
-  
+
   if (config->url_prefix_gareth == NULL) {
     config->url_prefix_gareth = o_strdup(GARETH_DEFAULT_PREFIX);
     if (config->url_prefix_gareth == NULL) {
@@ -862,21 +862,21 @@ int check_config(struct config_elements * config) {
       return 0;
     }
   }
-  
+
   if (config->log_mode == Y_LOG_MODE_NONE) {
     config->log_mode = Y_LOG_MODE_CONSOLE;
   }
-  
+
   if (config->log_level == Y_LOG_LEVEL_NONE) {
     config->log_level = Y_LOG_LEVEL_ERROR;
   }
-  
+
   if (config->log_mode == Y_LOG_MODE_FILE && config->log_file == NULL) {
     fprintf(stderr, "Error, you must specify a log file if log mode is set to file\n");
     print_help(stderr);
     return 0;
   }
-  
+
   if (config->allow_origin == NULL) {
     config->allow_origin = o_strdup(ALLOW_ORIGIN_DEFAULT);
   }
@@ -885,12 +885,12 @@ int check_config(struct config_elements * config) {
     fprintf(stderr, "Error, no modules path specified for benoic\n");
     return 0;
   }
-    
+
   if (config->c_config->services_path == NULL) {
     fprintf(stderr, "Error, no modules path specified for carleon\n");
     return 0;
   }
-    
+
   return 1;
 }
 
@@ -909,7 +909,7 @@ int callback_default (const struct _u_request * request, struct _u_response * re
  */
 char * get_alert_url(struct config_elements * config) {
   char hostname[256];
-  
+
   if (config == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "get_alert_url - Error config is NULL");
     return NULL;
@@ -924,29 +924,29 @@ char * get_alert_url(struct config_elements * config) {
 }
 
 /**
- * Get all submodules or the specified submodule 
+ * Get all submodules or the specified submodule
  */
 json_t * submodule_get(struct config_elements * config, const char * submodule) {
   json_t * j_query, * j_result, * j_submodule;
   int res;
   size_t index;
-  
+
   if (config == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "submodule_get - Error config is NULL");
     return NULL;
   }
-  
+
   j_query = json_pack("{sss[sss]}", "table", ANGHARAD_TABLE_SUBMODULE, "columns", "as_name AS name", "as_description AS description", "as_enabled AS enabled");
-  
+
   if (j_query == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "submodule_get - Error allocating resources for j_query");
     return NULL;
   }
-  
+
   if (submodule != NULL) {
     json_object_set_new(j_query, "where", json_pack("{ss}", "as_name", submodule));
   }
-  
+
   res = h_select(config->conn, j_query, &j_result, NULL);
   json_decref(j_query);
   if (res == H_OK) {
@@ -1004,9 +1004,9 @@ int init_angharad(struct config_elements * config) {
       ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_carleon, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_oauth2_disabled, (void*)config->iddawc_resource_config);
       ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_gareth, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_oauth2_disabled, (void*)config->iddawc_resource_config);
     }
-    
+
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/alert/@submodule_name/@source/@element/@message/", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_alert, (void*)config);
-    
+
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_submodule_list, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/@submodule_name", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_submodule_get, (void*)config);
 
@@ -1041,7 +1041,7 @@ int init_angharad(struct config_elements * config) {
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/profile/@profile_id", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_carleon_profile_get, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/profile/@profile_id", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_carleon_profile_set, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/profile/@profile_id", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_carleon_profile_remove, (void*)config);
-    
+
     ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, "*", ANGHARAD_CALLBACK_PRIORITY_COMPRESSION, &callback_http_compression, NULL);
     ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_benoic, "*", ANGHARAD_CALLBACK_PRIORITY_COMPRESSION, &callback_http_compression, NULL);
     ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_carleon, "*", ANGHARAD_CALLBACK_PRIORITY_COMPRESSION, &callback_http_compression, NULL);
@@ -1053,7 +1053,7 @@ int init_angharad(struct config_elements * config) {
     u_map_put(config->instance->default_headers, "Access-Control-Allow-Credentials", "true");
     u_map_put(config->instance->default_headers, "Cache-Control", "no-store");
     u_map_put(config->instance->default_headers, "Pragma", "no-cache");
-    
+
     // Start event thread
     config->angharad_status = ANGHARAD_STATUS_RUN;
     thread_scheduler_ret = pthread_create(&thread_scheduler, NULL, thread_scheduler_run, (void *)config);
@@ -1063,10 +1063,10 @@ int init_angharad(struct config_elements * config) {
                   thread_scheduler_ret, thread_scheduler_detach);
       return A_ERROR_IO;
     }
-    
+
     y_log_message(Y_LOG_LEVEL_INFO, "Starting angharad core services on prefix %s", config->url_prefix_angharad);
     return A_OK;
-    
+
   } else {
     y_log_message(Y_LOG_LEVEL_ERROR, "init_agharad - Error closing angharad webservices, error input parameters");
     return A_ERROR_PARAM;
@@ -1080,7 +1080,7 @@ int init_angharad(struct config_elements * config) {
 int close_angharad(struct config_elements * config) {
   if (config != NULL && config->instance != NULL && config->url_prefix_angharad) {
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/alert/@submodule_name/@source/@element/@message/");
-    
+
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/");
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/@submodule_name");
 
@@ -1110,7 +1110,7 @@ int close_angharad(struct config_elements * config) {
     ulfius_remove_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/trigger/@trigger_name/@tag");
 
     ulfius_remove_endpoint_by_val(config->instance, "GET", NULL, "*");
-    
+
     ulfius_remove_endpoint_by_val(config->instance, "GET", NULL, "/");
 
     if (config->angharad_status == ANGHARAD_STATUS_RUN) {
@@ -1119,7 +1119,7 @@ int close_angharad(struct config_elements * config) {
         sleep(1);
       }
     }
-    
+
     return A_OK;
   } else {
     y_log_message(Y_LOG_LEVEL_ERROR, "close_agharad - Error closing angharad webservices, error input parameters");
@@ -1154,7 +1154,7 @@ char * get_file_content(const char * file_path) {
     }
     fclose (f);
   }
-  
+
   return buffer;
 }
 
@@ -1168,7 +1168,7 @@ int set_response_json_body_and_clean(struct _u_response * response, uint status,
  * Check if the result json object has a "result" element that is equal to value
  */
 int check_result_value(json_t * result, const int value) {
-  return (json_is_integer(json_object_get(result, "result")) && 
+  return (json_is_integer(json_object_get(result, "result")) &&
           json_integer_value(json_object_get(result, "result")) == value);
 }
 
