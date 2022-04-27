@@ -755,7 +755,7 @@ int callback_angharad_options (const struct _u_request * request, struct _u_resp
   UNUSED(request);
   UNUSED(user_data);
   u_map_put(response->map_header, "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  u_map_put(response->map_header, "Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  u_map_put(response->map_header, "Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, DPoP");
   u_map_put(response->map_header, "Access-Control-Max-Age", "1800");
   return U_CALLBACK_COMPLETE;
 }
