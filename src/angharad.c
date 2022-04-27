@@ -181,7 +181,7 @@ int main(int argc, char ** argv) {
   json_decref(submodule);
 
   if (config->use_oidc_authentication) {
-    if (i_jwt_profile_access_token_init_config(config->iddawc_resource_config, I_METHOD_HEADER, NULL, NULL, config->oidc_scope, NULL, 1, 1, config->oidc_dpop_max_iat) == I_TOKEN_OK) {
+    if (i_jwt_profile_access_token_init_config(config->iddawc_resource_config, I_METHOD_HEADER, NULL, NULL, config->oidc_scope, NULL, config->oidc_dpop_max_iat) == I_TOKEN_OK) {
       if (config->oidc_server_remote_config != NULL) {
         if (!i_jwt_profile_access_token_load_config(config->iddawc_resource_config, config->oidc_server_remote_config, config->oidc_server_remote_config_verify_cert)) {
           y_log_message(Y_LOG_LEVEL_ERROR, "OIDC authentication - Error i_jwt_profile_access_token_load_config");
@@ -699,7 +699,7 @@ int build_config_from_file(struct config_elements * config) {
             config_destroy(&cfg);
             return 0;
           } else {
-            if (h_exec_query_sqlite(config->conn, "PRAGMA foreign_keys = ON;") != H_OK) {
+            if (h_execute_query_sqlite(config->conn, "PRAGMA foreign_keys = ON;") != H_OK) {
               y_log_message(Y_LOG_LEVEL_ERROR, "Error executing sqlite3 query 'PRAGMA foreign_keys = ON;'");
               config_destroy(&cfg);
               return 0;
