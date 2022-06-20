@@ -27,12 +27,12 @@ set(PROGRAM_VERSION_MINOR "2")
 set(PROGRAM_VERSION_PATCH "4")
 set(PROJECT_DESCRIPTION "Online password and secret locker")
 set(PROJECT_BUGREPORT_PATH "https://github.com/babelouest/angharad/issues")
-set(ORCANIA_VERSION_REQUIRED "2.2.2")
-set(YDER_VERSION_REQUIRED "1.4.15")
-set(ULFIUS_VERSION_REQUIRED "2.7.9")
-set(HOEL_VERSION_REQUIRED "1.4.22")
-set(RHONABWY_VERSION_REQUIRED "1.1.5")
-set(IDDAWC_VERSION_REQUIRED "1.1.3")
+set(ORCANIA_VERSION_REQUIRED "2.3.0")
+set(YDER_VERSION_REQUIRED "1.4.17")
+set(ULFIUS_VERSION_REQUIRED "2.7.10")
+set(HOEL_VERSION_REQUIRED "1.4.25")
+set(RHONABWY_VERSION_REQUIRED "1.1.6")
+set(IDDAWC_VERSION_REQUIRED "1.1.4")
 
 set(BENOIC_MODULES_SRC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/device-modules/")
 set(CARLEON_MODULES_SRC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src/carleon/service-modules/")
@@ -44,7 +44,8 @@ include(CheckSymbolExists)
 
 # cmake modules
 
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake-modules)
+set(A_CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake-modules)
+list(APPEND CMAKE_MODULE_PATH "${A_CMAKE_MODULE_PATH}")
 
 # check if _GNU_SOURCE is available
 
@@ -429,7 +430,7 @@ if (BUILD_TESTING)
 						
 
 				configure_file(
-								"${CMAKE_MODULE_PATH}/CTestCustom.cmake.in"
+								"${A_CMAKE_MODULE_PATH}/CTestCustom.cmake.in"
 								"${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake"
 								@ONLY)
 
@@ -480,7 +481,7 @@ install(TARGETS ${TARGETS}
 
 if (NOT TARGET uninstall)
 		configure_file(
-						"${CMAKE_MODULE_PATH}/CMakeUninstall.cmake.in"
+						"${A_CMAKE_MODULE_PATH}/CMakeUninstall.cmake.in"
 						"${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
 						IMMEDIATE @ONLY)
 		add_custom_target(uninstall
