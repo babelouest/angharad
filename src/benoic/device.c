@@ -124,7 +124,7 @@ int init_device_type_list(struct _benoic_config * config) {
       
       if (file_handle != NULL) {
         y_log_message(Y_LOG_LEVEL_INFO, "Open module from file %s", file_path);
-        struct _device_type cur_device;
+        struct _device_type cur_device = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
         
         dlerror();
         cur_device.dl_handle = file_handle;
@@ -142,10 +142,19 @@ int init_device_type_list(struct _benoic_config * config) {
         *(void **) (&cur_device.b_device_set_heater) = dlsym(cur_device.dl_handle, "b_device_set_heater");
         *(void **) (&cur_device.b_device_has_element) = dlsym(cur_device.dl_handle, "b_device_has_element");
         
-        if ((cur_device.b_device_type_init != NULL) && (cur_device.b_device_connect != NULL) && (cur_device.b_device_disconnect != NULL) && (cur_device.b_device_ping != NULL) && (cur_device.b_device_overview != NULL) &&
-            (cur_device.b_device_get_sensor != NULL) && (cur_device.b_device_get_switch != NULL) && (cur_device.b_device_set_switch != NULL) &&
-            (cur_device.b_device_get_dimmer != NULL) && (cur_device.b_device_set_dimmer != NULL) && (cur_device.b_device_get_heater != NULL) && 
-            (cur_device.b_device_set_heater != NULL) && (cur_device.b_device_has_element != NULL)) {
+        if ((cur_device.b_device_type_init != NULL) &&
+            (cur_device.b_device_connect != NULL) &&
+            (cur_device.b_device_disconnect != NULL) &&
+            (cur_device.b_device_ping != NULL) &&
+            (cur_device.b_device_overview != NULL) &&
+            (cur_device.b_device_get_sensor != NULL) &&
+            (cur_device.b_device_get_switch != NULL) &&
+            (cur_device.b_device_set_switch != NULL) &&
+            (cur_device.b_device_get_dimmer != NULL) &&
+            (cur_device.b_device_set_dimmer != NULL) &&
+            (cur_device.b_device_get_heater != NULL) && 
+            (cur_device.b_device_set_heater != NULL) &&
+            (cur_device.b_device_has_element != NULL)) {
           device_handshake = (*cur_device.b_device_type_init)();
           cur_device.uid = o_strdup(json_string_value(json_object_get(device_handshake, "uid")));
           cur_device.name = o_strdup(json_string_value(json_object_get(device_handshake, "name")));

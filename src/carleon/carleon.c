@@ -140,7 +140,7 @@ int init_service_list(struct _carleon_config * config) {
       file_handle = dlopen(file_path, RTLD_LAZY);
       
       if (file_handle != NULL) {
-        struct _carleon_service cur_service;
+        struct _carleon_service cur_service = {NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL};
         
         dlerror();
         cur_service.dl_handle = file_handle;
