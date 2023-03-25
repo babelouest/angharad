@@ -4,7 +4,7 @@
  *
  * Copyright 2021-2022 Nicolas Mora <mail@babelouest.org>
  *
- * Version 20220620
+ * Version 20221024
  *
  * The MIT License (MIT)
  * 
@@ -71,7 +71,8 @@ static const char * get_auth_header_token(const char * auth_header, int * is_hea
  * return the final scope list on success
  */
 int jwt_profile_access_token_check_scope(struct _iddawc_resource_config * config, json_t * j_access_token) {
-  int i, scope_count_token, scope_count_expected, ret;
+  int i, ret;
+  size_t scope_count_token, scope_count_expected;
   char ** scope_list_token = NULL, ** scope_list_expected = NULL;
   json_t * j_scope_final_list = json_array();
   
@@ -135,7 +136,7 @@ int callback_check_jwt_profile_access_token (const struct _u_request * request, 
         token_value = u_map_get(request->map_url, BODY_URL_PARAMETER);
         break;
     }
-    if (token_value != NULL) {
+    if (!o_strnullempty(token_value)) {
       if (!pthread_mutex_lock(&config->session_lock)) {
         i_set_str_parameter(config->session, I_OPT_ACCESS_TOKEN, token_value);
         if (i_verify_jwt_access_token(config->session, config->aud) == I_OK) {
