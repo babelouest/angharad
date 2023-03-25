@@ -339,20 +339,24 @@ json_t * get_device_types_list(struct _benoic_config * config) {
  * returned value must be free'd after use
  */
 json_t * get_device(struct _benoic_config * config, const char * name) {
-  json_t * j_query = json_object(), * j_result, * j_to_return = NULL, * value, * cur_device;
+  json_t * j_query, * j_result, * j_to_return = NULL, * value, * cur_device;
   size_t index;
   int res;
   struct _device_type * cur_type;
   
-  if (j_query == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "get_device - Error allocating resources for j_query");
-    return NULL;
-  }
-  json_object_set_new(j_query, "table", json_string(BENOIC_TABLE_DEVICE));
+  j_query = json_pack("{sss[sssssss]}",
+                      "table", BENOIC_TABLE_DEVICE,
+                      "columns",
+                        "bd_name",
+                        "bd_description",
+                        "bd_enabled",
+                        "bd_connected",
+                        "bdt_uid",
+                        "UNIX_TIMESTAMP(bd_last_seen) AS bd_last_seen",
+                        "bd_options");
   if (name != NULL) {
     json_object_set_new(j_query, "where", json_pack("{ss}", "bd_name", name));
   }
-  json_object_set_new(j_query, "columns", json_pack("{sssssss}", "bd_name", "bd_description", "bd_enabled", "bd_connected", "bdt_uid", "UNIX_TIMESTAMP(bd_last_seen) AS bd_last_seen", "bd_options"));
   
   res = h_select(config->conn, j_query, &j_result, NULL);
   json_decref(j_query);
