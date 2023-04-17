@@ -80,6 +80,7 @@ CREATE TABLE `b_monitor` (
   `bm_date` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `bm_value` VARCHAR(16)
 );
+CREATE INDEX `bm_date_idx` ON `b_monitor` (`bm_date`);
 
 CREATE TABLE `c_service` (
   `cs_name` varchar(64) PRIMARY KEY,
