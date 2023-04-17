@@ -176,7 +176,7 @@ char * naming_label(const char * label) {
       if (to_return[i] == '$' || to_return[i] == ' ') {
         to_return[i] = '_';
       } else {
-        to_return[i] = tolower(label[i]);
+        to_return[i] = (char)tolower(label[i]);
       }
     }
   }
@@ -295,7 +295,7 @@ ValueID * get_device_value_id_by_element_name(zwave_context * zcontext, const ch
     o_free(dup_name_save);
     return NULL;
   } else {
-    cur_node = get_device_node(zcontext, strtol(str_node_id, NULL, 10));
+    cur_node = get_device_node(zcontext, (uint8)strtol(str_node_id, NULL, 10));
     if (0 == o_strcmp(str_type, "se")) {
       // This is a sensor
       if (str_label == NULL) {
@@ -656,9 +656,9 @@ extern "C" json_t * b_device_get_sensor (json_t * device, const char * sensor_na
   } else if (str_type == NULL || str_node_id == NULL || str_label == NULL) {
     result = json_pack("{si}", "result", RESULT_ERROR);
   } else {
-    value = get_device_value_id_by_label(get_device_node((zwave_context *)device_ptr, strtol(str_node_id, NULL, 10)), COMMAND_CLASS_SENSOR_BINARY, str_label);
+    value = get_device_value_id_by_label(get_device_node((zwave_context *)device_ptr, (uint8)strtol(str_node_id, NULL, 10)), COMMAND_CLASS_SENSOR_BINARY, str_label);
     if (value == NULL) {
-      value = get_device_value_id_by_label(get_device_node((zwave_context *)device_ptr, strtol(str_node_id, NULL, 10)), COMMAND_CLASS_SENSOR_MULTILEVEL, str_label);
+      value = get_device_value_id_by_label(get_device_node((zwave_context *)device_ptr, (uint8)strtol(str_node_id, NULL, 10)), COMMAND_CLASS_SENSOR_MULTILEVEL, str_label);
     } else {
       is_binary = 1;
     }
@@ -809,7 +809,7 @@ extern "C" json_t * b_device_get_heater (json_t * device, const char * heater_na
     return json_pack("{si}", "result", RESULT_ERROR);
   }
 
-  node_id = strtol(strstr(heater_name, "$") + 1, &end_ptr, 10);
+  node_id = (uint8)strtol(strstr(heater_name, "$") + 1, &end_ptr, 10);
   if (*end_ptr == '\0') {
     value = get_device_value_id(get_device_node((zwave_context *)device_ptr, node_id), COMMAND_CLASS_THERMOSTAT_MODE);
     if (value != NULL) {
@@ -864,7 +864,7 @@ extern "C" json_t * b_device_set_heater (json_t * device, const char * heater_na
   uint i;
   char str_command[33];
   
-  node_id = strtol(strstr(heater_name, "$") + 1, &end_ptr, 10);
+  node_id = (uint8)strtol(strstr(heater_name, "$") + 1, &end_ptr, 10);
   if (*end_ptr == '\0') {
     value = get_device_value_id(get_device_node((zwave_context *)device_ptr, node_id), COMMAND_CLASS_THERMOSTAT_MODE);
     if (value != NULL) {
@@ -908,9 +908,9 @@ extern "C" int b_device_has_element (json_t * device, int element_type, const ch
       o_free(dup_name_save);
       return 0;
     } else {
-      value = get_device_value_id_by_label(get_device_node((zwave_context *)device_ptr, strtol(str_node_id, NULL, 10)), COMMAND_CLASS_SENSOR_BINARY, str_label);
+      value = get_device_value_id_by_label(get_device_node((zwave_context *)device_ptr, (uint8)strtol(str_node_id, NULL, 10)), COMMAND_CLASS_SENSOR_BINARY, str_label);
       if (value == NULL) {
-        value = get_device_value_id_by_label(get_device_node((zwave_context *)device_ptr, strtol(str_node_id, NULL, 10)), COMMAND_CLASS_SENSOR_MULTILEVEL, str_label);
+        value = get_device_value_id_by_label(get_device_node((zwave_context *)device_ptr, (uint8)strtol(str_node_id, NULL, 10)), COMMAND_CLASS_SENSOR_MULTILEVEL, str_label);
       }
       o_free(dup_name_save);
       return (value != NULL);
@@ -924,13 +924,13 @@ extern "C" int b_device_has_element (json_t * device, int element_type, const ch
     } else {
       switch (element_type) {
         case ELEMENT_TYPE_SWITCH:
-          value = get_device_value_id(get_device_node((zwave_context *)device_ptr, strtol(str_node_id, NULL, 10)), COMMAND_CLASS_SWITCH_BINARY);
+          value = get_device_value_id(get_device_node((zwave_context *)device_ptr, (uint8)strtol(str_node_id, NULL, 10)), COMMAND_CLASS_SWITCH_BINARY);
           break;
         case ELEMENT_TYPE_DIMMER:
-          value = get_device_value_id(get_device_node((zwave_context *)device_ptr, strtol(str_node_id, NULL, 10)), COMMAND_CLASS_SWITCH_MULTILEVEL);
+          value = get_device_value_id(get_device_node((zwave_context *)device_ptr, (uint8)strtol(str_node_id, NULL, 10)), COMMAND_CLASS_SWITCH_MULTILEVEL);
           break;
         case ELEMENT_TYPE_HEATER:
-          value = get_device_value_id(get_device_node((zwave_context *)device_ptr, strtol(str_node_id, NULL, 10)), COMMAND_CLASS_THERMOSTAT_SETPOINT);
+          value = get_device_value_id(get_device_node((zwave_context *)device_ptr, (uint8)strtol(str_node_id, NULL, 10)), COMMAND_CLASS_THERMOSTAT_SETPOINT);
           break;
         default:
           value = NULL;
