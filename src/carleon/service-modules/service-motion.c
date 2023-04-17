@@ -717,13 +717,13 @@ int is_motion_online(struct _carleon_config * config, json_t * service_motion) {
 			
 			// Get avilable files
 			if (u_map_get(request->map_url, "count") != NULL) {
-				count = strtol(u_map_get(request->map_url, "count"), NULL, 10);
+				count = (size_t)strtol(u_map_get(request->map_url, "count"), NULL, 10);
 				if (count <= 0) {
 					count = 20;
 				}
 			}
 			if (u_map_get(request->map_url, "offset") != NULL) {
-				offset = strtol(u_map_get(request->map_url, "offset"), NULL, 10);
+				offset = (size_t)strtol(u_map_get(request->map_url, "offset"), NULL, 10);
 			}
 			json_object_set_new(to_return, "file_list", json_object());
 			json_array_foreach(json_object_get(json_object_get(service_motion, "element"), "file_list"), index, list_object) {
@@ -756,28 +756,29 @@ int is_motion_online(struct _carleon_config * config, json_t * service_motion) {
  * Return a file content
  */
 void * get_file(const char * full_path, size_t * len) {
-	void * buffer = NULL;
-	FILE * f;
-	size_t res;
-	
-	if (full_path != NULL && len != NULL) {
-		f = fopen (full_path, "rb");
-		*len = 0;
-		if (f) {
-			fseek (f, 0, SEEK_END);
-			*len = ftell (f);
-			fseek (f, 0, SEEK_SET);
-			buffer = o_malloc(*len*sizeof(void));
-			if (buffer) {
-				res = fread (buffer, 1, *len, f);
-				if (res != *len) {
-					y_log_message(Y_LOG_LEVEL_WARNING, "get_file - fread warning, reading %ld while expecting %ld", res, *len);
-				}
-			}
-			fclose (f);
-		}
-	}
-	return buffer;
+  char * buffer = NULL;
+  size_t res;
+  FILE * f;
+
+  if (full_path != NULL && len != NULL) {
+    f = fopen (full_path, "rb");
+    *len = 0;
+    if (f) {
+      fseek (f, 0, SEEK_END);
+      *len = (size_t)ftell (f);
+      fseek (f, 0, SEEK_SET);
+      buffer = o_malloc((*len));
+      if (buffer) {
+        res = fread (buffer, 1, *len, f);
+        if (res != *len) {
+          fprintf(stderr, "fread warning, reading %zu while expecting %zu", res, *len);
+        }
+      }
+      fclose (f);
+    }
+  }
+    
+  return buffer;
 }
 
 /**

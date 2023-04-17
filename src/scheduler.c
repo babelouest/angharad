@@ -285,7 +285,7 @@ int scheduler_enable(struct config_elements * config, json_t * j_scheduler, int 
     json_object_set(j_scheduler, "enabled", enabled?json_true():json_false());
     time(&now);
     if (json_integer_value(json_object_get(j_scheduler, "repeat")) >= 0 && enabled && json_integer_value(json_object_get(j_scheduler, "next_time")) < now) {
-      next_time = scheduler_calculate_next_time(json_integer_value(json_object_get(j_scheduler, "next_time")), json_integer_value(json_object_get(j_scheduler, "repeat")), json_integer_value(json_object_get(j_scheduler, "repeat_value")));
+      next_time = scheduler_calculate_next_time((time_t)json_integer_value(json_object_get(j_scheduler, "next_time")), json_integer_value(json_object_get(j_scheduler, "repeat")), json_integer_value(json_object_get(j_scheduler, "repeat_value")));
       while (next_time <= now) {
         next_time = scheduler_calculate_next_time(next_time, json_integer_value(json_object_get(j_scheduler, "repeat")), json_integer_value(json_object_get(j_scheduler, "repeat_value")));
       }
@@ -479,7 +479,7 @@ int scheduler_modify(struct config_elements * config, const char * scheduler_nam
   }
 
   cur_scheduler = scheduler_get(config, scheduler_name, 0);
-  res_cur_scheduler = (cur_scheduler != NULL?json_integer_value(json_object_get(cur_scheduler, "result")):A_ERROR);
+  res_cur_scheduler = (cur_scheduler != NULL?(int)json_integer_value(json_object_get(cur_scheduler, "result")):A_ERROR);
   json_decref(cur_scheduler);
   if (res_cur_scheduler == A_OK) {
     if (json_object_get(j_scheduler, "options") != NULL) {
@@ -550,7 +550,7 @@ int scheduler_delete(struct config_elements * config, const char * scheduler_nam
   }
 
   cur_scheduler = scheduler_get(config, scheduler_name, 0);
-  res_cur_scheduler = (cur_scheduler != NULL?json_integer_value(json_object_get(cur_scheduler, "result")):A_ERROR);
+  res_cur_scheduler = (cur_scheduler != NULL?(int)json_integer_value(json_object_get(cur_scheduler, "result")):A_ERROR);
   json_decref(cur_scheduler);
   if (res_cur_scheduler == A_OK) {
     j_query = json_pack("{sss{ss}}",
@@ -639,9 +639,9 @@ int scheduler_remove_tag(struct config_elements * config, const char * scheduler
         json_decref(j_result);
         return A_OK;
       } else if (json_is_array(j_tags)) {
-        for (i = json_array_size(json_object_get(json_object_get(j_scheduler, "options"), "tags"))-1; i >= 0; i--) {
-          if (0 == o_strcmp(json_string_value(json_array_get(json_object_get(json_object_get(j_scheduler, "options"), "tags"), i)), tag)) {
-            json_array_remove(json_object_get(json_object_get(j_scheduler, "options"), "tags"), i);
+        for (i = (int)json_array_size(json_object_get(json_object_get(j_scheduler, "options"), "tags"))-1; i >= 0; i--) {
+          if (0 == o_strcmp(json_string_value(json_array_get(json_object_get(json_object_get(j_scheduler, "options"), "tags"), (size_t)i)), tag)) {
+            json_array_remove(json_object_get(json_object_get(j_scheduler, "options"), "tags"), (size_t)i);
           }
         }
         res = scheduler_modify(config, scheduler_name, j_scheduler);
@@ -661,7 +661,7 @@ int scheduler_remove_tag(struct config_elements * config, const char * scheduler
 /**
  * Calculate the next time for a scheduler or a monitor
  */
-time_t scheduler_calculate_next_time(time_t from, int schedule_type, json_int_t schedule_value) {
+time_t scheduler_calculate_next_time(time_t from, json_int_t schedule_type, json_int_t schedule_value) {
   struct tm ts;
   time_t to_return;
   int isdst_from, isdst_to;

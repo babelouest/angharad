@@ -26,7 +26,7 @@
 # Environment variables
 PREFIX=/usr/local
 CC=gcc
-CFLAGS=-c -Wall -Werror -Wextra -D_REENTRANT -I$(PREFIX)/include $(ADDITIONALFLAGS)
+CFLAGS=-c -Wall -Werror -Wextra -Wconversion -D_REENTRANT -I$(PREFIX)/include $(ADDITIONALFLAGS)
 LIBS=-L$(PREFIX)/lib -lc -lpthread -lconfig -ljansson -lulfius -lhoel -lyder -lorcania
 
 all: release

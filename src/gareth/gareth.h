@@ -167,7 +167,7 @@ int remove_filter_alert(struct _h_connection * conn, const json_t * filter_id);
 // Message management
 int add_message(struct _h_connection * conn, const json_t * message);
 json_t * is_message_valid(const json_t * message);
-json_t * get_message_list(struct _h_connection * conn, const char * filter_name, const struct _u_map * map_url, uint limit, uint offset);
+json_t * get_message_list(struct _h_connection * conn, const char * filter_name, const struct _u_map * map_url, long int limit, long int offset);
 json_t * generate_where_clause_from_filter_name(struct _h_connection * conn, const char * filter_name);
 int append_where_clause_from_url_parameters(struct _h_connection * conn, json_t ** where_clause, const struct _u_map * map_url);
 json_t * get_corresponding_alert_list(struct _h_connection * conn, json_t * message_id);

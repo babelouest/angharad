@@ -37,7 +37,8 @@
  */
 int alert_received(struct config_elements * config, const char * submodule_name, const char * source, const char * element, const char * message) {
   json_t * j_query, * j_result, * cur_trigger, * j_result_trigger, * j_trigger, * script;
-  int res, message_match, message_match_check = A_ERROR_FALSE;
+  int res, message_match_check = A_ERROR_FALSE;
+  json_int_t message_match;
   size_t index, index_sc;
   char * str_message_text;
   json_t * j_message;
@@ -419,7 +420,7 @@ int trigger_modify(struct config_elements * config, const char * trigger_name, j
   }
   
   cur_trigger = trigger_get(config, trigger_name);
-  res_cur_trigger = (cur_trigger != NULL?json_integer_value(json_object_get(cur_trigger, "result")):A_ERROR);
+  res_cur_trigger = (cur_trigger != NULL?(int)json_integer_value(json_object_get(cur_trigger, "result")):A_ERROR);
   json_decref(cur_trigger);
   if (res_cur_trigger == A_OK) {
 		if (json_object_get(j_trigger, "options") != NULL) {
@@ -482,7 +483,7 @@ int trigger_delete(struct config_elements * config, const char * trigger_name) {
   }
   
   cur_trigger = trigger_get(config, trigger_name);
-  res_cur_trigger = (cur_trigger != NULL?json_integer_value(json_object_get(cur_trigger, "result")):A_ERROR);
+  res_cur_trigger = (cur_trigger != NULL?(int)json_integer_value(json_object_get(cur_trigger, "result")):A_ERROR);
   json_decref(cur_trigger);
   if (res_cur_trigger == A_OK) {
     j_query = json_pack("{sss{ss}}",
@@ -555,7 +556,7 @@ int trigger_add_tag(struct config_elements * config, const char * trigger_name, 
  */
 int trigger_remove_tag(struct config_elements * config, const char * trigger_name, const char * tag) {
   json_t * j_result = trigger_get(config, trigger_name), * j_trigger, * j_tags;
-  int i, res;
+  int res, i;
   
   if (j_result == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "trigger_remove_tag - Error getting trigger");
@@ -571,9 +572,9 @@ int trigger_remove_tag(struct config_elements * config, const char * trigger_nam
         json_decref(j_result);
         return A_OK;
       } else if (json_is_array(j_tags)) {
-        for (i = json_array_size(json_object_get(json_object_get(j_trigger, "options"), "tags"))-1; i >= 0; i--) {
-          if (0 == o_strcmp(json_string_value(json_array_get(json_object_get(json_object_get(j_trigger, "options"), "tags"), i)), tag)) {
-            json_array_remove(json_object_get(json_object_get(j_trigger, "options"), "tags"), i);
+        for (i = (int)json_array_size(json_object_get(json_object_get(j_trigger, "options"), "tags"))-1; i != 0; i--) {
+          if (0 == o_strcmp(json_string_value(json_array_get(json_object_get(json_object_get(j_trigger, "options"), "tags"), (size_t)i)), tag)) {
+            json_array_remove(json_object_get(json_object_get(j_trigger, "options"), "tags"), (size_t)i);
           }
         }
         res = trigger_modify(config, trigger_name, j_trigger);

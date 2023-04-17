@@ -35,7 +35,9 @@ void close_device_type(struct _device_type device_type) {
   o_free(device_type.uid);
   o_free(device_type.name);
   o_free(device_type.description);
+#ifndef DEBUG
   dlclose(device_type.dl_handle);
+#endif
   json_decref(device_type.options);
   device_type.uid = NULL;
   device_type.name = NULL;
@@ -885,7 +887,7 @@ int disconnect_device(struct _benoic_config * config, json_t * device, int updat
 int ping_device(struct _benoic_config * config, json_t * device) {
   struct _device_type * device_type = NULL;
   json_t * result;
-  int i_result;
+  json_int_t i_result;
   
   if (json_object_get(device, "enabled") != json_true()) {
     y_log_message(Y_LOG_LEVEL_ERROR, "Device disabled");
@@ -903,7 +905,7 @@ int ping_device(struct _benoic_config * config, json_t * device) {
         update_last_seen_device(config, device);
         set_device_connection(config, device, 1);
         return B_OK;
-      } else if (json_integer_value(json_object_get(result, "result")) == DEVICE_RESULT_NOT_FOUND) {
+      } else if (i_result == DEVICE_RESULT_NOT_FOUND) {
         set_device_connection(config, device, 1);
         return B_ERROR_NOT_FOUND;
       } else {

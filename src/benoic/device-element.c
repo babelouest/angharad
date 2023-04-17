@@ -666,10 +666,10 @@ int element_remove_tag(struct _benoic_config * config, json_t * device, const in
   int res, index;
   
   if (element_data != NULL) {
-    for (index = json_array_size(json_object_get(json_object_get(element_data, "options"), "tags"))-1; index>=0; index--) {
-      cur_tag = json_array_get(json_object_get(json_object_get(element_data, "options"), "tags"), index);
+    for (index = (int)json_array_size(json_object_get(json_object_get(element_data, "options"), "tags"))-1; index>=0; index--) {
+      cur_tag = json_array_get(json_object_get(json_object_get(element_data, "options"), "tags"), (size_t)index);
       if (json_is_string(cur_tag) && 0 == o_strcmp(tag, json_string_value(cur_tag))) {
-        json_array_remove(json_object_get(json_object_get(element_data, "options"), "tags"), index);
+        json_array_remove(json_object_get(json_object_get(element_data, "options"), "tags"), (size_t)index);
       }
     }
     res = set_element_data(config, device, element_name, element_type, element_data, 1);

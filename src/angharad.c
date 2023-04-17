@@ -183,7 +183,7 @@ int main(int argc, char ** argv) {
   if (config->use_oidc_authentication) {
     if (i_jwt_profile_access_token_init_config(config->iddawc_resource_config, I_METHOD_HEADER, NULL, NULL, config->oidc_scope, NULL, config->oidc_dpop_max_iat) == I_TOKEN_OK) {
       if (config->oidc_server_remote_config != NULL) {
-        if (!i_jwt_profile_access_token_load_config(config->iddawc_resource_config, config->oidc_server_remote_config, config->oidc_server_remote_config_verify_cert)) {
+        if (!i_jwt_profile_access_token_load_config(config->iddawc_resource_config, config->oidc_server_remote_config, (int)config->oidc_server_remote_config_verify_cert)) {
           y_log_message(Y_LOG_LEVEL_ERROR, "OIDC authentication - Error i_jwt_profile_access_token_load_config");
           exit_server(&config, ANGHARAD_ERROR);
         }
@@ -217,8 +217,6 @@ int main(int argc, char ** argv) {
       y_log_message(Y_LOG_LEVEL_ERROR, "OIDC authentication - Error i_jwt_profile_access_token_init_config");
       exit_server(&config, ANGHARAD_ERROR);
     }
-  } else {
-    y_log_message(Y_LOG_LEVEL_INFO, "OIDC authentication disabled");
   }
 
   // Initialize angharad webservice
@@ -229,7 +227,7 @@ int main(int argc, char ** argv) {
   }
 
   // Start the webservice
-  y_log_message(Y_LOG_LEVEL_INFO, "Start Angharad on port %d, prefix: %s, scope %s", config->instance->port, config->url_prefix_angharad, config->iddawc_resource_config->oauth_scope);
+  y_log_message(Y_LOG_LEVEL_INFO, "Start Angharad on port %d, prefix: %s, scope %s", config->instance->port, config->url_prefix_angharad, config->oidc_scope);
   if (ulfius_start_framework(config->instance) == U_OK) {
     // Wait until stop signal is broadcasted
     pthread_mutex_lock(&global_handler_close_lock);
@@ -286,7 +284,7 @@ int build_config_from_args(int argc, char ** argv, struct config_elements * conf
           break;
         case 'p':
           if (optarg != NULL) {
-            config->instance->port = strtol(optarg, NULL, 10);
+            config->instance->port = (unsigned int)strtol(optarg, NULL, 10);
             if (config->instance->port <= 0 || config->instance->port > 65535) {
               fprintf(stderr, "Error!\nInvalid TCP Port number\n\tPlease specify an integer value between 1 and 65535");
               return 0;
@@ -494,7 +492,9 @@ void exit_server(struct config_elements ** config, int exit_value) {
     o_free((*config)->alert_url);
     o_free((*config)->oidc_server_remote_config);
     o_free((*config)->oidc_scope);
-    i_jwt_profile_access_token_close_config((*config)->iddawc_resource_config);
+    if ((*config)->use_oidc_authentication) {
+      i_jwt_profile_access_token_close_config((*config)->iddawc_resource_config);
+    }
     o_free((*config)->iddawc_resource_config);
     o_free((*config)->static_file_config->files_path);
     o_free((*config)->static_file_config->url_prefix);
@@ -534,7 +534,8 @@ int build_config_from_file(struct config_elements * config) {
   config_t cfg;
   config_setting_t * root, * database, * mime_type_list, * mime_type, * oidc_cfg;
   const char * cur_prefix_angharad, * cur_prefix_benoic, * cur_prefix_carleon, * cur_prefix_gareth, * cur_log_mode, * cur_log_level, * cur_log_file = NULL, * one_log_mode, * carleon_services_path, * benoic_modules_path, * cur_allow_origin, * db_type, * db_sqlite_path, * db_mariadb_host = NULL, * db_mariadb_user = NULL, * db_mariadb_password = NULL, * db_mariadb_dbname = NULL, * cur_static_files_path = NULL, * extension = NULL, * mime_type_value = NULL;
-  int db_mariadb_port = 0, i;
+  int db_mariadb_port = 0;
+  unsigned int i;
   const char * cur_oidc_server_remote_config = NULL, * cur_oidc_server_public_jwks = NULL, * cur_oidc_iss = NULL, * cur_oidc_realm = NULL, * cur_oidc_aud = NULL, * cur_oidc_scope = NULL;
   int cur_oidc_dpop_max_iat = 0, cur_oidc_server_remote_config_verify_cert = 0, cur_use_oidc_authentication = 0;
 
@@ -716,7 +717,7 @@ int build_config_from_file(struct config_elements * config) {
         config_setting_lookup_string(database, "password", &db_mariadb_password);
         config_setting_lookup_string(database, "dbname", &db_mariadb_dbname);
         config_setting_lookup_int(database, "port", &db_mariadb_port);
-        config->conn = h_connect_mariadb(db_mariadb_host, db_mariadb_user, db_mariadb_password, db_mariadb_dbname, db_mariadb_port, NULL);
+        config->conn = h_connect_mariadb(db_mariadb_host, db_mariadb_user, db_mariadb_password, db_mariadb_dbname, (unsigned int)db_mariadb_port, NULL);
         if (config->conn == NULL) {
           fprintf(stderr, "Error opening mariadb database %s\n", db_mariadb_dbname);
           config_destroy(&cfg);
@@ -753,7 +754,7 @@ int build_config_from_file(struct config_elements * config) {
   // Populate mime types u_map
   mime_type_list = config_lookup(&cfg, "app_files_mime_types");
   if (mime_type_list != NULL) {
-    for (i=0; i<config_setting_length(mime_type_list); i++) {
+    for (i=0; i<(unsigned int)config_setting_length(mime_type_list); i++) {
       mime_type = config_setting_get_elem(mime_type_list, i);
       if (mime_type != NULL) {
         if (config_setting_lookup_string(mime_type, "extension", &extension) && config_setting_lookup_string(mime_type, "type", &mime_type_value)) {
@@ -764,7 +765,7 @@ int build_config_from_file(struct config_elements * config) {
   }
 
   if (config_lookup_bool(&cfg, "use_oidc_authentication", &cur_use_oidc_authentication) == CONFIG_TRUE) {
-    config->use_oidc_authentication = cur_use_oidc_authentication;
+    config->use_oidc_authentication = (short unsigned int)cur_use_oidc_authentication;
   }
 
   if (config->use_oidc_authentication) {
@@ -777,7 +778,7 @@ int build_config_from_file(struct config_elements * config) {
       }
     }
     if (config_setting_lookup_bool(oidc_cfg, "server_remote_config_verify_cert", &cur_oidc_server_remote_config_verify_cert) == CONFIG_TRUE) {
-      config->oidc_server_remote_config_verify_cert = (time_t)cur_oidc_server_remote_config_verify_cert;
+      config->oidc_server_remote_config_verify_cert = (unsigned int)cur_oidc_server_remote_config_verify_cert;
     }
     if (config_setting_lookup_string(oidc_cfg, "server_public_jwks", &cur_oidc_server_public_jwks) == CONFIG_TRUE) {
       if ((config->oidc_server_public_jwks = o_strdup(cur_oidc_server_public_jwks)) == NULL) {
@@ -1046,7 +1047,7 @@ int init_angharad(struct config_elements * config) {
     ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_benoic, "*", ANGHARAD_CALLBACK_PRIORITY_COMPRESSION, &callback_http_compression, NULL);
     ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_carleon, "*", ANGHARAD_CALLBACK_PRIORITY_COMPRESSION, &callback_http_compression, NULL);
     ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_gareth, "*", ANGHARAD_CALLBACK_PRIORITY_COMPRESSION, &callback_http_compression, NULL);
-    if (config->static_file_config->files_path != NULL) {
+    if (!o_strnullempty(config->static_file_config->files_path)) {
       ulfius_add_endpoint_by_val(config->instance, "GET", NULL, "*", ANGHARAD_CALLBACK_PRIORITY_FILES, &callback_static_compressed_inmemory_website, (void*)config->static_file_config);
     }
     ulfius_add_endpoint_by_val(config->instance, "OPTIONS", NULL, "*", ANGHARAD_CALLBACK_PRIORITY_ZERO, &callback_angharad_options, (void*)config);
@@ -1143,7 +1144,7 @@ char * get_file_content(const char * file_path) {
   f = fopen (file_path, "rb");
   if (f) {
     fseek (f, 0, SEEK_END);
-    length = ftell (f);
+    length = (size_t)ftell (f);
     fseek (f, 0, SEEK_SET);
     buffer = o_malloc((length+1)*sizeof(char));
     if (buffer) {
@@ -1156,7 +1157,7 @@ char * get_file_content(const char * file_path) {
     }
     fclose (f);
   }
-
+  
   return buffer;
 }
 

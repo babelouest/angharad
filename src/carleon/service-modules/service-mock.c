@@ -165,7 +165,7 @@ int callback_mock_service_command (const struct _u_request * request, struct _u_
   json_t * parameters, * j_result;
   
   if (o_strcmp(u_map_get(request->map_url, "command_name"), "exec1") == 0 && u_map_has_key(request->map_url, "param2") && u_map_has_key(request->map_url, "param3")) {
-    i_param2 = strtol(u_map_get(request->map_url, "param2"), NULL, 10);
+    i_param2 = (int)strtol(u_map_get(request->map_url, "param2"), NULL, 10);
     f_param3 = strtof(u_map_get(request->map_url, "param3"), NULL);
     parameters = json_pack("{sssisf}", "param1", u_map_get(request->map_url, "param1"), "param2", i_param2, "param3", f_param3);
   } else if (o_strcmp(u_map_get(request->map_url, "command_name"), "exec2") == 0) {

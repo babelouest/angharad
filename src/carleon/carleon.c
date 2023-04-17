@@ -332,7 +332,9 @@ void close_service(struct _carleon_service * service, struct _carleon_config * c
   }
   json_decref(j_result);
   
+#ifndef DEBUG
   dlclose(service->dl_handle);
+#endif
   o_free(service->name);
   o_free(service->description);
 }

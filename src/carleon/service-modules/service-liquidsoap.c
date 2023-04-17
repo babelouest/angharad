@@ -285,8 +285,8 @@ char * socket_send_command(const char * host, int port, const char * command) {
 	serv_addr.sin_family = AF_INET;
 	bcopy((char *)server->h_addr, 
 			 (char *)&serv_addr.sin_addr.s_addr,
-			 server->h_length);
-	serv_addr.sin_port = htons(port);
+			 (size_t)server->h_length);
+	serv_addr.sin_port = htons((uint16_t)port);
 	
 	if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) {
 		y_log_message(Y_LOG_LEVEL_ERROR, "ERROR connecting to host %s port %d", host, port);
@@ -300,9 +300,9 @@ char * socket_send_command(const char * host, int port, const char * command) {
 	}
 
 	while ((len = read(sockfd, buffer, 255)) > 0) {
-		to_return = o_realloc(to_return, ret_len + len + 1);
-		memcpy(to_return + ret_len, buffer, len);
-		ret_len += len;
+		to_return = o_realloc(to_return, ret_len + (size_t)len + 1);
+		memcpy(to_return + ret_len, buffer, (size_t)len);
+		ret_len += (size_t)len;
     to_return[ret_len] = '\0';
 	}
 	close(sockfd);
@@ -313,7 +313,7 @@ char * socket_send_command(const char * host, int port, const char * command) {
 json_t * liquidsoap_list(struct _carleon_config * config, json_t * liquidsoap) {
   UNUSED(config);
 	char * command = msprintf("%s.metadata\nquit\n", json_string_value(json_object_get(liquidsoap, "control_request_name")));
-	char * result = socket_send_command(json_string_value(json_object_get(liquidsoap, "control_host")), json_integer_value(json_object_get(liquidsoap, "control_port")), command);
+	char * result = socket_send_command(json_string_value(json_object_get(liquidsoap, "control_host")), (int)json_integer_value(json_object_get(liquidsoap, "control_port")), command);
 	char * result_save, * token, * saveptr, * tmp;
 	
 	json_t * to_return, * cur_song = NULL;
@@ -333,7 +333,7 @@ json_t * liquidsoap_list(struct _carleon_config * config, json_t * liquidsoap) {
 				if (0 != o_strncmp(token, "END", strlen("END")) && 0 != o_strncmp(token, "Bye!", strlen("Bye!"))) {
 					char * key, * value;
 					if (strchr(token, '=') != NULL) {
-						key = o_strndup(token, strchr(token, '=') - token);
+						key = o_strndup(token, (size_t)(strchr(token, '=') - token));
 						value = o_strdup(strchr(token, '=') + 2);
 						if (strlen(value) > 0) {
 							value[strlen(value) - 1] = '\0';
@@ -366,7 +366,7 @@ json_t * liquidsoap_list(struct _carleon_config * config, json_t * liquidsoap) {
 json_t * liquidsoap_on_air(struct _carleon_config * config, json_t * liquidsoap) {
   UNUSED(config);
 	char * command = msprintf("%s.metadata\nquit\n", json_string_value(json_object_get(liquidsoap, "control_request_name")));
-	char * result = socket_send_command(json_string_value(json_object_get(liquidsoap, "control_host")), json_integer_value(json_object_get(liquidsoap, "control_port")), command);
+	char * result = socket_send_command(json_string_value(json_object_get(liquidsoap, "control_host")), (int)json_integer_value(json_object_get(liquidsoap, "control_port")), command);
 	char * result_save, * token, * saveptr, * tmp;
 	
 	json_t * to_return, * cur_song = json_object();
@@ -379,7 +379,7 @@ json_t * liquidsoap_on_air(struct _carleon_config * config, json_t * liquidsoap)
 			if (0 != o_strncmp(token, "END", strlen("END")) && 0 != o_strncmp(token, "Bye!", strlen("Bye!"))) {
 				char * key, * value;
 				if (strchr(token, '=') != NULL) {
-					key = o_strndup(token, strchr(token, '=') - token);
+					key = o_strndup(token, (size_t)(strchr(token, '=') - token));
 					value = o_strdup(strchr(token, '=') + 2);
 					if (strlen(value) > 0) {
 						value[strlen(value) - 1] = '\0';
@@ -417,10 +417,10 @@ json_t * liquidsoap_command(struct _carleon_config * config, json_t * liquidsoap
 	check = msprintf("$%s$", command);
 	if (strchr(command, '$') == NULL && strstr(LIQUIDSOAP_COMMANDS, check) != NULL) {
 		str_command = msprintf("%s.%s\nquit\n", json_string_value(json_object_get(liquidsoap, "control_request_name")), command);
-		result = socket_send_command(json_string_value(json_object_get(liquidsoap, "control_host")), json_integer_value(json_object_get(liquidsoap, "control_port")), str_command);
+		result = socket_send_command(json_string_value(json_object_get(liquidsoap, "control_host")), (int)json_integer_value(json_object_get(liquidsoap, "control_port")), str_command);
 		
 		if (result != NULL) {
-			char * value = o_strndup(result, strchr(result, '\n') - result - 1);
+			char * value = o_strndup(result, (size_t)(strchr(result, '\n') - result - 1));
 			to_return = json_pack("{siss}", "result", WEBSERVICE_RESULT_OK, "value", value);
 			o_free(value);
 		} else {

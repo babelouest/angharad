@@ -158,9 +158,9 @@ json_t * is_message_valid(const json_t * message) {
 /**
  * Get a message list corresponding to the filter_name specified and the additional_filters specified
  */
-json_t * get_message_list(struct _h_connection * conn, const char * filter_name, const struct _u_map * map_url, uint limit, uint offset) {
+json_t * get_message_list(struct _h_connection * conn, const char * filter_name, const struct _u_map * map_url, long int limit, long int offset) {
   json_t * message_list = json_array(), * result, * message, * cur_message, * columns, * where_clause = NULL, * order_by = NULL, * j_query = json_object();
-  uint cur_limit = (limit==0?MESSAGES_LIMIT_DEFAULT:(limit>MESSAGES_LIMIT_MAXIMUM?MESSAGES_LIMIT_MAXIMUM:limit));
+  uint cur_limit = limit>MESSAGES_LIMIT_MAXIMUM||limit<=0?MESSAGES_LIMIT_MAXIMUM:(uint)limit;
   size_t index;
   
   if (message_list == NULL || j_query == NULL) {
@@ -536,9 +536,9 @@ void * thread_smtp_message_run(void * args) {
     
     if (subject != NULL && body != NULL) {
       res = ulfius_send_smtp_email(json_string_value(json_object_get(db_alert, "host")),
-                                    json_integer_value(json_object_get(db_alert, "port")),
-                                    json_integer_value(json_object_get(db_alert, "tls")),
-                                    json_integer_value(json_object_get(db_alert, "check_ca")),
+                                    (int)json_integer_value(json_object_get(db_alert, "port")),
+                                    (int)json_integer_value(json_object_get(db_alert, "tls")),
+                                    (int)json_integer_value(json_object_get(db_alert, "check_ca")),
                                     json_string_value(json_object_get(db_alert, "user")),
                                     json_string_value(json_object_get(db_alert, "password")),
                                     json_string_value(json_object_get(db_alert, "from")),

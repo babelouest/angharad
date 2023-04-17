@@ -135,7 +135,7 @@ int callback_gareth_get_alert_list (const struct _u_request * request, struct _u
       y_log_message(Y_LOG_LEVEL_ERROR, "callback_gareth_get_alert_list - Error getting http_list, aborting");
       response->status = 500;
     }
-    set_response_json_body_and_clean(response, response->status, json_body);
+    set_response_json_body_and_clean(response, (uint)response->status, json_body);
     return U_CALLBACK_CONTINUE;
   }
 }
@@ -560,8 +560,8 @@ int callback_gareth_get_messages (const struct _u_request * request, struct _u_r
   struct _h_connection * conn;
   char * endptr;
   const char * filter_name = u_map_get(request->map_url, "filter_name");
-  int limit = (u_map_has_key_case(request->map_url, "limit")?strtol(u_map_get_case(request->map_url, "limit"), &endptr, 10):0), 
-      offset = (u_map_has_key_case(request->map_url, "offset")?strtol(u_map_get_case(request->map_url, "offset"), &endptr, 10):0);
+  long int limit = (u_map_has_key_case(request->map_url, "limit")?strtol(u_map_get_case(request->map_url, "limit"), &endptr, 10):0), 
+           offset = (u_map_has_key_case(request->map_url, "offset")?strtol(u_map_get_case(request->map_url, "offset"), &endptr, 10):0);
   json_t * j_filter, * json_body;
   
   if (user_data == NULL) {

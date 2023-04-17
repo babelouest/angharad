@@ -147,7 +147,7 @@ int script_modify(struct config_elements * config, const char * script_name, jso
   }
   
   cur_script = script_get(config, script_name);
-  res_cur_script = (cur_script != NULL?json_integer_value(json_object_get(cur_script, "result")):A_ERROR);
+  res_cur_script = (cur_script != NULL?(int)json_integer_value(json_object_get(cur_script, "result")):A_ERROR);
   json_decref(cur_script);
   if (res_cur_script == A_OK) {
     str_actions = json_dumps(json_object_get(j_script, "actions"), JSON_COMPACT);
@@ -197,7 +197,7 @@ int script_delete(struct config_elements * config, const char * script_name) {
   }
   
   cur_script = script_get(config, script_name);
-  res_cur_script = (cur_script != NULL?json_integer_value(json_object_get(cur_script, "result")):A_ERROR);
+  res_cur_script = (cur_script != NULL?(int)json_integer_value(json_object_get(cur_script, "result")):A_ERROR);
   json_decref(cur_script);
   if (res_cur_script == A_OK) {
     j_query = json_pack("{sss{ss}}",
@@ -539,7 +539,7 @@ int script_add_tag(struct config_elements * config, const char * script_name, co
  */
 int script_remove_tag(struct config_elements * config, const char * script_name, const char * tag) {
   json_t * j_result = script_get(config, script_name), * j_script, * j_tags;
-  int i, res;
+  int res, i;
   
   if (j_result == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "script_remove_tag - Error getting script");
@@ -555,9 +555,9 @@ int script_remove_tag(struct config_elements * config, const char * script_name,
         json_decref(j_result);
         return A_OK;
       } else if (json_is_array(j_tags)) {
-        for (i = json_array_size(json_object_get(json_object_get(j_script, "options"), "tags"))-1; i >= 0; i--) {
-          if (0 == o_strcmp(json_string_value(json_array_get(json_object_get(json_object_get(j_script, "options"), "tags"), i)), tag)) {
-            json_array_remove(json_object_get(json_object_get(j_script, "options"), "tags"), i);
+        for (i = (int)json_array_size(json_object_get(json_object_get(j_script, "options"), "tags"))-1; i != 0; i--) {
+          if (0 == o_strcmp(json_string_value(json_array_get(json_object_get(json_object_get(j_script, "options"), "tags"), (size_t)i)), tag)) {
+            json_array_remove(json_object_get(json_object_get(j_script, "options"), "tags"), (size_t)i);
           }
         }
         res = script_modify(config, script_name, j_script);
@@ -674,13 +674,13 @@ int action_run(struct config_elements * config, json_t * j_action) {
       }
       
       if (i_element_type == BENOIC_ELEMENT_TYPE_SWITCH && json_is_integer(command)) {
-        command_res = set_switch(config->b_config, j_device, json_string_value(element), json_integer_value(command));
+        command_res = set_switch(config->b_config, j_device, json_string_value(element), (int)json_integer_value(command));
         if (command_res != B_OK) {
           y_log_message(Y_LOG_LEVEL_ERROR, "error in benoic command_res");
           res = A_ERROR;
         }
       } else if (i_element_type == BENOIC_ELEMENT_TYPE_DIMMER && json_is_integer(command)) {
-        j_result = set_dimmer(config->b_config, j_device, json_string_value(element), json_integer_value(command));
+        j_result = set_dimmer(config->b_config, j_device, json_string_value(element), (int)json_integer_value(command));
         command_res = json_integer_value(json_object_get(j_result, "result"));
         json_decref(j_result);
         if (command_res != B_OK) {
@@ -689,7 +689,7 @@ int action_run(struct config_elements * config, json_t * j_action) {
         }
       } else if (i_element_type == BENOIC_ELEMENT_TYPE_HEATER && json_is_integer(command)) {
         str_heater_mode = (char*)json_string_value(json_object_get(parameters, "mode"));
-        command_res = set_heater(config->b_config, j_device, json_string_value(element), str_heater_mode, json_number_value(command));
+        command_res = set_heater(config->b_config, j_device, json_string_value(element), str_heater_mode, (float)json_number_value(command));
         if (command_res != B_OK) {
           y_log_message(Y_LOG_LEVEL_ERROR, "error in benoic command_res");
           res = A_ERROR;

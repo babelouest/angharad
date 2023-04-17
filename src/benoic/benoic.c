@@ -187,7 +187,7 @@ void * thread_monitor_run(void * args) {
                 if (json_object_get(device, "enabled") == json_true() && json_object_get(device, "connected") == json_true()) {
                   // Getting value
                   value = NULL;
-                  if (has_element(config, device, json_integer_value(json_object_get(j_element, "be_type")), json_string_value(json_object_get(j_element, "be_name")))) {
+                  if (has_element(config, device, (int)json_integer_value(json_object_get(j_element, "be_type")), json_string_value(json_object_get(j_element, "be_name")))) {
                     switch (json_integer_value(json_object_get(j_element, "be_type"))) {
                       case BENOIC_ELEMENT_TYPE_SENSOR:
                         value = get_sensor(config, device, json_string_value(json_object_get(j_element, "be_name")));
@@ -783,7 +783,7 @@ int callback_benoic_device_element_set (const struct _u_request * request, struc
         if (element != NULL) {
           switch (element_type) {
             case BENOIC_ELEMENT_TYPE_SWITCH:
-              i_command = strtol(u_map_get(request->map_url, "command"), &endptr, 10);
+              i_command = (int)strtol(u_map_get(request->map_url, "command"), &endptr, 10);
               if (*endptr == '\0' && i_command >= -1 && i_command <= 1) {
                 if (set_switch((struct _benoic_config *)user_data, device, u_map_get(request->map_url, "element_name"), i_command) != B_OK) {
                   response->status = 500;
@@ -793,7 +793,7 @@ int callback_benoic_device_element_set (const struct _u_request * request, struc
               }
               break;
             case BENOIC_ELEMENT_TYPE_DIMMER:
-              i_command = strtol(u_map_get(request->map_url, "command"), &endptr, 10);
+              i_command = (int)strtol(u_map_get(request->map_url, "command"), &endptr, 10);
               if (*endptr == '\0' && i_command >= 0 && i_command <= 101) {
                 json_t * j_result = set_dimmer((struct _benoic_config *)user_data, device, u_map_get(request->map_url, "element_name"), i_command);
                 if (json_integer_value(json_object_get(j_result, "result")) != B_OK) {
@@ -958,7 +958,7 @@ int callback_benoic_device_element_monitor(const struct _u_request * request, st
       set_response_json_body_and_clean(response, 400, json_pack("{ss}", "error", "device disconnected"));
     } else {
       if (u_map_get(request->map_url, "from") != NULL) {
-        dt_param = strtol(u_map_get(request->map_url, "from"), &endptr, 10);
+        dt_param = (int)strtol(u_map_get(request->map_url, "from"), &endptr, 10);
         if (endptr != NULL && endptr[0] != '\0') {
           set_response_json_body_and_clean(response, 400, json_pack("{ss}", "error", "from parameter must be an epoch timestamp value"));
           json_decref(params);
@@ -967,7 +967,7 @@ int callback_benoic_device_element_monitor(const struct _u_request * request, st
         json_object_set_new(params, "from", json_integer(dt_param));
       }
       if (u_map_get(request->map_url, "to") != NULL) {
-        dt_param = strtol(u_map_get(request->map_url, "to"), &endptr, 10);
+        dt_param = (int)strtol(u_map_get(request->map_url, "to"), &endptr, 10);
         if (endptr != NULL && endptr[0] != '\0') {
           set_response_json_body_and_clean(response, 400, json_pack("{ss}", "error", "to parameter must be an epoch timestamp value"));
           json_decref(params);

@@ -24,7 +24,7 @@
 PREFIX=/usr/local
 MODULES_TARGET=$(PREFIX)/lib/angharad/carleon
 CC=gcc
-CFLAGS=-c -fPIC -Wall -Werror -Wextra -D_REENTRANT -shared -nostartfiles -I$(PREFIX)/include $(ADDITIONALFLAGS)
+CFLAGS=-c -fPIC -Wall -Werror -Wextra -Wconversion -D_REENTRANT -I$(PREFIX)/include $(ADDITIONALFLAGS)
 LIBS=-L$(PREFIX)/lib -lc -ljansson -lyder -lorcania -lulfius
 VERSION=0.1.0
 
@@ -59,7 +59,7 @@ clean:
 
 debug: ADDITIONALFLAGS=-DDEBUG -g -O0
 
-debug: libservicemotion.so libservicempd.so libserviceliquidsoap.so
+debug: libservicemotion.so libservicempd.so libserviceliquidsoap.so libservicemock.so
 
 release: ADDITIONALFLAGS=-O3
 
