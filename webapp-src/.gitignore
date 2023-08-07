@@ -1,8 +1,4 @@
-node_modules
-bower_components
-.tmp
-typings
-coverage
-config.json
-dist
+node_modules/
 package-lock.json
+dist/bundle.js
+dist/bundle.js.LICENSE.txt

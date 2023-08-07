@@ -1,0 +1,100 @@
+/*
+ * Angharad specific css file
+ * Copyright 2023 Nicolas Mora <mail@babelouest.org>
+ */
+.elt-left {
+  margin-right: 5px;
+}
+.elt-right {
+  margin-left: 5px;
+}
+.elt-top {
+  margin-bottom: 5px;
+}
+.elt-bottom {
+  margin-top: 5px;
+}
+.agrd-element {
+  margin-right: 2px;
+  margin-left: 2px;
+  margin-bottom: 2px;
+}
+.script-new-action {
+  padding-right: 2px;
+  padding-left: 2px;
+  padding-bottom: 2px;
+}
+.scheduler-box {
+  padding-right: 2px;
+  padding-left: 2px;
+  padding-bottom: 2px;
+  margin-bottom: 5px;
+}
+.perfect-centering {
+  position: absolute;
+  top: 50%;
+  left:50%;
+  transform: translate(-50%,-50%);
+}
+.description {
+  white-space: pre-wrap;
+}
+.td-truncate {
+  display: inline-block;
+  max-width: 10rem;
+}
+
+.myCharts {
+  width: 450px;
+  height:400px;
+}
+
+.mpd-element {
+  min-height:400px;
+}
+
+.mpd-text {
+	color: #ffffff;
+	text-shadow: 1px 1px #000000;
+}
+
+.mpd-cover {
+	background: center;
+	background-size: 100%;
+	background-position: center center;
+	width: 100%;
+	height: 100%;
+}
+.push-right {
+  float: right;
+}
+.map-container {
+    position:relative;
+    display:inline-block;
+    text-align:center;
+    border:1px solid grey;
+    width: 100%;
+    height: 100%;
+}
+.map-img {
+  width: 100%;
+  height: 100%;
+}
+.upload {
+  display:none;
+}
+.map-img-previous {
+  position:absolute;
+  top:0px;
+  left:-3%;
+  height: 100%;
+}
+.map-img-next {
+  position:absolute;
+  top:0px;
+  left:100%;
+  height: 100%;
+}
+.map-img-element {
+  position:absolute;
+}
