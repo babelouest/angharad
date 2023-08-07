@@ -35,6 +35,7 @@
 #define ELEMENT_TYPE_SWITCH 2
 #define ELEMENT_TYPE_DIMMER 3
 #define ELEMENT_TYPE_HEATER 4
+#define ELEMENT_TYPE_BLIND  5
 
 #define BENOIC_ELEMENT_HEATER_MODE_OFF     "off"
 #define BENOIC_ELEMENT_HEATER_MODE_MANUAL  "manual"
@@ -45,6 +46,7 @@
 json_t * b_device_get_switch (json_t * device, const char * switch_name, void * device_ptr);
 json_t * b_device_get_dimmer (json_t * device, const char * dimmer_name, void * device_ptr);
 json_t * b_device_get_heater (json_t * device, const char * heater_name, void * device_ptr);
+json_t * b_device_get_blind (json_t * device, const char * heater_name, void * device_ptr);
 
 /**
  * Get the value sensor of a sensor using a sinus model
@@ -87,7 +89,7 @@ json_t * b_device_connect (json_t * device, void ** device_ptr) {
   
   if (device_ptr != NULL) {
     // Allocating *device_ptr for further use
-    *device_ptr = (json_t *)json_pack("{s{sisi}s{sisi}s{sisi}s{s{sssfsos[sss]}s{sssfsos[sss]}}}",
+    *device_ptr = (json_t *)json_pack("{s{sisi}s{sisi}s{sisi}s{s{sssfsos[sss]}s{sssfsos[sss]}}s{sisi}}",
                              "switches", "sw1", 0, "sw2", 1,
                              "dimmers", "di1", 42, "di2", 5,
                              "dimmers_values", "di1", 42, "di2", 5,
@@ -95,7 +97,10 @@ json_t * b_device_connect (json_t * device, void ** device_ptr) {
                                "he1", "mode", "auto", "command", 18.0, "on", json_true(), "availableModes",
                                   "auto", "manual", "off",
                                "he2", "mode", "manual", "command", 20.0, "on", json_false(), "availableModes",
-                                  "auto", "manual", "off");
+                                  "auto", "manual", "off",
+                              "blinds",
+                                "bl1", 100,
+                                "bl2", 50);
   }
   
   if (o_strstr(json_string_value(json_object_get(json_object_get(device, "options"), "device_specified")), "batman") == NULL) {
@@ -140,11 +145,13 @@ json_t * b_device_overview (json_t * device, void * device_ptr) {
          * di1 = b_device_get_dimmer(device, "di1", device_ptr),
          * di2 = b_device_get_dimmer(device, "di2", device_ptr),
          * he1 = b_device_get_heater(device, "he1", device_ptr),
-         * he2 = b_device_get_heater(device, "he2", device_ptr);
+         * he2 = b_device_get_heater(device, "he2", device_ptr),
+         * bl1 = b_device_get_blind(device, "bl1", device_ptr),
+         * bl2 = b_device_get_blind(device, "bl2", device_ptr);
   json_object_del(he1, "result");
   json_object_del(he2, "result");
     
-  json_t * result = json_pack("{sis{s{sssf}s{sosf}}s{sIsI}s{sIsI}s{soso}}",
+  json_t * result = json_pack("{sis{s{sssf}s{sosf}}s{sIsI}s{sIsI}s{soso}s{sIsI}}",
                              "result", 
                              WEBSERVICE_RESULT_OK,
                              "sensors", 
@@ -162,11 +169,16 @@ json_t * b_device_overview (json_t * device, void * device_ptr) {
                                 "di2", json_integer_value(json_object_get(di2, "value")),
                              "heaters", 
                                "he1", he1,
-                               "he2", he2);
+                               "he2", he2,
+                              "blinds",
+                                "bl1", json_integer_value(json_object_get(bl1, "value")),
+                                "bl2", json_integer_value(json_object_get(bl2, "value")));
   json_decref(sw1);
   json_decref(sw2);
   json_decref(di1);
   json_decref(di2);
+  json_decref(bl1);
+  json_decref(bl2);
   return result;
 }
 
@@ -285,6 +297,34 @@ json_t * b_device_set_heater (json_t * device, const char * heater_name, const c
 }
 
 /**
+ * Get the blind value
+ */
+json_t * b_device_get_blind (json_t * device, const char * blind_name, void * device_ptr) {
+  UNUSED(device);
+  y_log_message(Y_LOG_LEVEL_INFO, "device-mock - Running command get_blind for blind ");
+  if (0 == o_strcmp(blind_name, "bl1") || 0 == o_strcmp(blind_name, "bl2")) {
+    return json_pack("{sisI}", "result", WEBSERVICE_RESULT_OK, "value", json_integer_value(json_object_get(json_object_get((json_t *)device_ptr, "blinds"), blind_name)));
+  } else {
+    return json_pack("{si}", "result", WEBSERVICE_RESULT_NOT_FOUND);
+  }
+}
+
+/**
+ * Set the blind command
+ */
+json_t * b_device_set_blind (json_t * device, const char * blind_name, int command, void * device_ptr) {
+  y_log_message(Y_LOG_LEVEL_INFO, "device-mock - Running command set_blind for blind %s on device %s with the value %d", blind_name, json_string_value(json_object_get(device, "name")), command);
+  if (0 == o_strcmp(blind_name, "bl1") || 0 == o_strcmp(blind_name, "bl2")) {
+    if (command <= 100 && command >= 0) {
+      json_object_set_new(json_object_get((json_t *)device_ptr, "blinds"), blind_name, json_integer(command));
+    }
+    return json_pack("{sisI}", "result", WEBSERVICE_RESULT_OK, "value", json_integer_value(json_object_get(json_object_get((json_t *)device_ptr, "blinds"), blind_name)));
+  } else {
+    return json_pack("{si}", "result", WEBSERVICE_RESULT_NOT_FOUND);
+  }
+}
+
+/**
  * Return true if an element with the specified name and the specified type exist in this device
  */
 int b_device_has_element (json_t * device, int element_type, const char * element_name, void * device_ptr) {
@@ -303,6 +343,9 @@ int b_device_has_element (json_t * device, int element_type, const char * elemen
       break;
     case ELEMENT_TYPE_HEATER:
       return (0 == o_strcmp(element_name, "he1") || 0 == o_strcmp(element_name, "he2"));
+      break;
+    case ELEMENT_TYPE_BLIND:
+      return (0 == o_strcmp(element_name, "bl1") || 0 == o_strcmp(element_name, "bl2"));
       break;
     default:
       return 0;

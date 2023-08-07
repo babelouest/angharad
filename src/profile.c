@@ -117,43 +117,44 @@ json_t * profile_get(struct config_elements * config, const char * profile_id) {
  * Update the specified profile
  */
 int profile_modify(struct config_elements * config, const char * profile_id, json_t * profile_data) {
-  json_t * profile = profile_get(config, profile_id), * j_query;
+  json_t * profile, * j_query;
   char * str_data;
-  int res;
+  int res, ret;
   
   if (profile_data == NULL || profile_id == NULL) {
-    json_decref(profile);
-    return C_ERROR_PARAM;
-  }
-  
-  if (profile != NULL && json_integer_value(json_object_get(profile, "result")) == WEBSERVICE_RESULT_NOT_FOUND) {
-    json_decref(profile);
-    str_data = json_dumps(profile_data, JSON_COMPACT);
-    j_query = json_pack("{sss{ssss}}", "table", ANGHARAD_TABLE_PROFILE, "values", "ap_data", str_data, "ap_name", profile_id);
-    free(str_data);
-    res = h_insert(config->conn, j_query, NULL);
-    json_decref(j_query);
-    if (res == H_OK) {
-      return C_OK;
-    } else {
-      return C_ERROR_DB;
-    }
-  } else if (profile != NULL && json_integer_value(json_object_get(profile, "result")) == WEBSERVICE_RESULT_OK) {
-    json_decref(profile);
-    str_data = json_dumps(profile_data, JSON_COMPACT);
-    j_query = json_pack("{sss{ss}s{ss}}", "table", ANGHARAD_TABLE_PROFILE, "set", "ap_data", str_data, "where", "ap_name", profile_id);
-    free(str_data);
-    res = h_update(config->conn, j_query, NULL);
-    json_decref(j_query);
-    if (res == H_OK) {
-      return C_OK;
-    } else {
-      return C_ERROR_DB;
-    }
+    ret = C_ERROR_PARAM;
   } else {
-    json_decref(profile);
-    return WEBSERVICE_RESULT_ERROR;
+    str_data = json_dumps(profile_data, JSON_COMPACT);
+    if (o_strlen(str_data) > 14680064) {
+      ret = C_ERROR_PARAM;
+    } else {
+      profile = profile_get(config, profile_id);
+      if (profile != NULL && json_integer_value(json_object_get(profile, "result")) == WEBSERVICE_RESULT_NOT_FOUND) {
+        j_query = json_pack("{sss{ssss}}", "table", ANGHARAD_TABLE_PROFILE, "values", "ap_data", str_data, "ap_name", profile_id);
+        res = h_insert(config->conn, j_query, NULL);
+        json_decref(j_query);
+        if (res == H_OK) {
+          ret = C_OK;
+        } else {
+          ret = C_ERROR_DB;
+        }
+      } else if (profile != NULL && json_integer_value(json_object_get(profile, "result")) == WEBSERVICE_RESULT_OK) {
+        j_query = json_pack("{sss{ss}s{ss}}", "table", ANGHARAD_TABLE_PROFILE, "set", "ap_data", str_data, "where", "ap_name", profile_id);
+        res = h_update(config->conn, j_query, NULL);
+        json_decref(j_query);
+        if (res == H_OK) {
+          ret = C_OK;
+        } else {
+          ret = C_ERROR_DB;
+        }
+      } else {
+        ret = WEBSERVICE_RESULT_ERROR;
+      }
+      json_decref(profile);
+    }
+    free(str_data);
   }
+  return ret;
 }
 
 /**

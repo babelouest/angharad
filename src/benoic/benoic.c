@@ -56,6 +56,7 @@ int init_benoic(struct _u_instance * instance, const char * url_prefix, struct _
     // Elements get, set and put
     ulfius_add_endpoint_by_val(instance, "GET", url_prefix, "/device/@device_name/@element_type/@element_name", 2, &callback_benoic_device_element_get, (void*)config);
     ulfius_add_endpoint_by_val(instance, "GET", url_prefix, "/device/@device_name/@element_type/@element_name/@command", 2, &callback_benoic_device_element_set, (void*)config);
+    ulfius_add_endpoint_by_val(instance, "PUT", url_prefix, "/device/@device_name/@element_type/@element_name/set/@command", 2, &callback_benoic_device_element_set, (void*)config);
     ulfius_add_endpoint_by_val(instance, "PUT", url_prefix, "/device/@device_name/@element_type/@element_name", 2, &callback_benoic_device_element_put, (void*)config);
     ulfius_add_endpoint_by_val(instance, "PUT", url_prefix, "/device/@device_name/@element_type/@element_name/@tag", 2, &callback_benoic_device_element_add_tag, (void*)config);
     ulfius_add_endpoint_by_val(instance, "DELETE", url_prefix, "/device/@device_name/@element_type/@element_name/@tag", 2, &callback_benoic_device_element_remove_tag, (void*)config);
@@ -200,6 +201,9 @@ void * thread_monitor_run(void * args) {
                         break;
                       case BENOIC_ELEMENT_TYPE_HEATER:
                         value = get_heater(config, device, json_string_value(json_object_get(j_element, "be_name")));
+                        break;
+                      case BENOIC_ELEMENT_TYPE_BLIND:
+                        value = get_blind(config, device, json_string_value(json_object_get(j_element, "be_name")));
                         break;
                     }
                   }
@@ -716,6 +720,8 @@ int callback_benoic_device_element_put (const struct _u_request * request, struc
         element_type = BENOIC_ELEMENT_TYPE_DIMMER;
       } else if (0 == o_strcmp(u_map_get(request->map_url, "element_type"), "heater")) {
         element_type = BENOIC_ELEMENT_TYPE_HEATER;
+      } else if (0 == o_strcmp(u_map_get(request->map_url, "element_type"), "blind")) {
+        element_type = BENOIC_ELEMENT_TYPE_BLIND;
       } else {
         set_response_json_body_and_clean(response, 400, json_pack("{ss}", "error", "element type incorrect"));
       }
@@ -777,6 +783,8 @@ int callback_benoic_device_element_set (const struct _u_request * request, struc
         element_type = BENOIC_ELEMENT_TYPE_DIMMER;
       } else if (0 == o_strcmp(u_map_get(request->map_url, "element_type"), "heater")) {
         element_type = BENOIC_ELEMENT_TYPE_HEATER;
+      } else if (0 == o_strcmp(u_map_get(request->map_url, "element_type"), "blind")) {
+        element_type = BENOIC_ELEMENT_TYPE_BLIND;
       }
       if (element_type != BENOIC_ELEMENT_TYPE_NONE) {
         element = get_element_data((struct _benoic_config *)user_data, device, element_type, u_map_get(request->map_url, "element_name"), 0);
@@ -818,6 +826,21 @@ int callback_benoic_device_element_set (const struct _u_request * request, struc
                 }
               } else {
                 set_response_json_body_and_clean(response, 400, json_pack("{ss}", "error", "mode (optional) must be off, manual or auto, command must be a numeric value"));
+              }
+              break;
+            case BENOIC_ELEMENT_TYPE_BLIND:
+              i_command = (int)strtol(u_map_get(request->map_url, "command"), &endptr, 10);
+              if (*endptr == '\0' && i_command >= 0 && i_command <= 101) {
+                json_t * j_result = set_blind((struct _benoic_config *)user_data, device, u_map_get(request->map_url, "element_name"), i_command);
+                if (json_integer_value(json_object_get(j_result, "result")) != B_OK) {
+                  response->status = 500;
+                } else {
+                  json_object_del(j_result, "result");
+                  set_response_json_body_and_clean(response, 200, json_copy(j_result));
+                }
+                json_decref(j_result);
+              } else {
+                set_response_json_body_and_clean(response, 400, json_pack("{ss}", "error", "incorrect command, must be between 0 and 101"));
               }
               break;
             default:
@@ -862,6 +885,8 @@ int callback_benoic_device_element_add_tag (const struct _u_request * request, s
         element_type = BENOIC_ELEMENT_TYPE_DIMMER;
       } else if (0 == o_strcmp(u_map_get(request->map_url, "element_type"), "heater")) {
         element_type = BENOIC_ELEMENT_TYPE_HEATER;
+      } else if (0 == o_strcmp(u_map_get(request->map_url, "element_type"), "blind")) {
+        element_type = BENOIC_ELEMENT_TYPE_BLIND;
       }
       if (element_type != BENOIC_ELEMENT_TYPE_NONE && has_element((struct _benoic_config *)user_data, device, element_type, u_map_get(request->map_url, "element_name"))) {
         element = get_element_data((struct _benoic_config *)user_data, device, element_type, u_map_get(request->map_url, "element_name"), 1);
@@ -914,6 +939,8 @@ int callback_benoic_device_element_remove_tag (const struct _u_request * request
         element_type = BENOIC_ELEMENT_TYPE_DIMMER;
       } else if (0 == o_strcmp(u_map_get(request->map_url, "element_type"), "heater")) {
         element_type = BENOIC_ELEMENT_TYPE_HEATER;
+      } else if (0 == o_strcmp(u_map_get(request->map_url, "element_type"), "blind")) {
+        element_type = BENOIC_ELEMENT_TYPE_BLIND;
       }
       if (element_type != BENOIC_ELEMENT_TYPE_NONE && has_element((struct _benoic_config *)user_data, device, element_type, u_map_get(request->map_url, "element_name"))) {
         element = get_element_data((struct _benoic_config *)user_data, device, element_type, u_map_get(request->map_url, "element_name"), 1);
@@ -983,14 +1010,18 @@ int callback_benoic_device_element_monitor(const struct _u_request * request, st
         element_type = BENOIC_ELEMENT_TYPE_DIMMER;
       } else if (0 == o_strcmp(u_map_get(request->map_url, "element_type"), "heater")) {
         element_type = BENOIC_ELEMENT_TYPE_HEATER;
+      } else if (0 == o_strcmp(u_map_get(request->map_url, "element_type"), "blind")) {
+        element_type = BENOIC_ELEMENT_TYPE_BLIND;
       } else {
         set_response_json_body_and_clean(response, 400, json_pack("{ss}", "error", "element type incorrect"));
       }
-      result = element_get_monitor((struct _benoic_config *)user_data, device, element_type, u_map_get(request->map_url, "element_name"), params);
-      if (result != NULL) {
-        set_response_json_body_and_clean(response, 200, result);
-      } else {
-        response->status = 500;
+      if (element_type != BENOIC_ELEMENT_TYPE_NONE) {
+        result = element_get_monitor((struct _benoic_config *)user_data, device, element_type, u_map_get(request->map_url, "element_name"), params);
+        if (result != NULL) {
+          set_response_json_body_and_clean(response, 200, result);
+        } else {
+          response->status = 500;
+        }
       }
       json_decref(device);
       json_decref(params);

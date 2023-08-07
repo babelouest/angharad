@@ -888,61 +888,6 @@ extern "C" json_t * b_device_set_heater (json_t * device, const char * heater_na
 }
 
 /**
- * Return true if an element with the specified name and the specified type exist in this device
- */
-extern "C" int b_device_has_element (json_t * device, int element_type, const char * element_name, void * device_ptr) {
-  char * str_type, * str_node_id, * str_label, * save_ptr, * dup_name_save, * dup_name = dup_name_save = o_strdup(element_name);
-  ValueID * value;
-  
-  if (u_map_has_key(((zwave_context *)device_ptr)->alarms, element_name) && element_type == ELEMENT_TYPE_SENSOR) {
-    return 1;
-  } else if (element_type == ELEMENT_TYPE_SENSOR) {
-    // first token is the type, supposed to be "se" in this case
-    str_type = strtok_r(dup_name, "$", &save_ptr);
-    
-    // Assigning the next 2 tokens
-    str_node_id = strtok_r(NULL, "$", &save_ptr);
-    str_label = strtok_r(NULL, "$", &save_ptr);
-    
-    if (str_type == NULL || str_node_id == NULL || str_label == NULL) {
-      o_free(dup_name_save);
-      return 0;
-    } else {
-      value = get_device_value_id_by_label(get_device_node((zwave_context *)device_ptr, (uint8)strtol(str_node_id, NULL, 10)), COMMAND_CLASS_SENSOR_BINARY, str_label);
-      if (value == NULL) {
-        value = get_device_value_id_by_label(get_device_node((zwave_context *)device_ptr, (uint8)strtol(str_node_id, NULL, 10)), COMMAND_CLASS_SENSOR_MULTILEVEL, str_label);
-      }
-      o_free(dup_name_save);
-      return (value != NULL);
-    }
-  } else {
-    str_type = strtok_r(dup_name, "$", &save_ptr);
-    str_node_id = strtok_r(NULL, "$", &save_ptr);
-    if (str_type == NULL || str_node_id == NULL) {
-      o_free(dup_name_save);
-      return 0;
-    } else {
-      switch (element_type) {
-        case ELEMENT_TYPE_SWITCH:
-          value = get_device_value_id(get_device_node((zwave_context *)device_ptr, (uint8)strtol(str_node_id, NULL, 10)), COMMAND_CLASS_SWITCH_BINARY);
-          break;
-        case ELEMENT_TYPE_DIMMER:
-          value = get_device_value_id(get_device_node((zwave_context *)device_ptr, (uint8)strtol(str_node_id, NULL, 10)), COMMAND_CLASS_SWITCH_MULTILEVEL);
-          break;
-        case ELEMENT_TYPE_HEATER:
-          value = get_device_value_id(get_device_node((zwave_context *)device_ptr, (uint8)strtol(str_node_id, NULL, 10)), COMMAND_CLASS_THERMOSTAT_SETPOINT);
-          break;
-        default:
-          value = NULL;
-          break;
-      }
-      o_free(dup_name_save);
-      return (value != NULL);
-    }
-  }
-}
-
-/**
  * Get the device overview
  * For my own mental sanity, I will assume that a node has only one element, except for sensors, where they will be identified with their label and node id
  * This seems to work on my devices, where I have switches, dimmers and heaters that are one per node, but I also have a multisensor aeotech, which has multiple values
@@ -1097,4 +1042,80 @@ extern "C" json_t * b_device_overview (json_t * device, void * device_ptr) {
   }
   json_object_set_new(overview, "result", json_integer(RESULT_OK));
   return overview;
+}
+
+/**
+ * Get the blind value
+ */
+extern "C" json_t * b_device_get_blind (json_t * device, const char * blind_name, void * device_ptr) {
+  (void)(device);
+  (void)(blind_name);
+  (void)(device_ptr);
+  return json_pack("{si}", "result", RESULT_NOT_FOUND);
+}
+
+/**
+ * Set the blind command
+ */
+extern "C" json_t * b_device_set_blind (json_t * device, const char * blind_name, int command, void * device_ptr) {
+  (void)(device);
+  (void)(blind_name);
+  (void)(command);
+  (void)(device_ptr);
+  return json_pack("{si}", "result", RESULT_NOT_FOUND);
+}
+
+/**
+ * Return true if an element with the specified name and the specified type exist in this device
+ */
+extern "C" int b_device_has_element (json_t * device, int element_type, const char * element_name, void * device_ptr) {
+  char * str_type, * str_node_id, * str_label, * save_ptr, * dup_name_save, * dup_name = dup_name_save = o_strdup(element_name);
+  ValueID * value;
+  
+  if (u_map_has_key(((zwave_context *)device_ptr)->alarms, element_name) && element_type == ELEMENT_TYPE_SENSOR) {
+    return 1;
+  } else if (element_type == ELEMENT_TYPE_SENSOR) {
+    // first token is the type, supposed to be "se" in this case
+    str_type = strtok_r(dup_name, "$", &save_ptr);
+    
+    // Assigning the next 2 tokens
+    str_node_id = strtok_r(NULL, "$", &save_ptr);
+    str_label = strtok_r(NULL, "$", &save_ptr);
+    
+    if (str_type == NULL || str_node_id == NULL || str_label == NULL) {
+      o_free(dup_name_save);
+      return 0;
+    } else {
+      value = get_device_value_id_by_label(get_device_node((zwave_context *)device_ptr, (uint8)strtol(str_node_id, NULL, 10)), COMMAND_CLASS_SENSOR_BINARY, str_label);
+      if (value == NULL) {
+        value = get_device_value_id_by_label(get_device_node((zwave_context *)device_ptr, (uint8)strtol(str_node_id, NULL, 10)), COMMAND_CLASS_SENSOR_MULTILEVEL, str_label);
+      }
+      o_free(dup_name_save);
+      return (value != NULL);
+    }
+  } else {
+    str_type = strtok_r(dup_name, "$", &save_ptr);
+    str_node_id = strtok_r(NULL, "$", &save_ptr);
+    if (str_type == NULL || str_node_id == NULL) {
+      o_free(dup_name_save);
+      return 0;
+    } else {
+      switch (element_type) {
+        case ELEMENT_TYPE_SWITCH:
+          value = get_device_value_id(get_device_node((zwave_context *)device_ptr, (uint8)strtol(str_node_id, NULL, 10)), COMMAND_CLASS_SWITCH_BINARY);
+          break;
+        case ELEMENT_TYPE_DIMMER:
+          value = get_device_value_id(get_device_node((zwave_context *)device_ptr, (uint8)strtol(str_node_id, NULL, 10)), COMMAND_CLASS_SWITCH_MULTILEVEL);
+          break;
+        case ELEMENT_TYPE_HEATER:
+          value = get_device_value_id(get_device_node((zwave_context *)device_ptr, (uint8)strtol(str_node_id, NULL, 10)), COMMAND_CLASS_THERMOSTAT_SETPOINT);
+          break;
+        default:
+          value = NULL;
+          break;
+      }
+      o_free(dup_name_save);
+      return (value != NULL);
+    }
+  }
 }

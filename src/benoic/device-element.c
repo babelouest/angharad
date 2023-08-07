@@ -59,6 +59,9 @@ json_t * element_get_lists(struct _benoic_config * config, json_t * device) {
             case BENOIC_ELEMENT_TYPE_DIMMER:
               json_array_append_new(json_object_get(j_return, "dimmers"), json_copy(json_object_get(element, "name")));
               break;
+            case BENOIC_ELEMENT_TYPE_BLIND:
+              json_array_append_new(json_object_get(j_return, "blinds"), json_copy(json_object_get(element, "name")));
+              break;
             case BENOIC_ELEMENT_TYPE_HEATER:
               json_array_append_new(json_object_get(j_return, "heaters"), json_copy(json_object_get(element, "name")));
               break;
@@ -332,6 +335,69 @@ int set_heater(struct _benoic_config * config, json_t * device, const char * hea
     i_return = B_ERROR_PARAM;
   }
   return i_return;
+}
+
+/**
+ * get the blind value and data
+ * return a json_t * containing the data, or NULL on error
+ * returned value must be free'd after use
+ */
+json_t * get_blind(struct _benoic_config * config, json_t * device, const char * blind_name) {
+  struct _device_type * device_type = get_device_type(config, device);
+  json_t * blind_value = device_type->b_device_get_blind(device, blind_name, get_device_ptr(config, json_string_value(json_object_get(device, "name")))), * blind_data, * to_return, * value;
+  const char * key;
+  
+  // Look for the device type
+  if (blind_value != NULL && json_integer_value(json_object_get(blind_value, "result")) == DEVICE_RESULT_OK) {
+    json_object_del(blind_value, "result");
+    update_last_seen_device(config, device);
+    blind_data = get_element_data(config, device, BENOIC_ELEMENT_TYPE_BLIND, blind_name, 1);
+    to_return = json_copy(blind_data);
+    if (to_return == NULL) {
+      y_log_message(Y_LOG_LEVEL_ERROR, "get_blind - Error allocating resources");
+      json_decref(blind_value);
+      json_decref(blind_data);
+      return NULL;
+    }
+    json_object_foreach(blind_value, key, value) {
+      json_object_set_new(to_return, key, json_copy(value));
+    }
+    json_decref(blind_value);
+    json_decref(blind_data);
+    return to_return;
+  } else if (blind_value != NULL) {
+    json_decref(blind_value);
+  }
+  return NULL;
+}
+
+/**
+ * set the blind command
+ * return B_OK on success
+ */
+json_t * set_blind(struct _benoic_config * config, json_t * device, const char * blind_name, const int command) {
+  struct _device_type * device_type = get_device_type(config, device);
+  json_t * result, * j_return;
+
+  if (device_type != NULL) {
+    result = device_type->b_device_set_blind(device, blind_name, command, get_device_ptr(config, json_string_value(json_object_get(device, "name"))));
+    if (result != NULL) {
+      if (json_integer_value(json_object_get(result, "result")) == DEVICE_RESULT_OK) {
+        j_return = json_pack("{sisI}", "result", B_OK, "value", json_integer_value(json_object_get(result, "value")));
+      } else if (json_integer_value(json_object_get(result, "result")) == DEVICE_RESULT_NOT_FOUND) {
+        j_return = json_pack("{si}", "result", B_ERROR_NOT_FOUND);
+      } else {
+        j_return = json_pack("{si}", "result", B_ERROR_IO);
+      }
+      json_decref(result);
+    } else {
+      j_return = json_pack("{si}", "result", B_ERROR_IO);
+    }
+  } else {
+    y_log_message(Y_LOG_LEVEL_ERROR, "set_blind - Device type not found");
+    j_return = json_pack("{si}", "result", B_ERROR_PARAM);
+  }
+  return j_return;
 }
 
 /**

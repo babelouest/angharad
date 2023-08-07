@@ -29,17 +29,20 @@
 #include <string.h>
 #include "angharad.h"
 
-int callback_angharad_alert (const struct _u_request * request, struct _u_response * response, void * user_data) {  
-  if (user_data == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "callback_carleon_service_element_remove_tag - Error, user_data is NULL");
-    return U_CALLBACK_ERROR;
-  } else {
-    if (alert_received((struct config_elements *)user_data, u_map_get(request->map_url, "submodule_name"), u_map_get(request->map_url, "source"), u_map_get(request->map_url, "element"), u_map_get(request->map_url, "message")) != A_OK) {
-      response->status = 500;
-    }
-    return U_CALLBACK_CONTINUE;
-  }
-}
+/**
+ * api description endpoint
+ * send the location of prefixes
+ */
+int callback_angharad_server_configuration (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  UNUSED(request);
+  struct config_elements * config = (struct config_elements *)user_data;
+  
+  ulfius_set_response_properties(response, U_OPT_STATUS, 200,
+                                           U_OPT_STRING_BODY, config->config_content,
+                                           U_OPT_HEADER_PARAMETER, ULFIUS_HTTP_HEADER_CONTENT, ULFIUS_HTTP_ENCODING_JSON,
+                                           U_OPT_NONE);
+  return U_CALLBACK_CONTINUE;
+};
 
 int callback_angharad_submodule_list (const struct _u_request * request, struct _u_response * response, void * user_data) {
   UNUSED(request);
@@ -140,7 +143,7 @@ int callback_angharad_script_add (const struct _u_request * request, struct _u_r
         response->status = 500;
       } else if (json_integer_value(json_object_get(script, "result")) == A_ERROR_NOT_FOUND) {
         res = script_add((struct config_elements *)user_data, json_body);
-        if (res == A_ERROR) {
+        if (res != A_OK) {
           response->status = 500;
         }
       } else {
@@ -318,6 +321,7 @@ int callback_angharad_scheduler_get (const struct _u_request * request, struct _
 int callback_angharad_scheduler_enable (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * j_scheduler;
   
+  y_log_message(Y_LOG_LEVEL_DEBUG, "enable sched %s: %s", u_map_get(request->map_url, "scheduler_name"), u_map_get(request->map_url, "enabled"));
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_scheduler_enable - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -473,205 +477,6 @@ int callback_angharad_scheduler_remove_tag (const struct _u_request * request, s
   }
 }
 
-int callback_angharad_trigger_list (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  UNUSED(request);
-  json_t * j_trigger;
-  
-  if (user_data == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_trigger_list - Error, user_data is NULL");
-    return U_CALLBACK_ERROR;
-  } else {
-    j_trigger = trigger_get((struct config_elements *)user_data, NULL);
-    if (j_trigger == NULL || json_integer_value(json_object_get(j_trigger, "result")) == A_ERROR) {
-      y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_trigger_list - Error getting trigger list, aborting");
-      response->status = 500;
-    } else {
-      set_response_json_body_and_clean(response, 200, json_copy(json_object_get(j_trigger, "triggers")));
-    }
-    json_decref(j_trigger);
-    return U_CALLBACK_CONTINUE;
-  }
-}
-
-int callback_angharad_trigger_get (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  json_t * j_trigger;
-  
-  if (user_data == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_trigger_get - Error, user_data is NULL");
-    return U_CALLBACK_ERROR;
-  } else {
-    j_trigger = trigger_get((struct config_elements *)user_data, u_map_get(request->map_url, "trigger_name"));
-    if (j_trigger == NULL || json_integer_value(json_object_get(j_trigger, "result")) == A_ERROR) {
-      y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_trigger_get - Error getting trigger, aborting");
-      response->status = 500;
-    } else if (json_integer_value(json_object_get(j_trigger, "result")) == A_ERROR_NOT_FOUND) {
-      response->status = 404;
-    } else {
-      set_response_json_body_and_clean(response, 200, json_copy(json_object_get(j_trigger, "trigger")));
-    }
-    json_decref(j_trigger);
-    return U_CALLBACK_CONTINUE;
-  }
-}
-
-int callback_angharad_trigger_enable (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  json_t * j_trigger;
-  
-  if (user_data == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_trigger_enable - Error, user_data is NULL");
-    return U_CALLBACK_ERROR;
-  } else {
-    j_trigger = trigger_get((struct config_elements *)user_data, u_map_get(request->map_url, "trigger_name"));
-    if (j_trigger == NULL || json_integer_value(json_object_get(j_trigger, "result")) == A_ERROR) {
-      y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_trigger_enable - Error getting trigger, aborting");
-      response->status = 500;
-    } else if (json_integer_value(json_object_get(j_trigger, "result")) == A_ERROR_NOT_FOUND) {
-      response->status = 404;
-    } else {
-      if (trigger_enable((struct config_elements *)user_data, json_object_get(j_trigger, "trigger"), 0==o_strcmp(u_map_get(request->map_url, "enabled"), "1")?1:0) != A_OK) {
-        y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_trigger_enable - Error setting trigger enabled");
-        response->status = 500;
-      } else {
-        set_response_json_body_and_clean(response, 200, json_copy(json_object_get(j_trigger, "trigger")));
-      }
-    }
-    json_decref(j_trigger);
-    return U_CALLBACK_CONTINUE;
-  }
-}
-
-int callback_angharad_trigger_add (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  json_t * valid;
-  int res;
-  json_t * json_body = ulfius_get_json_body_request(request, NULL);
-  
-  if (user_data == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_trigger_get - Error, user_data is NULL");
-    return U_CALLBACK_ERROR;
-  } else {
-    valid = is_trigger_valid((struct config_elements *)user_data, json_body, 0);
-    if (valid != NULL && json_array_size(valid) == 0) {
-      json_decref(valid);
-      valid = trigger_get((struct config_elements *)user_data, json_string_value(json_object_get(json_body, "name")));
-      if (valid == NULL || json_integer_value(json_object_get(valid, "result")) == A_ERROR) {
-        response->status = 500;
-      } else if (json_integer_value(json_object_get(valid, "result")) == A_ERROR_NOT_FOUND) {
-        json_decref(valid);
-        res = trigger_add((struct config_elements *)user_data, json_body);
-        if (res != A_OK) {
-          response->status = 500;
-        }
-      } else {
-        json_decref(valid);
-        set_response_json_body_and_clean(response, 400, json_pack("{ss}", "error", "trigger name already exist"));
-      }
-    } else if (valid != NULL) {
-      set_response_json_body_and_clean(response, 400, valid);
-    } else {
-      response->status = 500;
-    }
-    json_decref(json_body);
-    return U_CALLBACK_CONTINUE;
-  }
-}
-
-int callback_angharad_trigger_modify (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  json_t * valid;
-  int res;
-  json_t * json_body = ulfius_get_json_body_request(request, NULL);
-  
-  if (user_data == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_trigger_modify - Error, user_data is NULL");
-    return U_CALLBACK_ERROR;
-  } else {
-    valid = is_trigger_valid((struct config_elements *)user_data, json_body, 1);
-    if (valid != NULL && json_array_size(valid) == 0) {
-      json_decref(valid);
-      res = trigger_modify((struct config_elements *)user_data, u_map_get(request->map_url, "trigger_name"), json_body);
-      if (res == A_OK) {
-        response->status = 200;
-      } else if (res == A_ERROR_NOT_FOUND) {
-        response->status = 404;
-      } else {
-        response->status = 500;
-      }
-    } else if (valid != NULL) {
-      set_response_json_body_and_clean(response, 400, valid);
-    } else {
-      response->status = 500;
-    }
-    json_decref(json_body);
-    return U_CALLBACK_CONTINUE;
-  }
-}
-
-int callback_angharad_trigger_remove (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  int res;
-  
-  if (user_data == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_trigger_remove - Error, user_data is NULL");
-    return U_CALLBACK_ERROR;
-  } else {
-    res = trigger_delete((struct config_elements *)user_data, u_map_get(request->map_url, "trigger_name"));
-    if (res == A_OK) {
-      response->status = 200;
-    } else if (res == A_ERROR_NOT_FOUND) {
-      response->status = 404;
-    } else {
-      response->status = 500;
-    }
-    return U_CALLBACK_CONTINUE;
-  }
-}
-
-int callback_angharad_trigger_add_tag (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  int res;
-  
-  if (user_data == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_trigger_add_tag - Error, user_data is NULL");
-    return U_CALLBACK_ERROR;
-  } else if (strlen(u_map_get(request->map_url, "tag")) > 64) {
-    set_response_json_body_and_clean(response, 400, json_pack("{ss}", "error", "tag invalid"));
-    return U_CALLBACK_CONTINUE;
-  } else {
-    res = trigger_add_tag((struct config_elements *)user_data, u_map_get(request->map_url, "trigger_name"), u_map_get(request->map_url, "tag"));
-    if (res == A_OK) {
-      return U_CALLBACK_CONTINUE;
-    } else if (res == A_ERROR_NOT_FOUND) {
-      set_response_json_body_and_clean(response, 404, json_pack("{ss}", "error", "trigger not found"));
-    } else if (res == A_ERROR_PARAM) {
-      set_response_json_body_and_clean(response, 400, json_pack("{ss}", "error", "tag invalid"));
-    } else {
-      response->status = 500;
-    }
-    return U_CALLBACK_CONTINUE;
-  }
-}
-
-int callback_angharad_trigger_remove_tag (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  int res;
-  
-  if (user_data == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "callback_carleon_service_element_remove_tag - Error, user_data is NULL");
-    return U_CALLBACK_ERROR;
-  } else if (strlen(u_map_get(request->map_url, "tag")) > 64) {
-    set_response_json_body_and_clean(response, 400, json_pack("{ss}", "error", "tag invalid"));
-    return U_CALLBACK_CONTINUE;
-  } else {
-    res = trigger_remove_tag((struct config_elements *)user_data, u_map_get(request->map_url, "trigger_name"), u_map_get(request->map_url, "tag"));
-    if (res == A_OK) {
-      return U_CALLBACK_CONTINUE;
-    } else if (res == A_ERROR_NOT_FOUND) {
-      set_response_json_body_and_clean(response, 404, json_pack("{ss}", "error", "trigger not found"));
-    } else if (res == A_ERROR_PARAM) {
-      set_response_json_body_and_clean(response, 400, json_pack("{ss}", "error", "tag invalid"));
-    } else {
-      response->status = 500;
-    }
-    return U_CALLBACK_CONTINUE;
-  }
-}
-
 int callback_carleon_profile_list (const struct _u_request * request, struct _u_response * response, void * user_data) {
   UNUSED(request);
   json_t * j_list;
@@ -747,7 +552,7 @@ int callback_carleon_profile_remove (const struct _u_request * request, struct _
     } else if (res != C_OK) {
       response->status = 500;
     }
-    return U_CALLBACK_CONTINUE;
+    return U_CALLBACK_IGNORE;
   }
 }
 

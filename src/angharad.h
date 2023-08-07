@@ -29,7 +29,7 @@
 #ifndef __ANGHARAD_H_
 #define __ANGHARAD_H_
 
-#define _ANGHARAD_VERSION_ "1.2.4"
+#define _ANGHARAD_VERSION_ "1.2.5"
 
 /** Macro to avoid compiler warning when some parameters are unused and that's ok **/
 #define UNUSED(x) (void)(x)
@@ -43,7 +43,6 @@
 // Angharad submodules
 #include "benoic/benoic.h"
 #include "carleon/carleon.h"
-#include "gareth/gareth.h"
 #include "static_compressed_inmemory_website_callback.h"
 #include "http_compression_callback.h"
 #include "iddawc_resource.h"
@@ -60,7 +59,6 @@
 
 #define BENOIC_DEFAULT_PREFIX       "benoic"
 #define CARLEON_DEFAULT_PREFIX      "carleon"
-#define GARETH_DEFAULT_PREFIX       "gareth"
 #define ALLOW_ORIGIN_DEFAULT        "*"
 #define STATIC_FILES_PREFIX_DEFAULT "sagremor"
 
@@ -89,15 +87,11 @@
 
 #define ANGHARAD_SUBMODULE_BENOIC  "benoic"
 #define ANGHARAD_SUBMODULE_CARLEON "carleon"
-#define ANGHARAD_SUBMODULE_GARETH  "gareth"
-#define ANGHARAD_SUBMODULE_FERGUS  "fergus"
 
 #define ANGHARAD_TABLE_SUBMODULE        "a_submodule"
 #define ANGHARAD_TABLE_SCRIPT           "a_script"
 #define ANGHARAD_TABLE_SCHEDULER        "a_scheduler"
-#define ANGHARAD_TABLE_TRIGGER          "a_trigger"
 #define ANGHARAD_TABLE_SCHEDULER_SCRIPT "a_scheduler_script"
-#define ANGHARAD_TABLE_TRIGGER_SCRIPT   "a_trigger_script"
 #define ANGHARAD_TABLE_PROFILE          "a_profile"
 
 #define ANGHARAD_AUTH_TYPE_NONE     0
@@ -111,14 +105,6 @@
 #define SCHEDULER_REPEAT_DAY_OF_WEEK  3
 #define SCHEDULER_REPEAT_MONTH        4
 #define SCHEDULER_REPEAT_YEAR         5
-
-#define TRIGGER_MESSAGE_MATCH_NONE         0
-#define TRIGGER_MESSAGE_MATCH_EQUAL        1
-#define TRIGGER_MESSAGE_MATCH_DIFFERENT    2
-#define TRIGGER_MESSAGE_MATCH_CONTAINS     3
-#define TRIGGER_MESSAGE_MATCH_NOT_CONTAINS 4
-#define TRIGGER_MESSAGE_MATCH_EMPTY        5
-#define TRIGGER_MESSAGE_MATCH_NOT_EMPTY    6
 
 #define ANGHARAD_CALLBACK_PRIORITY_ZERO           0
 #define ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION 1
@@ -143,7 +129,6 @@ struct config_elements {
   char                                         * url_prefix_angharad;
   char                                         * url_prefix_benoic;
   char                                         * url_prefix_carleon;
-  char                                         * url_prefix_gareth;
   char                                         * alert_url;
   char                                         * allow_origin;
   unsigned long                                  log_mode;
@@ -165,6 +150,7 @@ struct config_elements {
   time_t                                         oidc_dpop_max_iat;
   struct _iddawc_resource_config               * iddawc_resource_config;
   struct _u_compressed_inmemory_website_config * static_file_config;
+  char                                         * config_content;
 };
 
 int  build_config_from_args(int argc, char ** argv, struct config_elements * config);
@@ -222,17 +208,6 @@ int scheduler_add_tag(struct config_elements * config, const char * scheduler_na
 int scheduler_remove_tag(struct config_elements * config, const char * scheduler_name, const char * tag);
 time_t scheduler_calculate_next_time(time_t from, json_int_t schedule_type, json_int_t schedule_value);
 
-json_t * trigger_get(struct config_elements * config, const char * trigger_name);
-int trigger_enable(struct config_elements * config, json_t * j_trigger, int enabled);
-json_t * trigger_get_script_list(struct config_elements * config, const char * trigger_name);
-int trigger_add(struct config_elements * config, json_t * j_trigger);
-int trigger_set_script_list(struct config_elements * config, const char * trigger_name, json_t * script_list);
-json_t * is_trigger_valid(struct config_elements * config, json_t * j_trigger, const int update);
-int trigger_modify(struct config_elements * config, const char * trigger_name, json_t * j_trigger);
-int trigger_delete(struct config_elements * config, const char * trigger_name);
-int trigger_add_tag(struct config_elements * config, const char * trigger_name, const char * tag);
-int trigger_remove_tag(struct config_elements * config, const char * trigger_name, const char * tag);
-
 // profiles core functions
 json_t * profile_list(struct config_elements * config);
 json_t * profile_get(struct config_elements * config, const char * profile_id);
@@ -262,7 +237,7 @@ int auth_check_credentials_ldap(struct config_elements * config, const char * lo
 json_t * auth_generate_new_token(struct config_elements * config, const char * login, int validity);
 
 // Callback functions for webservices
-int callback_angharad_alert (const struct _u_request * request, struct _u_response * response, void * user_data);
+int callback_angharad_server_configuration (const struct _u_request * request, struct _u_response * response, void * user_data);
 
 int callback_angharad_submodule_list (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_submodule_get (const struct _u_request * request, struct _u_response * response, void * user_data);
@@ -284,15 +259,6 @@ int callback_angharad_scheduler_modify (const struct _u_request * request, struc
 int callback_angharad_scheduler_remove (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_scheduler_add_tag (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_angharad_scheduler_remove_tag (const struct _u_request * request, struct _u_response * response, void * user_data);
-
-int callback_angharad_trigger_list (const struct _u_request * request, struct _u_response * response, void * user_data);
-int callback_angharad_trigger_get (const struct _u_request * request, struct _u_response * response, void * user_data);
-int callback_angharad_trigger_enable (const struct _u_request * request, struct _u_response * response, void * user_data);
-int callback_angharad_trigger_add (const struct _u_request * request, struct _u_response * response, void * user_data);
-int callback_angharad_trigger_modify (const struct _u_request * request, struct _u_response * response, void * user_data);
-int callback_angharad_trigger_remove (const struct _u_request * request, struct _u_response * response, void * user_data);
-int callback_angharad_trigger_add_tag (const struct _u_request * request, struct _u_response * response, void * user_data);
-int callback_angharad_trigger_remove_tag (const struct _u_request * request, struct _u_response * response, void * user_data);
 
 int callback_carleon_profile_list (const struct _u_request * request, struct _u_response * response, void * user_data);
 int callback_carleon_profile_get (const struct _u_request * request, struct _u_response * response, void * user_data);

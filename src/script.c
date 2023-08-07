@@ -103,7 +103,7 @@ int script_add(struct config_elements * config, json_t * j_script) {
   
   if (j_script == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "script_add - Error j_script is NULL");
-    return A_ERROR_MEMORY;
+    return A_ERROR_PARAM;
   }
   
   str_actions = json_dumps(json_object_get(j_script, "actions"), JSON_COMPACT);
@@ -113,8 +113,8 @@ int script_add(struct config_elements * config, json_t * j_script) {
                       "values",
                         "asc_name", json_string_value(json_object_get(j_script, "name")),
                         "asc_description", (json_object_get(j_script, "description")!=NULL?json_string_value(json_object_get(j_script, "description")):""),
-                        "asc_actions", str_actions,
-                        "asc_options", str_options);
+                        "asc_actions", str_actions!=NULL?str_actions:"{}",
+                        "asc_options", str_options!=NULL?str_options:"{}");
   o_free(str_actions);
   o_free(str_options);
   
@@ -157,8 +157,8 @@ int script_modify(struct config_elements * config, const char * script_name, jso
                         "set",
                           "asc_name", script_name,
                           "asc_description", json_object_get(j_script, "description")!=NULL?json_string_value(json_object_get(j_script, "description")):"",
-                          "asc_actions", str_actions,
-                          "asc_options", str_options,
+                          "asc_actions", str_actions!=NULL?str_actions:"{}",
+                          "asc_options", str_options!=NULL?str_options:"{}",
                         "where",
                           "asc_name", script_name);
     o_free(str_actions);
@@ -380,13 +380,15 @@ json_t * is_action_valid(struct config_elements * config, json_t * j_action, con
               i_element_type = BENOIC_ELEMENT_TYPE_HEATER;
             } else if (is_condition && 0 == o_strcmp("sensor", json_string_value(j_element_type))) {
               i_element_type = BENOIC_ELEMENT_TYPE_SENSOR;
+            } else if (0 == o_strcmp("blind", json_string_value(j_element_type))) {
+              i_element_type = BENOIC_ELEMENT_TYPE_BLIND;
             }
             
             if (i_element_type == BENOIC_ELEMENT_TYPE_NONE) {
               json_array_append_new(j_result, json_pack("{ss}", "action", "element_type invalid"));
             } else {
               if (!has_element(config->b_config, j_device, i_element_type, json_string_value(json_object_get(j_action, "element")))) {
-                json_array_append_new(j_result, json_pack("{ss}", "action", "element invalid"));
+                y_log_message(Y_LOG_LEVEL_ERROR, "Element %s unknown", json_string_value(json_object_get(j_action, "element")));
               } else if (!is_condition) {
                 j_command = json_object_get(j_action, "command");
                 if (j_command == NULL) {
@@ -396,7 +398,7 @@ json_t * is_action_valid(struct config_elements * config, json_t * j_action, con
                     if (!json_is_integer(j_command) || (json_integer_value(j_command) != 0 && json_integer_value(j_command) != 1)) {
                       json_array_append_new(j_result, json_pack("{ss}", "action", "command is invalid, must be a 1 or a 0"));
                     }
-                  } else if (i_element_type == BENOIC_ELEMENT_TYPE_DIMMER) {
+                  } else if (i_element_type == BENOIC_ELEMENT_TYPE_DIMMER || i_element_type == BENOIC_ELEMENT_TYPE_BLIND) {
                     if (!json_is_integer(j_command) || (json_integer_value(j_command) < 0 && json_integer_value(j_command) > 100)) {
                       json_array_append_new(j_result, json_pack("{ss}", "action", "command is invalid, must be between 0 and 100"));
                     }
@@ -497,6 +499,47 @@ json_t * is_action_valid(struct config_elements * config, json_t * j_action, con
 }
 
 /**
+ * Check if script_list is a valid list of scripts
+ */
+json_t * is_script_list_valid(struct config_elements * config, json_t * script_list) {
+  json_t * j_return = json_array(), * script, * j_script;
+  size_t index;
+  
+  if(j_return == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "is_script_list_valid - Error allocating resources for j_return");
+    return NULL;
+  }
+  
+  if (script_list == NULL || !json_is_array(script_list)) {
+    json_array_append_new(j_return, json_pack("{ss}", "script_list", "script list is mandatory and must be an array"));
+  } else if (json_array_size(script_list) == 0) {
+    json_array_append_new(j_return, json_pack("{ss}", "script_list", "script list must have at least one script"));
+  } else {
+    json_array_foreach(script_list, index, script) {
+      if (!json_is_object(script)) {
+        json_array_append_new(j_return, json_pack("{ss}", "script", "script must be an object"));
+      } else {
+        if (json_object_get(script, "name") == NULL || !json_is_string(json_object_get(script, "name"))) {
+          json_array_append_new(j_return, json_pack("{ss}", "script", "name attribute is mandatory and must be a string"));
+        } else {
+          j_script = script_get(config, json_string_value(json_object_get(script, "name")));
+          if (json_integer_value(json_object_get(j_script, "result")) != A_OK) {
+            json_array_append_new(j_return, json_pack("{ss}", "script", "script does not exist"));
+          }
+          json_decref(j_script);
+        }
+        
+        if (json_object_get(script, "enabled") == NULL || !json_is_boolean(json_object_get(script, "enabled"))) {
+          json_array_append_new(j_return, json_pack("{ss}", "script", "enabled attribute is mandatory and must be a boolean"));
+        }
+      }
+    }
+  }
+  
+  return j_return;
+}
+
+/**
  * Add a tag to the specified script
  */
 int script_add_tag(struct config_elements * config, const char * script_name, const char * tag) {
@@ -578,9 +621,8 @@ int script_remove_tag(struct config_elements * config, const char * script_name,
  * Execute the specified script
  */
 int script_run(struct config_elements * config, const char * script_name) {
-  json_t * j_result, * j_script, * j_message, * j_action_list, * j_action;
+  json_t * j_result, * j_script, * j_action_list, * j_action;
   int res = A_OK;
-  char * str_message_text;
   size_t index;
   
   if (config == NULL || script_name == NULL) {
@@ -596,20 +638,13 @@ int script_run(struct config_elements * config, const char * script_name) {
         json_decref(j_result);
         res = A_ERROR_NOT_FOUND;
       } else if (json_integer_value(json_object_get(j_result, "result")) == A_OK) {
-        // Send a message via gareth submodule
         j_script = json_object_get(j_result, "script");
-        str_message_text = msprintf("Running script %s", script_name);
-        j_message = json_pack("{sssssss[s]}", "priority", "LOW", "source", "angharad", "text", str_message_text, "tags", "script");
-        add_message(config->conn, j_message);
-        json_decref(j_message);
-        o_free(str_message_text);
         
         j_action_list = json_object_get(j_script, "actions");
         if (j_action_list != NULL && json_is_array(j_action_list)) {
           json_array_foreach(j_action_list, index, j_action) {
             if (action_run(config, j_action) != A_OK) {
               y_log_message(Y_LOG_LEVEL_ERROR, "script_run - Error executing action %d in script %s", index, script_name);
-              res = A_ERROR;
             }
           }
         } else {
@@ -650,12 +685,14 @@ int action_run(struct config_elements * config, json_t * j_action) {
   json_t * parameters, * device, * element_type, * element, * command, * j_device, * is_valid, * j_result;
   int i_element_type = BENOIC_ELEMENT_TYPE_NONE;
   struct _carleon_service * cur_service = NULL;
-  char * str_heater_mode;
+  char * str_heater_mode, * error_description = NULL;
   json_int_t command_res;
   
   is_valid = is_action_valid(config, j_action, 0);
   if (is_valid != NULL && json_is_array(is_valid) && json_array_size(is_valid) > 0) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "error in action is_valid");
+    error_description = json_dumps(is_valid, JSON_COMPACT);
+    y_log_message(Y_LOG_LEVEL_ERROR, "error in action is_valid: %s", is_valid);
+    o_free(error_description);
     res = A_ERROR;
   } else if (0 == o_strcmp(json_string_value(json_object_get(j_action, "submodule")), "benoic")) {
     parameters = json_object_get(j_action, "parameters");
@@ -671,6 +708,8 @@ int action_run(struct config_elements * config, json_t * j_action) {
         i_element_type = BENOIC_ELEMENT_TYPE_DIMMER;
       } else if (0 == o_strcmp("heater", json_string_value(element_type))) {
         i_element_type = BENOIC_ELEMENT_TYPE_HEATER;
+      } else if (0 == o_strcmp("blind", json_string_value(element_type))) {
+        i_element_type = BENOIC_ELEMENT_TYPE_BLIND;
       }
       
       if (i_element_type == BENOIC_ELEMENT_TYPE_SWITCH && json_is_integer(command)) {
@@ -690,6 +729,14 @@ int action_run(struct config_elements * config, json_t * j_action) {
       } else if (i_element_type == BENOIC_ELEMENT_TYPE_HEATER && json_is_integer(command)) {
         str_heater_mode = (char*)json_string_value(json_object_get(parameters, "mode"));
         command_res = set_heater(config->b_config, j_device, json_string_value(element), str_heater_mode, (float)json_number_value(command));
+        if (command_res != B_OK) {
+          y_log_message(Y_LOG_LEVEL_ERROR, "error in benoic command_res");
+          res = A_ERROR;
+        }
+      } else if (i_element_type == BENOIC_ELEMENT_TYPE_BLIND && json_is_integer(command)) {
+        j_result = set_blind(config->b_config, j_device, json_string_value(element), (int)json_integer_value(command));
+        command_res = json_integer_value(json_object_get(j_result, "result"));
+        json_decref(j_result);
         if (command_res != B_OK) {
           y_log_message(Y_LOG_LEVEL_ERROR, "error in benoic command_res");
           res = A_ERROR;

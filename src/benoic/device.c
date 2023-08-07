@@ -126,7 +126,7 @@ int init_device_type_list(struct _benoic_config * config) {
       
       if (file_handle != NULL) {
         y_log_message(Y_LOG_LEVEL_INFO, "Open module from file %s", file_path);
-        struct _device_type cur_device = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+        struct _device_type cur_device;
         
         dlerror();
         cur_device.dl_handle = file_handle;
@@ -142,6 +142,8 @@ int init_device_type_list(struct _benoic_config * config) {
         *(void **) (&cur_device.b_device_set_dimmer) = dlsym(cur_device.dl_handle, "b_device_set_dimmer");
         *(void **) (&cur_device.b_device_get_heater) = dlsym(cur_device.dl_handle, "b_device_get_heater");
         *(void **) (&cur_device.b_device_set_heater) = dlsym(cur_device.dl_handle, "b_device_set_heater");
+        *(void **) (&cur_device.b_device_get_blind) = dlsym(cur_device.dl_handle, "b_device_get_blind");
+        *(void **) (&cur_device.b_device_set_blind) = dlsym(cur_device.dl_handle, "b_device_set_blind");
         *(void **) (&cur_device.b_device_has_element) = dlsym(cur_device.dl_handle, "b_device_has_element");
         
         if ((cur_device.b_device_type_init != NULL) &&
@@ -156,6 +158,8 @@ int init_device_type_list(struct _benoic_config * config) {
             (cur_device.b_device_set_dimmer != NULL) &&
             (cur_device.b_device_get_heater != NULL) && 
             (cur_device.b_device_set_heater != NULL) &&
+            (cur_device.b_device_get_blind != NULL) &&
+            (cur_device.b_device_set_blind != NULL) &&
             (cur_device.b_device_has_element != NULL)) {
           device_handshake = (*cur_device.b_device_type_init)();
           cur_device.uid = o_strdup(json_string_value(json_object_get(device_handshake, "uid")));
@@ -193,6 +197,8 @@ int init_device_type_list(struct _benoic_config * config) {
             config->device_type_list[nb_device_types - 1].b_device_set_dimmer = cur_device.b_device_set_dimmer;
             config->device_type_list[nb_device_types - 1].b_device_get_heater = cur_device.b_device_get_heater;
             config->device_type_list[nb_device_types - 1].b_device_set_heater = cur_device.b_device_set_heater;
+            config->device_type_list[nb_device_types - 1].b_device_get_blind = cur_device.b_device_get_blind;
+            config->device_type_list[nb_device_types - 1].b_device_set_blind = cur_device.b_device_set_blind;
             config->device_type_list[nb_device_types - 1].b_device_has_element = cur_device.b_device_has_element;
 
             config->device_type_list[nb_device_types].uid = NULL;
@@ -1061,6 +1067,35 @@ json_t * overview_device(struct _benoic_config * config, json_t * device) {
           y_log_message(Y_LOG_LEVEL_ERROR, "overview_device - Error overview heaters");
         }
       }
+      
+      element_array = json_object_get(overview, "blinds");
+      if (element_array != NULL) {
+        json_object_set_new(to_return, "blinds", json_object());
+        if (json_is_object(element_array)) {
+          json_object_foreach(element_array, key, value) {
+            element = get_element_data(config, device, BENOIC_ELEMENT_TYPE_BLIND, key, 1);
+            if (element != NULL) {
+              if (json_is_object(value)) {
+                if (json_object_get(value, "unit") != NULL) {
+                  const char * elt_unit = json_string_value(json_object_get(json_object_get(element, "options"), "unit"));
+                  if (elt_unit == NULL || strlen(elt_unit) == 0) {
+                    json_object_set_new(json_object_get(element, "options"), "unit", json_copy(json_object_get(value, "unit")));
+                  }
+                }
+                json_object_set_new(element, "value", json_copy(json_object_get(value, "value")));
+              } else {
+                json_object_set_new(element, "value", json_copy(value));
+              }
+              json_object_set_new(json_object_get(to_return, "blinds"), key, element);
+            } else {
+              y_log_message(Y_LOG_LEVEL_ERROR, "overview_device - Error getting blind %s from device %s", key, json_string_value(json_object_get(device, "name")));
+            }
+          }
+        } else {
+          y_log_message(Y_LOG_LEVEL_ERROR, "overview_device - Error overview blinds");
+        }
+      }
+      
       json_decref(overview);
       return to_return;
     } else {

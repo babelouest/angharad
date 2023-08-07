@@ -40,9 +40,6 @@ void * thread_scheduler_run(void * args) {
   json_t * scheduler_list_names, * scheduler_name, * scheduler, * scheduler_result, * script;
   size_t index, index_sc;
 
-  char * str_message_text;
-  json_t * j_message;
-
   if (config != NULL) {
     while (config->angharad_status == ANGHARAD_STATUS_RUN) {
       // Run monitoring task every minute
@@ -84,13 +81,7 @@ void * thread_scheduler_run(void * args) {
               }
 
               // Execute scheduler scripts
-              if ((time_t)json_integer_value(json_object_get(scheduler, "next_time")) >= (now - 60) && condition_list_check(config, json_object_get(scheduler, "conditions"))) {
-                // Send a message via gareth submodule
-                str_message_text = msprintf("Running scheduled script %s", json_string_value(json_object_get(scheduler, "name")));
-                j_message = json_pack("{sssssss[s]}", "priority", "LOW", "source", "angharad", "text", str_message_text, "tags", "scheduler");
-                add_message(config->conn, j_message);
-                json_decref(j_message);
-                o_free(str_message_text);
+              if ((time_t)json_integer_value(json_object_get(scheduler, "next_time")) >= (now - 60)) {
 
                 json_array_foreach(json_object_get(scheduler, "scripts"), index_sc, script) {
                   if (json_object_get(script, "enabled") == json_true() && json_is_string(json_object_get(script, "name"))) {
@@ -153,11 +144,11 @@ json_t * scheduler_get_next_schedules(struct config_elements * config) {
  * Return the list of all schedulers or the sppecified scheduler
  */
 json_t * scheduler_get(struct config_elements * config, const char * scheduler_name, const int runnable) {
-  json_t * j_query, * j_result, * j_scheduler, * j_options, * j_conditions, * j_bool, * to_return, * j_repeat, * script_list;
+  json_t * j_query, * j_result, * j_scheduler, * j_options, * j_bool, * to_return, * j_repeat, * script_list;
   int res;
   size_t index;
 
-  j_query = json_pack("{sss[ssssssss]}",
+  j_query = json_pack("{sss[sssssss]}",
                         "table",
                           ANGHARAD_TABLE_SCHEDULER,
                         "columns",
@@ -165,7 +156,6 @@ json_t * scheduler_get(struct config_elements * config, const char * scheduler_n
                           "ash_description AS description",
                           "ash_enabled",
                           "ash_options",
-                          "ash_conditions",
                           "ash_repeat AS s_repeat",
                           "ash_repeat_value AS repeat_value",
                           "ash_remove_after");
@@ -208,9 +198,6 @@ json_t * scheduler_get(struct config_elements * config, const char * scheduler_n
         j_options = json_loads(json_string_value(json_object_get(j_scheduler, "ash_options")), JSON_DECODE_ANY, NULL);
         json_object_del(j_scheduler, "ash_options");
         json_object_set_new(j_scheduler, "options", j_options);
-        j_conditions = json_loads(json_string_value(json_object_get(j_scheduler, "ash_conditions")), JSON_DECODE_ANY, NULL);
-        json_object_del(j_scheduler, "ash_conditions");
-        json_object_set_new(j_scheduler, "conditions", j_conditions);
         j_bool = json_object_get(j_scheduler, "ash_remove_after");
         json_object_set_new(j_scheduler, "remove_after", json_integer_value(j_bool)==1?json_true():json_false());
         json_object_del(j_scheduler, "ash_remove_after");
@@ -248,9 +235,6 @@ json_t * scheduler_get(struct config_elements * config, const char * scheduler_n
         j_options = json_loads(json_string_value(json_object_get(j_scheduler, "ash_options")), JSON_DECODE_ANY, NULL);
         json_object_del(j_scheduler, "ash_options");
         json_object_set_new(j_scheduler, "options", j_options);
-        j_conditions = json_loads(json_string_value(json_object_get(j_scheduler, "ash_conditions")), JSON_DECODE_ANY, NULL);
-        json_object_del(j_scheduler, "ash_conditions");
-        json_object_set_new(j_scheduler, "conditions", j_conditions);
         j_bool = json_object_get(j_scheduler, "ash_remove_after");
         json_object_set_new(j_scheduler, "remove_after", json_integer_value(j_bool)==1?json_true():json_false());
         json_object_del(j_scheduler, "ash_remove_after");
@@ -308,7 +292,7 @@ int scheduler_enable(struct config_elements * config, json_t * j_scheduler, int 
 int scheduler_add(struct config_elements * config, json_t * j_scheduler) {
   json_t * j_query;
   int res;
-  char * str_options, * str_conditions, * str_next_time;
+  char * str_options, * str_next_time;
   json_error_t error;
 
   if (j_scheduler == NULL) {
@@ -330,25 +314,18 @@ int scheduler_add(struct config_elements * config, json_t * j_scheduler) {
   } else {
     str_options = o_strdup("");
   }
-  if (json_object_get(j_scheduler, "conditions") != NULL) {
-    str_conditions = json_dumps(json_object_get(j_scheduler, "conditions"), JSON_COMPACT);
-  } else {
-    str_conditions = o_strdup("");
-  }
-  j_query = json_pack("{sss[{sssssisssss{ss}sIsIsi}]}",
+  j_query = json_pack("{sss[{sssssisss{ss}sIsIsi}]}",
                       "table", ANGHARAD_TABLE_SCHEDULER,
                       "values",
                         "ash_name", json_string_value(json_object_get(j_scheduler, "name")),
                         "ash_description", json_object_get(j_scheduler, "description")!=NULL?json_string_value(json_object_get(j_scheduler, "description")):"",
                         "ash_enabled", json_object_get(j_scheduler, "enabled")==json_false()?0:1,
                         "ash_options", str_options,
-                        "ash_conditions", str_conditions,
                         "ash_next_time", "raw", str_next_time,
                         "ash_repeat", json_integer_value(json_object_get(j_scheduler, "repeat")),
                         "ash_repeat_value", json_integer_value(json_object_get(j_scheduler, "repeat_value")),
                         "ash_remove_after", json_object_get(j_scheduler, "remove_after")==json_false()?0:1);
   o_free(str_options);
-  o_free(str_conditions);
   o_free(str_next_time);
 
   if (j_query == NULL) {
@@ -370,7 +347,7 @@ int scheduler_add(struct config_elements * config, json_t * j_scheduler) {
  * Check if the spceified scheduler is valid
  */
 json_t * is_scheduler_valid(struct config_elements * config, json_t * j_scheduler, const int update) {
-  json_t * j_result = json_array(), * j_element, * j_options_valid, * j_conditions_valid, * j_scripts_valid;
+  json_t * j_result = json_array(), * j_element, * j_options_valid, * j_scripts_valid;
   size_t index;
 
   if (j_result == NULL) {
@@ -434,20 +411,6 @@ json_t * is_scheduler_valid(struct config_elements * config, json_t * j_schedule
       }
     }
 
-    j_conditions_valid = is_condition_list_valid(config, json_object_get(j_scheduler, "conditions"));
-    if (j_conditions_valid != NULL && json_is_array(j_conditions_valid) && json_array_size(j_conditions_valid) > 0) {
-      json_array_foreach(j_conditions_valid, index, j_element) {
-        json_array_append_new(j_result, json_copy(j_element));
-      }
-      json_decref(j_conditions_valid);
-    } else if(j_conditions_valid != NULL) {
-      json_decref(j_conditions_valid);
-    } else {
-      y_log_message(Y_LOG_LEVEL_ERROR, "is_scheduler_valid - Error, is_condition_list_valid returned NULL");
-      json_decref(j_result);
-      return NULL;
-    }
-
     j_scripts_valid = is_script_list_valid(config, json_object_get(j_scheduler, "scripts"));
     if (j_scripts_valid != NULL && json_is_array(j_scripts_valid) && json_array_size(j_scripts_valid) > 0) {
       json_array_foreach(j_scripts_valid, index, j_element) {
@@ -471,7 +434,7 @@ json_t * is_scheduler_valid(struct config_elements * config, json_t * j_schedule
 int scheduler_modify(struct config_elements * config, const char * scheduler_name, json_t * j_scheduler) {
   json_t * j_query, * cur_scheduler;
   int res, res_cur_scheduler;
-  char * str_options, * str_conditions, * str_next_time;
+  char * str_options, * str_next_time;
 
   if (j_scheduler == NULL || scheduler_name == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "scheduler_modify - Error j_scheduler or scheduler_name is NULL");
@@ -487,11 +450,6 @@ int scheduler_modify(struct config_elements * config, const char * scheduler_nam
     } else {
       str_options = o_strdup("");
     }
-    if (json_object_get(j_scheduler, "conditions") != NULL) {
-      str_conditions = json_dumps(json_object_get(j_scheduler, "conditions"), JSON_COMPACT);
-    } else {
-      str_conditions = o_strdup("");
-    }
     if (config->conn->type == HOEL_DB_TYPE_MARIADB) {
       str_next_time = msprintf("FROM_UNIXTIME(%" JSON_INTEGER_FORMAT ")", json_integer_value(json_object_get(j_scheduler, "next_time")));
     } else if (config->conn->type == HOEL_DB_TYPE_SQLITE) {
@@ -500,13 +458,12 @@ int scheduler_modify(struct config_elements * config, const char * scheduler_nam
       // Should not happen
       str_next_time = o_strdup("");
     }
-    j_query = json_pack("{sss{sssisssss{ss}sIsIsi}s{ss}}",
+    j_query = json_pack("{sss{sssisss{ss}sIsIsi}s{ss}}",
                         "table", ANGHARAD_TABLE_SCHEDULER,
                         "set",
                           "ash_description", json_object_get(j_scheduler, "description")!=NULL?json_string_value(json_object_get(j_scheduler, "description")):"",
                           "ash_enabled", json_object_get(j_scheduler, "enabled")==json_false()?0:1,
                           "ash_options", str_options,
-                          "ash_conditions", str_conditions,
                           "ash_next_time", "raw", str_next_time,
                           "ash_repeat", json_integer_value(json_object_get(j_scheduler, "repeat")),
                           "ash_repeat_value", json_integer_value(json_object_get(j_scheduler, "repeat_value")),
@@ -514,7 +471,6 @@ int scheduler_modify(struct config_elements * config, const char * scheduler_nam
                         "where",
                           "ash_name", scheduler_name);
     o_free(str_options);
-    o_free(str_conditions);
     o_free(str_next_time);
 
     if (j_query == NULL) {

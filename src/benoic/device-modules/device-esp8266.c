@@ -268,6 +268,27 @@ json_t * b_device_set_heater (json_t * device, const char * heater_name, const c
 }
 
 /**
+ * Get the blind value
+ */
+json_t * b_device_get_blind (json_t * device, const char * blind_name, void * device_ptr) {
+  UNUSED(device);
+  UNUSED(blind_name);
+  UNUSED(device_ptr);
+  return json_pack("{si}", "result", WEBSERVICE_RESULT_NOT_FOUND);
+}
+
+/**
+ * Set the blind command
+ */
+json_t * b_device_set_blind (json_t * device, const char * blind_name, int command, void * device_ptr) {
+  UNUSED(device);
+  UNUSED(blind_name);
+  UNUSED(command);
+  UNUSED(device_ptr);
+  return json_pack("{si}", "result", WEBSERVICE_RESULT_NOT_FOUND);
+}
+
+/**
  * Return true if an element with the specified name and the specified type exist in this device
  */
 int b_device_has_element (json_t * device, int element_type, const char * element_name, void * device_ptr) {

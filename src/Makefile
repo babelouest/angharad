@@ -35,10 +35,9 @@ GARETH_LOCATION=gareth
 BENOIC_LOCATION=benoic
 CARLEON_LOCATION=carleon
 
-GARETH_OBJECTS=$(GARETH_LOCATION)/gareth.o $(GARETH_LOCATION)/alert.o $(GARETH_LOCATION)/filter.o $(GARETH_LOCATION)/message.o
 BENOIC_OBJECTS=$(BENOIC_LOCATION)/benoic.o $(BENOIC_LOCATION)/device.o $(BENOIC_LOCATION)/device-element.o
 CARLEON_OBJECTS=$(CARLEON_LOCATION)/carleon.o $(CARLEON_LOCATION)/service.o
-ANGHARAD_OBJECTS=angharad.o condition.o scheduler.o trigger.o script.o profile.o webservice.o iddawc_resource.o static_compressed_inmemory_website_callback.o http_compression_callback.o
+ANGHARAD_OBJECTS=angharad.o scheduler.o script.o profile.o webservice.o iddawc_resource.o static_compressed_inmemory_website_callback.o http_compression_callback.o
 
 %.o: %.c angharad.h glewlwyd-common.h static_compressed_inmemory_website_callback.h http_compression_callback.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) $<
@@ -47,8 +46,8 @@ all: release
 	cd $(BENOIC_LOCATION)/device-modules && $(MAKE)
 	cd $(CARLEON_LOCATION)/service-modules && $(MAKE)
 
-angharad: $(ANGHARAD_OBJECTS) $(GARETH_OBJECTS) $(BENOIC_OBJECTS) $(CARLEON_OBJECTS)
-	$(CC) -o angharad $(ANGHARAD_OBJECTS) $(GARETH_OBJECTS) $(BENOIC_OBJECTS) $(CARLEON_OBJECTS) $(LIBS) -lconfig
+angharad: $(ANGHARAD_OBJECTS) $(BENOIC_OBJECTS) $(CARLEON_OBJECTS)
+	$(CC) -o angharad $(ANGHARAD_OBJECTS) $(BENOIC_OBJECTS) $(CARLEON_OBJECTS) $(LIBS) -lconfig
 
 debug: ADDITIONALFLAGS=-DDEBUG -g -O0
 

@@ -4,7 +4,6 @@
  *
  * Manage all subsystems and handles the house automation server:
  * - Benoic
- * - Gareth
  * - Carleon
  *
  * Angharad server entry point
@@ -45,7 +44,7 @@ pthread_cond_t  global_handler_close_cond;
 int main(int argc, char ** argv) {
   struct config_elements * config = o_malloc(sizeof(struct config_elements));
   int res;
-  json_t * submodule;
+  json_t * submodule, * j_tmp;
   char * str_jwks;
   json_t * j_jwks;
 
@@ -58,7 +57,6 @@ int main(int argc, char ** argv) {
   config->url_prefix_angharad = NULL;
   config->url_prefix_benoic = NULL;
   config->url_prefix_carleon = NULL;
-  config->url_prefix_gareth = NULL;
   config->allow_origin = NULL;
   config->log_mode = Y_LOG_MODE_NONE;
   config->log_level = Y_LOG_LEVEL_NONE;
@@ -74,6 +72,7 @@ int main(int argc, char ** argv) {
   config->oidc_realm = NULL;
   config->oidc_aud = NULL;
   config->oidc_dpop_max_iat = 0;
+  config->config_content = NULL;
   config->instance = o_malloc(sizeof(struct _u_instance));
   config->c_config = o_malloc(sizeof(struct _carleon_config));
   config->b_config = o_malloc(sizeof(struct _benoic_config));
@@ -168,18 +167,6 @@ int main(int argc, char ** argv) {
   }
   json_decref(submodule);
 
-  // Initialize gareth webservice if enabled
-  submodule = submodule_get(config, ANGHARAD_SUBMODULE_GARETH);
-  if (submodule != NULL && json_integer_value(json_object_get(submodule, "result")) == A_OK && json_object_get(json_object_get(submodule, "submodule"), "enabled") == json_true()) {
-    res = init_gareth(config->instance, config->url_prefix_gareth, config->conn);
-    if (!res) {
-      y_log_message(Y_LOG_LEVEL_ERROR, "Error initializing gareth webservice: %d", res);
-      json_decref(submodule);
-      exit_server(&config, ANGHARAD_ERROR);
-    }
-  }
-  json_decref(submodule);
-
   if (config->use_oidc_authentication) {
     if (i_jwt_profile_access_token_init_config(config->iddawc_resource_config, I_METHOD_HEADER, NULL, NULL, config->oidc_scope, NULL, config->oidc_dpop_max_iat) == I_TOKEN_OK) {
       if (config->oidc_server_remote_config != NULL) {
@@ -217,8 +204,27 @@ int main(int argc, char ** argv) {
       y_log_message(Y_LOG_LEVEL_ERROR, "OIDC authentication - Error i_jwt_profile_access_token_init_config");
       exit_server(&config, ANGHARAD_ERROR);
     }
+    j_tmp = json_pack("{ss ss ss so ss* ss*}", 
+                      "angharad_endpoint", config->url_prefix_angharad,
+                      "benoic_endpoint", config->url_prefix_benoic,
+                      "carleon_endpoint", config->url_prefix_carleon,
+                      "oidc", json_true(),
+                      "oauth_scope", config->oidc_scope,
+                      "oidc_server_remote_config", config->oidc_server_remote_config);
+  } else {
+    j_tmp = json_pack("{ss ss ss so}", 
+                      "angharad_endpoint", config->url_prefix_angharad,
+                      "benoic_endpoint", config->url_prefix_benoic,
+                      "carleon_endpoint", config->url_prefix_carleon,
+                      "oidc", json_false());
   }
 
+  if ((config->config_content = json_dumps(j_tmp, JSON_COMPACT)) == NULL) {
+    fprintf(stderr, "Error setting config content\n");
+    exit_server(&config, ANGHARAD_ERROR);
+  }
+  json_decref(j_tmp);
+  
   // Initialize angharad webservice
   res = init_angharad(config);
   if (res != A_OK) {
@@ -247,7 +253,7 @@ int main(int argc, char ** argv) {
  */
 int build_config_from_args(int argc, char ** argv, struct config_elements * config) {
   int next_option;
-  const char * short_options = "c:p:u:v:w:x:m:l:f:h::b:s:";
+  const char * short_options = "c:p:u:v:w:m:l:f:h::b:s:";
   char * tmp = NULL, * to_free = NULL, * one_log_mode = NULL;
   static const struct option long_options[]= {
     {"config-file", optional_argument,NULL, 'c'},
@@ -255,7 +261,6 @@ int build_config_from_args(int argc, char ** argv, struct config_elements * conf
     {"url-prefix-angharad", optional_argument,NULL, 'u'},
     {"url-prefix-benoic", optional_argument,NULL, 'v'},
     {"url-prefix-carleon", optional_argument,NULL, 'w'},
-    {"url-prefix-gareth", optional_argument,NULL, 'x'},
     {"log-mode", optional_argument,NULL, 'm'},
     {"log-level", optional_argument,NULL, 'l'},
     {"log-file", optional_argument,NULL, 'f'},
@@ -323,18 +328,6 @@ int build_config_from_args(int argc, char ** argv, struct config_elements * conf
             config->url_prefix_carleon = o_strdup(optarg);
             if (config->url_prefix_carleon == NULL) {
               fprintf(stderr, "Error allocating config->url_prefix_carleon, exiting\n");
-              exit_server(&config, ANGHARAD_STOP);
-            }
-          } else {
-            fprintf(stderr, "Error!\nNo URL prefix specified\n");
-            return 0;
-          }
-          break;
-        case 'x':
-          if (optarg != NULL) {
-            config->url_prefix_gareth = o_strdup(optarg);
-            if (config->url_prefix_gareth == NULL) {
-              fprintf(stderr, "Error allocating config->url_prefix_gareth, exiting\n");
               exit_server(&config, ANGHARAD_STOP);
             }
           } else {
@@ -488,10 +481,10 @@ void exit_server(struct config_elements ** config, int exit_value) {
     o_free((*config)->url_prefix_angharad);
     o_free((*config)->url_prefix_benoic);
     o_free((*config)->url_prefix_carleon);
-    o_free((*config)->url_prefix_gareth);
     o_free((*config)->alert_url);
     o_free((*config)->oidc_server_remote_config);
     o_free((*config)->oidc_scope);
+    o_free((*config)->config_content);
     if ((*config)->use_oidc_authentication) {
       i_jwt_profile_access_token_close_config((*config)->iddawc_resource_config);
     }
@@ -533,7 +526,7 @@ int build_config_from_file(struct config_elements * config) {
 
   config_t cfg;
   config_setting_t * root, * database, * mime_type_list, * mime_type, * oidc_cfg;
-  const char * cur_prefix_angharad, * cur_prefix_benoic, * cur_prefix_carleon, * cur_prefix_gareth, * cur_log_mode, * cur_log_level, * cur_log_file = NULL, * one_log_mode, * carleon_services_path, * benoic_modules_path, * cur_allow_origin, * db_type, * db_sqlite_path, * db_mariadb_host = NULL, * db_mariadb_user = NULL, * db_mariadb_password = NULL, * db_mariadb_dbname = NULL, * cur_static_files_path = NULL, * extension = NULL, * mime_type_value = NULL;
+  const char * cur_prefix_angharad, * cur_prefix_benoic, * cur_prefix_carleon, * cur_log_mode, * cur_log_level, * cur_log_file = NULL, * one_log_mode, * carleon_services_path, * benoic_modules_path, * cur_allow_origin, * db_type, * db_sqlite_path, * db_mariadb_host = NULL, * db_mariadb_user = NULL, * db_mariadb_password = NULL, * db_mariadb_dbname = NULL, * cur_static_files_path = NULL, * extension = NULL, * mime_type_value = NULL;
   int db_mariadb_port = 0;
   unsigned int i;
   const char * cur_oidc_server_remote_config = NULL, * cur_oidc_server_public_jwks = NULL, * cur_oidc_iss = NULL, * cur_oidc_realm = NULL, * cur_oidc_aud = NULL, * cur_oidc_scope = NULL;
@@ -584,18 +577,6 @@ int build_config_from_file(struct config_elements * config) {
       config->url_prefix_carleon = o_strdup(cur_prefix_carleon);
       if (config->url_prefix_carleon == NULL) {
         fprintf(stderr, "Error allocating config->url_prefix_carleon, exiting\n");
-        config_destroy(&cfg);
-        return 0;
-      }
-    }
-  }
-
-  if (config->url_prefix_gareth == NULL) {
-    // Get prefix url for gareth
-    if (config_lookup_string(&cfg, "url_prefix_gareth", &cur_prefix_gareth)) {
-      config->url_prefix_gareth = o_strdup(cur_prefix_gareth);
-      if (config->url_prefix_gareth == NULL) {
-        fprintf(stderr, "Error allocating config->url_prefix_gareth, exiting\n");
         config_destroy(&cfg);
         return 0;
       }
@@ -856,14 +837,6 @@ int check_config(struct config_elements * config) {
     }
   }
 
-  if (config->url_prefix_gareth == NULL) {
-    config->url_prefix_gareth = o_strdup(GARETH_DEFAULT_PREFIX);
-    if (config->url_prefix_gareth == NULL) {
-      fprintf(stderr, "Error allocating url_prefix_gareth, exit\n");
-      return 0;
-    }
-  }
-
   if (config->log_mode == Y_LOG_MODE_NONE) {
     config->log_mode = Y_LOG_MODE_CONSOLE;
   }
@@ -985,6 +958,16 @@ json_t * submodule_get(struct config_elements * config, const char * submodule) 
   }
 }
 
+// TODO: Remove me
+int callback_gareth_ghost (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  UNUSED(request);
+  UNUSED(user_data);
+  json_t * j_ar = json_array();
+  ulfius_set_json_body_response(response, 200, j_ar);
+  json_decref(j_ar);
+  return U_CALLBACK_COMPLETE;
+}
+
 /**
  * Initializes angharad server
  * Create all the endpoints
@@ -998,15 +981,11 @@ int init_angharad(struct config_elements * config) {
       ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_check_jwt_profile_access_token, (void*)config->iddawc_resource_config);
       ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_benoic, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_check_jwt_profile_access_token, (void*)config->iddawc_resource_config);
       ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_carleon, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_check_jwt_profile_access_token, (void*)config->iddawc_resource_config);
-      ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_gareth, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_check_jwt_profile_access_token, (void*)config->iddawc_resource_config);
     } else {
-      ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_oauth2_disabled, (void*)config->iddawc_resource_config);
-      ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_benoic, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_oauth2_disabled, (void*)config->iddawc_resource_config);
-      ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_carleon, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_oauth2_disabled, (void*)config->iddawc_resource_config);
-      ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_gareth, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_oauth2_disabled, (void*)config->iddawc_resource_config);
+      ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_oauth2_disabled, (void*)config);
+      ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_benoic, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_oauth2_disabled, (void*)config);
+      ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_carleon, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_oauth2_disabled, (void*)config);
     }
-
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/alert/@submodule_name/@source/@element/@message/", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_alert, (void*)config);
 
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_submodule_list, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/@submodule_name", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_submodule_get, (void*)config);
@@ -1018,40 +997,40 @@ int init_angharad(struct config_elements * config) {
     ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/script/@script_name", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_script_remove, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/script/@script_name/@tag", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_script_add_tag, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/script/@script_name/@tag", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_script_remove_tag, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/script/@script_name/run", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_script_run, (void*)config);
+// TODO: Remove me
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/script/@script_name/run", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_script_run, (void*)config);
 
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/scheduler/", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_scheduler_list, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/scheduler/@scheduler_name", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_scheduler_get, (void*)config);
+// TODO: Remove me
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/scheduler/@scheduler_name/enable/@enabled", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_scheduler_enable, (void*)config);
+    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/scheduler/@scheduler_name/enable/@enabled", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_scheduler_enable, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/scheduler/", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_scheduler_add, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/scheduler/@scheduler_name", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_scheduler_modify, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/scheduler/@scheduler_name", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_scheduler_remove, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/scheduler/@scheduler_name/@tag", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_scheduler_add_tag, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/scheduler/@scheduler_name/@tag", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_scheduler_remove_tag, (void*)config);
 
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/trigger/", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_trigger_list, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/trigger/@trigger_name", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_trigger_get, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/trigger/@trigger_name/enable/@enabled", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_trigger_enable, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "POST", config->url_prefix_angharad, "/trigger/", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_trigger_add, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/trigger/@trigger_name", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_trigger_modify, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/trigger/@trigger_name", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_trigger_remove, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/trigger/@trigger_name/@tag", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_trigger_add_tag, (void*)config);
-    ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/trigger/@trigger_name/@tag", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_trigger_remove_tag, (void*)config);
-
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/profile", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_carleon_profile_list, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/profile/@profile_id", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_carleon_profile_get, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "PUT", config->url_prefix_angharad, "/profile/@profile_id", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_carleon_profile_set, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "DELETE", config->url_prefix_angharad, "/profile/@profile_id", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_carleon_profile_remove, (void*)config);
 
+// TODO: Remove me
+    ulfius_add_endpoint_by_val(config->instance, "GET", NULL, "/gareth/filter/", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_gareth_ghost, NULL);
+    ulfius_add_endpoint_by_val(config->instance, "GET", NULL, "/gareth/alert/", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_gareth_ghost, NULL);
+// /TODO: Remove me
+
     ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, "*", ANGHARAD_CALLBACK_PRIORITY_COMPRESSION, &callback_http_compression, NULL);
     ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_benoic, "*", ANGHARAD_CALLBACK_PRIORITY_COMPRESSION, &callback_http_compression, NULL);
     ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_carleon, "*", ANGHARAD_CALLBACK_PRIORITY_COMPRESSION, &callback_http_compression, NULL);
-    ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_gareth, "*", ANGHARAD_CALLBACK_PRIORITY_COMPRESSION, &callback_http_compression, NULL);
     if (!o_strnullempty(config->static_file_config->files_path)) {
       ulfius_add_endpoint_by_val(config->instance, "GET", NULL, "*", ANGHARAD_CALLBACK_PRIORITY_FILES, &callback_static_compressed_inmemory_website, (void*)config->static_file_config);
     }
     ulfius_add_endpoint_by_val(config->instance, "OPTIONS", NULL, "*", ANGHARAD_CALLBACK_PRIORITY_ZERO, &callback_angharad_options, (void*)config);
 
+    ulfius_add_endpoint_by_val(config->instance, "GET", "/.well-known/angharad-configuration", NULL, ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_server_configuration, (void*)config);
     u_map_put(config->instance->default_headers, "Access-Control-Allow-Origin", config->allow_origin);
     u_map_put(config->instance->default_headers, "Access-Control-Allow-Credentials", "true");
     u_map_put(config->instance->default_headers, "Cache-Control", "no-store");
@@ -1119,7 +1098,7 @@ int close_angharad(struct config_elements * config) {
     if (config->angharad_status == ANGHARAD_STATUS_RUN) {
       config->angharad_status = ANGHARAD_STATUS_STOPPING;
       while (config->angharad_status != ANGHARAD_STATUS_STOP) {
-        sleep(1);
+        usleep(50);
       }
     }
 
