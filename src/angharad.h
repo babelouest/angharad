@@ -29,7 +29,7 @@
 #ifndef __ANGHARAD_H_
 #define __ANGHARAD_H_
 
-#define _ANGHARAD_VERSION_ "1.2.5"
+#define _ANGHARAD_VERSION_ "1.3.0"
 
 /** Macro to avoid compiler warning when some parameters are unused and that's ok **/
 #define UNUSED(x) (void)(x)

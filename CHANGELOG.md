@@ -1,5 +1,10 @@
 # Angharad changelog
 
+## 1.3.0
+
+- UI rework in ReactJs
+- cmake: remove `DownloadProject` feature, now dependencies must be previously installed
+
 ## 1.2.4
 
 - Add http compression
