@@ -64,7 +64,7 @@ CREATE TABLE `b_element` (
   `be_options` TEXT,
   `be_monitored` INTEGER DEFAULT 0,
   `be_monitored_every` INTEGER DEFAULT 0,
-  `be_monitored_next` INTEGER DEFAULT 0
+  `be_monitored_next` INTEGER DEFAULT 0,
 );
 
 CREATE TABLE `b_monitor` (
