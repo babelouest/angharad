@@ -1,0 +1,8 @@
+{
+  "common": {
+    "connected": "Connected",
+    "connecting": "Connecting",
+    "log-out": "Log out",
+    "log-in": "Log in"
+  }
+}
