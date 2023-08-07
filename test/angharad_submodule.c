@@ -84,22 +84,6 @@ START_TEST(test_angharad_get_submodule_carleon_enabled)
 }
 END_TEST
 
-START_TEST(test_angharad_get_submodule_gareth_enabled)
-{
-  char * url = msprintf("%s/angharad/submodule/gareth", angharad_uri);
-  json_t * j_result = json_loads("{\
-        \"name\": \"gareth\",\
-        \"description\": \"Messenger service\",\
-        \"enabled\": true\
-    }", JSON_DECODE_ANY, NULL);
-  
-  int res = run_simple_test(&user_req, "GET", url, NULL, NULL, NULL, NULL, 200, j_result, NULL, NULL);
-  free(url);
-  json_decref(j_result);
-	ck_assert_int_eq(res, 1);
-}
-END_TEST
-
 static Suite *angharad_suite(void)
 {
 	Suite *s;
@@ -112,7 +96,6 @@ static Suite *angharad_suite(void)
 	tcase_add_test(tc_core, test_angharad_get_submodule_not_found);
 	tcase_add_test(tc_core, test_angharad_get_submodule_benoic_enabled);
 	tcase_add_test(tc_core, test_angharad_get_submodule_carleon_enabled);
-	tcase_add_test(tc_core, test_angharad_get_submodule_gareth_enabled);
 	tcase_set_timeout(tc_core, 30);
 	suite_add_tcase(s, tc_core);
 

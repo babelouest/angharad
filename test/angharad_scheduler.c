@@ -187,33 +187,7 @@ START_TEST(test_angharad_scheduler_create_ok)
         \"tag2\",\
         \"tag3\"\
       ]\
-    },\
-    \"conditions\":[\
-      {\
-        \"submodule\": \"benoic\",\
-        \"element\": \"sw1\",\
-        \"command\": 1,\
-        \"parameters\": {\
-          \"device\": \"dev1\",\
-          \"element_type\": \"switch\"\
-        },\
-        \"condition\":\"==\",\
-        \"value\":1\
-      },\
-      {\
-        \"submodule\": \"carleon\",\
-        \"element\": \"mock1\",\
-        \"command\": \"exec1\",\
-        \"parameters\": {\
-          \"service\": \"mock-service\",\
-          \"param1\": \"plop\",\
-          \"param2\": 3,\
-          \"param3\": 4.4\
-        },\
-        \"condition\":\">=\",\
-        \"value\":0\
-      }\
-    ]\
+    }\
   }");
   json_t * scheduler_valid = json_loads(str_scheduler_valid, JSON_DECODE_ANY, NULL);
   
@@ -253,32 +227,6 @@ START_TEST(test_angharad_scheduler_create_error_name)
         \"tag3\"\
       ]\
     },\
-    \"conditions\":[\
-      {\
-        \"submodule\": \"benoic\",\
-        \"element\": \"sw1\",\
-        \"command\": 1,\
-        \"parameters\": {\
-          \"device\": \"dev1\",\
-          \"element_type\": \"switch\"\
-        },\
-        \"condition\":\"==\",\
-        \"value\":1\
-      },\
-      {\
-        \"submodule\": \"carleon\",\
-        \"element\": \"mock1\",\
-        \"command\": \"exec1\",\
-        \"parameters\": {\
-          \"service\": \"mock-service\",\
-          \"param1\": \"plop\",\
-          \"param2\": 3,\
-          \"param3\": 4.4\
-        },\
-        \"condition\":\">=\",\
-        \"value\":0\
-      }\
-    ]\
   }");
   json_t * scheduler_valid = json_loads(str_scheduler_valid, JSON_DECODE_ANY, NULL);
   
@@ -326,33 +274,7 @@ START_TEST(test_angharad_scheduler_create_invalid)
         \"tag1\",\
         3\
       ]\
-    },\
-    \"conditions\":[\
-      {\
-        \"submodule\": \"benoic\",\
-        \"element\": \"sw1\",\
-        \"command\": 1,\
-        \"parameters\": {\
-          \"device\": \"dev1\",\
-          \"element_type\": \"switch\"\
-        },\
-        \"condition\":\"==\",\
-        \"value\":\"err\"\
-      },\
-      {\
-        \"submodule\": \"carleon\",\
-        \"element\": \"mock1\",\
-        \"command\": \"exec1\",\
-        \"parameters\": {\
-          \"service\": \"mock-service\",\
-          \"param1\": \"plop\",\
-          \"param2\": 3,\
-          \"param3\": 4.4\
-        },\
-        \"condition\":\"err\",\
-        \"value\":0\
-      }\
-    ]\
+    }\
   }", JSON_DECODE_ANY, NULL);
   
   int res = run_simple_test(&user_req, "POST", url, NULL, NULL, scheduler_invalid, NULL, 400, NULL, NULL, NULL);
@@ -388,33 +310,7 @@ START_TEST(test_angharad_scheduler_update_ok)
         \"tag1\",\
         \"tag3\"\
       ]\
-    },\
-    \"conditions\":[\
-      {\
-        \"submodule\": \"benoic\",\
-        \"element\": \"di1\",\
-        \"command\": 1,\
-        \"parameters\": {\
-          \"device\": \"dev1\",\
-          \"element_type\": \"dimmer\"\
-        },\
-        \"condition\":\"==\",\
-        \"value\":10\
-      },\
-      {\
-        \"submodule\": \"carleon\",\
-        \"element\": \"mock1\",\
-        \"command\": \"exec1\",\
-        \"parameters\": {\
-          \"service\": \"mock-service\",\
-          \"param1\": \"plop\",\
-          \"param2\": 3,\
-          \"param3\": 4.4\
-        },\
-        \"condition\":\"==\",\
-        \"value\":0\
-      }\
-    ]\
+    }\
   }");
   json_t * scheduler_valid2 = json_loads(str_scheduler_valid2, JSON_DECODE_ANY, NULL);
   
@@ -452,33 +348,7 @@ START_TEST(test_angharad_scheduler_update_not_found)
         \"tag1\",\
         \"tag3\"\
       ]\
-    },\
-    \"conditions\":[\
-      {\
-        \"submodule\": \"benoic\",\
-        \"element\": \"di1\",\
-        \"command\": 1,\
-        \"parameters\": {\
-          \"device\": \"dev1\",\
-          \"element_type\": \"dimmer\"\
-        },\
-        \"condition\":\"==\",\
-        \"value\":10\
-      },\
-      {\
-        \"submodule\": \"carleon\",\
-        \"element\": \"mock1\",\
-        \"command\": \"exec1\",\
-        \"parameters\": {\
-          \"service\": \"mock-service\",\
-          \"param1\": \"plop\",\
-          \"param2\": 3,\
-          \"param3\": 4.4\
-        },\
-        \"condition\":\"==\",\
-        \"value\":0\
-      }\
-    ]\
+    }\
   }");
   json_t * scheduler_valid2 = json_loads(str_scheduler_valid2, JSON_DECODE_ANY, NULL);
   
@@ -516,33 +386,7 @@ START_TEST(test_angharad_scheduler_get_updated_ok)
         \"tag1\",\
         \"tag3\"\
       ]\
-    },\
-    \"conditions\":[\
-      {\
-        \"submodule\": \"benoic\",\
-        \"element\": \"di1\",\
-        \"command\": 1,\
-        \"parameters\": {\
-          \"device\": \"dev1\",\
-          \"element_type\": \"dimmer\"\
-        },\
-        \"condition\":\"==\",\
-        \"value\":10\
-      },\
-      {\
-        \"submodule\": \"carleon\",\
-        \"element\": \"mock1\",\
-        \"command\": \"exec1\",\
-        \"parameters\": {\
-          \"service\": \"mock-service\",\
-          \"param1\": \"plop\",\
-          \"param2\": 3,\
-          \"param3\": 4.4\
-        },\
-        \"condition\":\"==\",\
-        \"value\":0\
-      }\
-    ]\
+    }\
   }");
   json_t * scheduler_valid2 = json_loads(str_scheduler_valid2, JSON_DECODE_ANY, NULL);
   

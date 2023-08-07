@@ -9,7 +9,7 @@
 CC=gcc
 CFLAGS=-Wall -D_REENTRANT -DDEBUG -g -O0
 LDFLAGS=-lc -lulfius -lorcania -lrhonabwy -ljansson -lyder -lcheck -lpthread -lm -lrt -lsubunit
-TARGET=angharad_submodule angharad_script angharad_scheduler angharad_trigger angharad_scheduler_trigger_exec angharad_profile benoic_device benoic_device_element benoic_monitor carleon_service carleon_liquidsoap carleon_motion carleon_mpd gareth_alert_smtp gareth_alert_http gareth_filter gareth_message gareth_trigger
+TARGET=angharad_submodule angharad_script angharad_scheduler angharad_profile benoic_device benoic_device_element benoic_monitor carleon_service carleon_liquidsoap carleon_motion carleon_mpd
 VERBOSE=0
 MEMCHECK=0
 
@@ -37,4 +37,4 @@ test_%: %
 
 build: $(TARGET)
 
-test: $(TARGET) test_angharad_submodule test_angharad_script test_angharad_scheduler test_angharad_trigger test_angharad_scheduler_trigger_exec test_angharad_profile test_benoic_device test_benoic_device_element test_benoic_monitor test_carleon_service test_carleon_liquidsoap test_carleon_motion test_carleon_mpd test_gareth_alert_smtp test_gareth_alert_http test_gareth_filter test_gareth_message test_gareth_trigger
+test: $(TARGET) test_angharad_submodule test_angharad_script test_angharad_scheduler test_angharad_profile test_benoic_device test_benoic_device_element test_benoic_monitor test_carleon_service test_carleon_liquidsoap test_carleon_motion test_carleon_mpd
