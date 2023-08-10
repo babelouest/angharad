@@ -564,6 +564,7 @@ int callback_benoic_device_delete (const struct _u_request * request, struct _u_
 
 int callback_benoic_device_connect (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * device;
+  int res;
   
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_benoic_device_get - Error, user_data is NULL");
@@ -572,8 +573,16 @@ int callback_benoic_device_connect (const struct _u_request * request, struct _u
     device = get_device((struct _benoic_config *)user_data, u_map_get(request->map_url, "device_name"));
     if (device == NULL) {
       response->status = 404;
+    } else if (json_object_get(device, "connected") == json_true()) {
+      response->status = 400;
     } else {
-      response->status = connect_device((struct _benoic_config *)user_data, device)==B_OK?200:500;
+      if ((res = connect_device((struct _benoic_config *)user_data, device)) == B_OK) {
+        response->status = 200;
+      } else if (res == B_ERROR_PARAM) {
+        response->status = 400;
+      } else {
+        response->status = 500;
+      }
     }
     json_decref(device);
   }

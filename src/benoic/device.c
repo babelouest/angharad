@@ -747,7 +747,7 @@ int connect_device(struct _benoic_config * config, json_t * device) {
   int to_return = B_OK;
   
   if (json_object_get(device, "enabled") != json_true()) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "Device disabled");
+    y_log_message(Y_LOG_LEVEL_ERROR, "Device is disabled");
     return B_ERROR_PARAM;
   }
   device_type = get_device_type(config, device);
