@@ -40,7 +40,7 @@ jobs:
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v1
+      uses: github/codeql-action/init@v2
       with:
         languages: ${{ matrix.language }}
 
@@ -97,6 +97,11 @@ jobs:
         cmake -DBUILD_IDWCC=OFF -DWITH_MOCKSERVICE=ON -DWITH_MOCKDEV=ON -DBUILD_TESTING=ON -DWITH_PGSQL=OFF -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=lib ..
         make
         sudo make install
+    - name: build-webapp
+      run: |
+        cd webapp-src
+        npm install
+        make build-webapp
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1

@@ -80,3 +80,8 @@ jobs:
           cmake -DBUILD_IDWCC=OFF -DWITH_MOCKSERVICE=ON -DWITH_MOCKDEV=ON -DBUILD_TESTING=ON -DWITH_PGSQL=OFF -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=lib ..
           make
           sudo make install
+      - name: build-webapp
+        run: |
+          cd webapp-src
+          npm install
+          make build-webapp
