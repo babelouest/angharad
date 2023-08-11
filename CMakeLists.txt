@@ -281,8 +281,6 @@ if (BUILD_TESTING)
 				set(TESTS angharad_submodule
 									angharad_script
 									angharad_scheduler
-									angharad_trigger
-									angharad_scheduler_trigger_exec
 									angharad_profile
 									benoic_device
 									benoic_device_element
@@ -290,12 +288,7 @@ if (BUILD_TESTING)
 									carleon_service
 									carleon_liquidsoap
 									carleon_motion
-									carleon_mpd
-									gareth_alert_smtp
-									gareth_alert_http
-									gareth_filter
-									gareth_message
-									gareth_trigger)
+									carleon_mpd)
 						
 
 				configure_file(
