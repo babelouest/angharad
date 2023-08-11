@@ -279,7 +279,7 @@ END_TEST
 
 START_TEST(test_benoic_device_disconnect_ok)
 {
-  char * url = msprintf("%s/benoic/device/dev1/connect", angharad_uri);
+  char * url = msprintf("%s/benoic/device/dev1/disconnect", angharad_uri);
   
   int res = run_simple_test(&user_req, "GET", url, NULL, NULL, NULL, NULL, 200, NULL, NULL, NULL);
   free(url);
