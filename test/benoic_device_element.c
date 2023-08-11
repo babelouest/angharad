@@ -235,7 +235,7 @@ START_TEST(test_benoic_device_switch_get_updated_ok)
   char * url = msprintf("%s/benoic/device/dev1/switch/sw1", angharad_uri);
   json_t * switcher = json_loads("\
   {\
-    \"value\": 0,\
+    \"value\": 1,\
     \"display\": \"Switch one\",\
     \"enabled\": true,\
     \"monitored_every\": 0,\
@@ -433,7 +433,7 @@ START_TEST(test_benoic_device_heater_get_updated_ok)
     \"enabled\": true,\
     \"monitored_every\": 0,\
     \"description\": \"First heater\",\
-    \"command\": 18.0,\
+    \"command\": 20.0,\
     \"monitored\": false,\
     \"options\":\
     {\
