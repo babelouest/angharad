@@ -1,0 +1,19 @@
+{
+  "angharadRootUrl": "http://localhost:2473",
+  "angharadEndpoint": "angharad",
+  "benoicEndpoint": "benoic",
+  "carleonEndpoint": "carleon",
+  "taliesinRootUrl": "http://localhost:8576",
+  "lang": ["en","fr"],
+  "storageType": "local",
+  "oidc": {
+    "responseType": "code",
+    "redirectUri": "http://localhost:2473/",
+    "clientId": "angharad",
+    "usePkce": true,
+    "refreshTokenLoop": true,
+    "userIdParameter": "username",
+    "nameParameter": "name",
+    "additionalParameters": ""
+  }
+}
