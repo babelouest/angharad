@@ -47,7 +47,7 @@ jobs:
     - name: Run a multi-line script
       run: |
           sudo apt-get update
-          sudo apt-get install -y libconfig-dev libsystemd-dev libjansson-dev libcurl4-gnutls-dev libmicrohttpd-dev libsqlite3-dev sqlite3 default-libmysqlclient-dev cmake pkg-config check libsubunit-dev cppcheck gnutls-bin libopenzwave1.5-dev libmpdclient-dev
+          sudo apt-get install -y libconfig-dev libsystemd-dev libjansson-dev libcurl4-gnutls-dev libmicrohttpd-dev libsqlite3-dev sqlite3 default-libmysqlclient-dev cmake pkg-config check libsubunit-dev cppcheck gnutls-bin libopenzwave1.6-dev libmpdclient-dev
 
     - name: dependencies
       run: |
