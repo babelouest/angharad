@@ -126,7 +126,7 @@ int init_device_type_list(struct _benoic_config * config) {
       
       if (file_handle != NULL) {
         y_log_message(Y_LOG_LEVEL_INFO, "Open module from file %s", file_path);
-        struct _device_type cur_device;
+        struct _device_type cur_device = {0};
         
         dlerror();
         cur_device.dl_handle = file_handle;
