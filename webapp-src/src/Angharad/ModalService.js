@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 import i18next from 'i18next';
 
 class ModalService extends Component {
@@ -6,6 +7,7 @@ class ModalService extends Component {
     super(props);
 
     this.state = {
+      handleHideModal: props.handleHideModal,
       type: props.type,
       element: props.element,
       name: props.name,
@@ -29,6 +31,11 @@ class ModalService extends Component {
     return props;
   }
   
+  componentDidMount() {
+    $(ReactDOM.findDOMNode(this)).modal('show');
+    $(ReactDOM.findDOMNode(this)).on('hidden.bs.modal', this.state.handleHideModal);
+  }
+
   changeName(e) {
     let element = this.state.element, isValid = true, nameValid = true, nameError = false;
     element.name = e.target.value;
@@ -77,6 +84,7 @@ class ModalService extends Component {
   }
 
   closeModal(e, result) {
+    $(ReactDOM.findDOMNode(this)).modal('hide');
     if (this.state.cb) {
       if (result) {
         this.state.cb(true, this.state.type, this.state.element, this.state.add);
@@ -96,19 +104,21 @@ class ModalService extends Component {
       let attachedSwitch = i18next.t("services.carleon-service-modal-mpd-switch-none");
       let switchList = [<li key={0}><a className="dropdown-item" href="#" onClick={(e) => this.selectAttachedSwitch(e, false, false)}>{i18next.t("services.carleon-service-modal-mpd-switch-none")}</a></li>];
       Object.keys(this.state.deviceOverview).forEach(dev => {
-        Object.keys(this.state.deviceOverview[dev].switches).forEach(sw => {
-          if (this.state.deviceOverview[dev].switches[sw].enabled) {
-            switchList.push(<li key={dev+"$"+sw}><a className="dropdown-item" href="#" onClick={(e) => this.selectAttachedSwitch(e, dev, sw)}>{this.state.deviceOverview[dev].switches[sw].display}</a></li>);
-          }
-          if (this.state.element.device && this.state.element["switch"] && dev === this.state.element.device && sw === this.state.element["switch"]) {
-            attachedSwitch = this.state.deviceOverview[dev].switches[sw].display;
-          }
-        });
+        if (this.state.deviceOverview[dev].switches) {
+          Object.keys(this.state.deviceOverview[dev].switches).forEach(sw => {
+            if (this.state.deviceOverview[dev].switches[sw].enabled) {
+              switchList.push(<li key={dev+"$"+sw}><a className="dropdown-item" href="#" onClick={(e) => this.selectAttachedSwitch(e, dev, sw)}>{this.state.deviceOverview[dev].switches[sw].display}</a></li>);
+            }
+            if (this.state.element.device && this.state.element["switch"] && dev === this.state.element.device && sw === this.state.element["switch"]) {
+              attachedSwitch = this.state.deviceOverview[dev].switches[sw].display;
+            }
+          });
+        }
       });
       optionsJsx =
       <div>
         <div className="form-floating mb-3">
-          <input type="text" className={"form-control" + errorClass} id="serviceHost" value={this.state.element.host} onChange={(e) => this.changeProperty(e, "host")}/>
+          <input type="text" className={"form-control" + errorClass} id="serviceHost" value={this.state.element.host||""} onChange={(e) => this.changeProperty(e, "host")}/>
           <label htmlFor="serviceHost">
             {i18next.t("services.carleon-service-modal-mpd-host")}
             <span className="text-danger"> *</span>
@@ -116,13 +126,13 @@ class ModalService extends Component {
           {errorHostJsx}
         </div>
         <div className="form-floating mb-3">
-          <input type="number" min="0" max="65535" step="1" className="form-control" id="servicePort" value={this.state.element.port} onChange={(e) => this.changeProperty(e, "port", "number")}/>
+          <input type="number" min="0" max="65535" step="1" className="form-control" id="servicePort" value={this.state.element.port||""} onChange={(e) => this.changeProperty(e, "port", "number")}/>
           <label htmlFor="servicePort">
             {i18next.t("services.carleon-service-modal-mpd-port")}
           </label>
         </div>
         <div className="form-floating mb-3">
-          <input type="password" className="form-control" id="servicePassword" value={this.state.element.password} onChange={(e) => this.changeProperty(e, "password")}/>
+          <input type="password" className="form-control" id="servicePassword" value={this.state.element.password||""} onChange={(e) => this.changeProperty(e, "password")}/>
           <label htmlFor="servicePassword">
             {i18next.t("services.carleon-service-modal-mpd-password")}
           </label>

@@ -30,7 +30,7 @@ class MapPlace extends Component {
     if (this.state.type === "switch") {
       this.state.eltList.forEach((elt, index) => {
         eltListJsx.push(
-          <div key={elt.device+"-sw-"+elt.name} className="col-sm-1 border rounded elt-left" draggable={true} onDragStart={(e) => this.dragElt(e, elt.device, "switch", elt.name)}>
+          <div key={elt.device+"-sw-"+elt.name} className="col-sm-3 border rounded elt-left" draggable={true} onDragStart={(e) => this.dragElt(e, elt.device, "switch", elt.name)}>
             <label className="d-flex align-items-center">
               <i className="fa fa-power-off elt-left" aria-hidden="true"></i>
               {elt.display}
@@ -41,7 +41,7 @@ class MapPlace extends Component {
     } else if (this.state.type === "dimmer") {
       this.state.eltList.forEach((elt, index) => {
         eltListJsx.push(
-          <div key={elt.device+"-di-"+elt.name} className="col-sm-1 border rounded elt-left" draggable={true} onDragStart={(e) => this.dragElt(e, elt.device, "dimmer", elt.name)}>
+          <div key={elt.device+"-di-"+elt.name} className="col-sm-3 border rounded elt-left" draggable={true} onDragStart={(e) => this.dragElt(e, elt.device, "dimmer", elt.name)}>
             <label className="d-flex align-items-center">
               <i className="fa fa-lightbulb-o elt-left" aria-hidden="true"></i>
               {elt.display}
@@ -52,7 +52,7 @@ class MapPlace extends Component {
     } else if (this.state.type === "blind") {
       this.state.eltList.forEach((elt, index) => {
         eltListJsx.push(
-          <div key={elt.device+"-di-"+elt.name} className="col-sm-1 border rounded elt-left" draggable={true} onDragStart={(e) => this.dragElt(e, elt.device, "blind", elt.name)}>
+          <div key={elt.device+"-di-"+elt.name} className="col-sm-3 border rounded elt-left" draggable={true} onDragStart={(e) => this.dragElt(e, elt.device, "blind", elt.name)}>
             <label className="d-flex align-items-center">
               <i className="fa fa-window-maximize elt-left" aria-hidden="true"></i>
               {elt.display}
@@ -63,7 +63,7 @@ class MapPlace extends Component {
     } else if (this.state.type === "sensor") {
       this.state.eltList.forEach((elt, index) => {
         eltListJsx.push(
-          <div key={elt.device+"-di-"+elt.name} className="col-sm-1 border rounded elt-left" draggable={true} onDragStart={(e) => this.dragElt(e, elt.device, "sensor", elt.name)}>
+          <div key={elt.device+"-di-"+elt.name} className="col-sm-3 border rounded elt-left" draggable={true} onDragStart={(e) => this.dragElt(e, elt.device, "sensor", elt.name)}>
             <label className="d-flex align-items-center">
               <i className="fa fa-line-chart elt-left" aria-hidden="true"></i>
               {elt.display}
@@ -74,7 +74,7 @@ class MapPlace extends Component {
     } else if (this.state.type === "serviceMock") {
       this.state.eltList.forEach((elt, index) => {
         eltListJsx.push(
-          <div key={"serMoc-"+elt.name} className="col-sm-1 border rounded elt-left" draggable={true} onDragStart={(e) => this.dragElt(e, undefined, "serviceMock", elt.name)}>
+          <div key={"serMoc-"+elt.name} className="col-sm-3 border rounded elt-left" draggable={true} onDragStart={(e) => this.dragElt(e, undefined, "serviceMock", elt.name)}>
             <label className="d-flex align-items-center">
               {elt.name}
             </label>
@@ -84,7 +84,7 @@ class MapPlace extends Component {
     } else if (this.state.type === "mpdService") {
       this.state.eltList.forEach((elt, index) => {
         eltListJsx.push(
-          <div key={"serMpd-"+elt.name} className="col-sm-1 border rounded elt-left" draggable={true} onDragStart={(e) => this.dragElt(e, undefined, "mpdService", elt.name)}>
+          <div key={"serMpd-"+elt.name} className="col-sm-3 border rounded elt-left" draggable={true} onDragStart={(e) => this.dragElt(e, undefined, "mpdService", elt.name)}>
             <label className="d-flex align-items-center">
               {elt.name}
             </label>
@@ -94,7 +94,7 @@ class MapPlace extends Component {
     } else if (this.state.type === "script") {
       this.state.eltList.forEach((elt, index) => {
         eltListJsx.push(
-          <div key={"script-"+index} className="col-sm-1 border rounded elt-left" draggable={true} onDragStart={(e) => this.dragElt(e, undefined, "script", elt.name)}>
+          <div key={"script-"+index} className="col-sm-3 border rounded elt-left" draggable={true} onDragStart={(e) => this.dragElt(e, undefined, "script", elt.name)}>
             <label className="d-flex align-items-center">
               <i className="fa fa-play-circle elt-left" aria-hidden="true"></i>
               {elt.name}
@@ -105,7 +105,7 @@ class MapPlace extends Component {
     } else if (this.state.type === "scheduler") {
       this.state.eltList.forEach((elt, index) => {
         eltListJsx.push(
-          <div key={"scheduler-"+index} className="col-sm-1 border rounded elt-left" draggable={true} onDragStart={(e) => this.dragElt(e, undefined, "scheduler", elt.name)}>
+          <div key={"scheduler-"+index} className="col-sm-3 border rounded elt-left" draggable={true} onDragStart={(e) => this.dragElt(e, undefined, "scheduler", elt.name)}>
             <label className="d-flex align-items-center">
               <i className="fa fa-calendar elt-left" aria-hidden="true"></i>
             </label>

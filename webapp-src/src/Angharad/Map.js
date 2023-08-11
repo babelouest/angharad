@@ -17,7 +17,6 @@ class Map extends Component {
       script: props.script,
       scheduler: props.scheduler,
       adminMode: props.adminMode,
-      mapPlace: props.mapPlace,
       curDrag: false,
       curIndex: -1
     }
@@ -52,8 +51,8 @@ class Map extends Component {
   
   dropElt(e) {
     let mapContainer = document.getElementById("mapContainer");
-    let coordX = Math.round(Math.floor((e.clientX - mapContainer.offsetLeft)*100/mapContainer.clientWidth)/5)*5;
-    let coordY = Math.round(Math.floor((e.clientY - mapContainer.offsetTop)*100/mapContainer.clientHeight)/5)*5;
+    let coordX = Math.round(Math.floor((e.clientX + window.scrollX - mapContainer.offsetLeft)*100/mapContainer.clientWidth)/5)*5;
+    let coordY = Math.round(Math.floor((e.clientY + window.scrollY - mapContainer.offsetTop)*100/mapContainer.clientHeight)/5)*5;
     let map = this.state.map;
     if (this.state.curDrag) {
       let curDrag = this.state.curDrag;
@@ -86,7 +85,7 @@ class Map extends Component {
   
   selectElement(e, element, index) {
     e.preventDefault();
-    if (this.state.mapPlace) {
+    if (this.state.adminMode) {
       let map = this.state.map;
       map.elements.splice(index, 1);
       apiManager.APIRequestAngharad("profile/" + encodeURIComponent(map.name), "PUT", map)
@@ -135,39 +134,47 @@ class Map extends Component {
   
   render() {
     let mapPlaceJsx;
-    if (this.state.mapPlace && this.state.adminMode) {
+    if (this.state.adminMode) {
       let benoicSwitches = [], benoicDimmers = [], benoicBlinds = [], benoicSensors = [], mockServices = [], mpdServices = [];
       let switchListJsx, dimmerListJsx, blindListJsx, sensorListJsx, mockServiceJsx, mpdServiceJsx, scriptJsx, schedulerJsx;
       Object.keys(this.state.deviceOverview).forEach(dev => {
-        Object.keys(this.state.deviceOverview[dev].switches).forEach(elt => {
-          if (this.state.deviceOverview[dev].switches[elt].enabled) {
-            benoicSwitches.push({device: dev, name: elt, display: this.state.deviceOverview[dev].switches[elt].display});
-          }
-        });
+        if (this.state.deviceOverview[dev].switches) {
+          Object.keys(this.state.deviceOverview[dev].switches).forEach(elt => {
+            if (this.state.deviceOverview[dev].switches[elt].enabled) {
+              benoicSwitches.push({device: dev, name: elt, display: this.state.deviceOverview[dev].switches[elt].display});
+            }
+          });
+        }
         if (benoicSwitches.length) {
           switchListJsx = <MapPlace title={i18next.t("components.switches")} eltList={benoicSwitches} deviceOverview={this.state.deviceOverview} type={"switch"} cbDrag={this.dragElt}/>
         }
-        Object.keys(this.state.deviceOverview[dev].dimmers).forEach(elt => {
-          if (this.state.deviceOverview[dev].dimmers[elt].enabled) {
-            benoicDimmers.push({device: dev, name: elt, display: this.state.deviceOverview[dev].dimmers[elt].display});
-          }
-        });
+        if (this.state.deviceOverview[dev].dimmers) {
+          Object.keys(this.state.deviceOverview[dev].dimmers).forEach(elt => {
+            if (this.state.deviceOverview[dev].dimmers[elt].enabled) {
+              benoicDimmers.push({device: dev, name: elt, display: this.state.deviceOverview[dev].dimmers[elt].display});
+            }
+          });
+        }
         if (benoicDimmers.length) {
           dimmerListJsx = <MapPlace title={i18next.t("components.dimmers")} eltList={benoicDimmers} deviceOverview={this.state.deviceOverview} type={"dimmer"} cbDrag={this.dragElt}/>
         }
-        Object.keys(this.state.deviceOverview[dev].blinds).forEach(elt => {
-          if (this.state.deviceOverview[dev].blinds[elt].enabled) {
-            benoicBlinds.push({device: dev, name: elt, display: this.state.deviceOverview[dev].blinds[elt].display});
-          }
-        });
+        if (this.state.deviceOverview[dev].blinds) {
+          Object.keys(this.state.deviceOverview[dev].blinds).forEach(elt => {
+            if (this.state.deviceOverview[dev].blinds[elt].enabled) {
+              benoicBlinds.push({device: dev, name: elt, display: this.state.deviceOverview[dev].blinds[elt].display});
+            }
+          });
+        }
         if (benoicBlinds.length) {
           blindListJsx = <MapPlace title={i18next.t("components.blinds")} eltList={benoicBlinds} deviceOverview={this.state.deviceOverview} type={"blind"} cbDrag={this.dragElt}/>
         }
-        Object.keys(this.state.deviceOverview[dev].sensors).forEach(elt => {
-          if (this.state.deviceOverview[dev].sensors[elt].enabled) {
-            benoicSensors.push({device: dev, name: elt, display: this.state.deviceOverview[dev].sensors[elt].display});
-          }
-        });
+        if (this.state.deviceOverview[dev].sensors) {
+          Object.keys(this.state.deviceOverview[dev].sensors).forEach(elt => {
+            if (this.state.deviceOverview[dev].sensors[elt].enabled) {
+              benoicSensors.push({device: dev, name: elt, display: this.state.deviceOverview[dev].sensors[elt].display});
+            }
+          });
+        }
         if (benoicSensors.length) {
           sensorListJsx = <MapPlace title={i18next.t("components.sensors")} eltList={benoicSensors} deviceOverview={this.state.deviceOverview} type={"sensor"} cbDrag={this.dragElt}/>
         }
@@ -224,7 +231,7 @@ class Map extends Component {
             iconJsx = <i className="fa fa-toggle-off" aria-hidden="true"></i>
           }
           let className = "map-img-element btn";
-          if (this.state.mapPlace) {
+          if (this.state.adminMode) {
             className += " btn-danger";
           } else {
             if (this.state.deviceOverview[element.device].switches[element.name].value === 1) {
@@ -242,7 +249,7 @@ class Map extends Component {
       } else if (element.type === "dimmer") {
         if (this.state.deviceOverview[element.device] && this.state.deviceOverview[element.device].dimmers && this.state.deviceOverview[element.device].dimmers[element.name]) {
           let className = "map-img-element btn";
-          if (this.state.mapPlace) {
+          if (this.state.adminMode) {
             className += " btn-danger";
           } else {
             if (this.state.deviceOverview[element.device].dimmers[element.name].value > 0) {
@@ -260,7 +267,7 @@ class Map extends Component {
       } else if (element.type === "blind") {
         if (this.state.deviceOverview[element.device] && this.state.deviceOverview[element.device].blinds && this.state.deviceOverview[element.device].blinds[element.name]) {
           let className = "map-img-element btn";
-          if (this.state.mapPlace) {
+          if (this.state.adminMode) {
             className += " btn-danger";
           } else {
             if (this.state.deviceOverview[element.device].blinds[element.name].value > 0) {
@@ -278,18 +285,21 @@ class Map extends Component {
       } else if (element.type === "sensor") {
         if (this.state.deviceOverview[element.device] && this.state.deviceOverview[element.device].sensors && this.state.deviceOverview[element.device].sensors[element.name]) {
           let className = "map-img-element btn";
-          let displayValue = this.state.deviceOverview[element.device].sensors[element.name].value.toFixed(2);
-          if (this.state.deviceOverview[element.device].sensors[element.name].options && this.state.deviceOverview[element.device].sensors[element.name].options.unit) {
-            displayValue += this.state.deviceOverview[element.device].sensors[element.name].options.unit;
+          let valueJsx = this.state.deviceOverview[element.device].sensors[element.name].value;
+          if (!isNaN(valueJsx) && valueJsx != Math.round(valueJsx)) {
+            valueJsx = valueJsx.toFixed(2)
           }
-          if (this.state.mapPlace) {
+          if (this.state.deviceOverview[element.device].sensors[element.name].options && this.state.deviceOverview[element.device].sensors[element.name].options.unit) {
+            valueJsx += this.state.deviceOverview[element.device].sensors[element.name].options.unit;
+          }
+          if (this.state.adminMode) {
             className += " btn-danger";
           } else {
             className += " btn-secondary";
           }
           elementList.push(
             <a key={index} href="#" className={className} title={this.state.deviceOverview[element.device].sensors[element.name].display} style={style} onClick={(e) => this.selectElement(e, element, index)} draggable={true} onDragStart={(e) => this.dragMoveElt(e, index)}>
-              {displayValue}
+              {valueJsx}
             </a>
           );
         }
@@ -299,7 +309,7 @@ class Map extends Component {
             service.element.forEach(elt => {
               if (elt.name === element.name) {
                 let className = "map-img-element btn";
-                if (this.state.mapPlace) {
+                if (this.state.adminMode) {
                   className += " btn-danger";
                 } else {
                   className += " btn-secondary";
@@ -319,7 +329,7 @@ class Map extends Component {
             service.element.forEach(elt => {
               if (elt.name === element.name) {
                 let className = "map-img-element btn";
-                if (this.state.mapPlace) {
+                if (this.state.adminMode) {
                   className += " btn-danger";
                 } else {
                   className += " btn-secondary";
@@ -335,7 +345,7 @@ class Map extends Component {
         });
       } else if (element.type === "script") {
         let className = "map-img-element btn";
-        if (this.state.mapPlace) {
+        if (this.state.adminMode) {
           className += " btn-danger";
         } else {
           className += " btn-secondary";
@@ -357,7 +367,7 @@ class Map extends Component {
               nextTimeJsx = i18next.t("schedulers.disabled")
             }
             let className = "map-img-element btn";
-            if (this.state.mapPlace) {
+            if (this.state.adminMode) {
               className += " btn-danger";
             } else {
               className += " btn-secondary";
@@ -379,7 +389,7 @@ class Map extends Component {
       }
     });
     return (
-      <div>
+      <div className="text-center map-with-margin">
         <h4>
           <i className="fa fa-map elt-left" aria-hidden="true"></i>
           {this.state.map.name}

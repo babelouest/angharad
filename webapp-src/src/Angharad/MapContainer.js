@@ -17,8 +17,7 @@ class MapContainer extends Component {
       scheduler: props.scheduler,
       profileList: props.profileList,
       adminMode: props.adminMode,
-      mapIndex: props.mapIndex,
-      mapPlace: props.mapPlace
+      mapIndex: props.mapIndex
     }
     
     this.addMap = this.addMap.bind(this);
@@ -47,7 +46,7 @@ class MapContainer extends Component {
         if (curIndex === this.state.mapIndex) {
           if (this.state.adminMode) {
             adminButtonsJsx =
-              <MapAdminButtons map={profile} mapPlace={this.state.mapPlace} />
+              <MapAdminButtons map={profile} />
           }
           curMapJsx =
             <div className="row">
@@ -58,8 +57,7 @@ class MapContainer extends Component {
                      serviceList={this.state.serviceList} 
                      script={this.state.script} 
                      scheduler={this.state.scheduler} 
-                     adminMode={this.state.adminMode}  
-                     mapPlace={this.state.mapPlace} />
+                     adminMode={this.state.adminMode} />
               </div>
               <div className="col-sm-2">
                 {adminButtonsJsx}

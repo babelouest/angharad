@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 import i18next from 'i18next';
 
 class ModalDevice extends Component {
@@ -6,6 +7,7 @@ class ModalDevice extends Component {
     super(props);
 
     this.state = {
+      handleHideModal: props.handleHideModal,
       add: props.add,
       device: props.device,
       deviceTypes: props.deviceTypes,
@@ -28,7 +30,13 @@ class ModalDevice extends Component {
     return props;
   }
 
+  componentDidMount() {
+    $(ReactDOM.findDOMNode(this)).modal('show');
+    $(ReactDOM.findDOMNode(this)).on('hidden.bs.modal', this.state.handleHideModal);
+  }
+
   closeModal(e, result) {
+    $(ReactDOM.findDOMNode(this)).modal('hide');
     if (this.state.cb) {
       if (!result) {
         this.setState({deviceError: {}, nameError: false, typeError: false}, () => {

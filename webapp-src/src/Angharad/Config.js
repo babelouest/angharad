@@ -10,7 +10,7 @@ import routage from '../lib/Routage';
 import storage from '../lib/Storage';
 import oidcConnector from '../lib/OIDCConnector';
 
-import Confirm from './Confirm';
+import ModalConfirm from './ModalConfirm';
 import LangDropdown from './LangDropdown';
 import ModalDevice from './ModalDevice';
 
@@ -36,6 +36,8 @@ class Config extends Component {
     this.deviceAdd = this.deviceAdd.bind(this);
     this.deviceEdit = this.deviceEdit.bind(this);
     this.cbDeviceSave = this.cbDeviceSave.bind(this);
+    this.hideConfirm = this.hideConfirm.bind(this);
+    this.hideModalDevice = this.hideModalDevice.bind(this);
   }
 
   static getDerivedStateFromProps(props, state) {
@@ -77,12 +79,7 @@ class Config extends Component {
                              title: i18next.t("config.benoic-device-remove-title"),
                              message: i18next.t("config.benoic-device-remove-message", {name: device.name}),
                              cb: this.deviceRemoveConfirm,
-                             data: device}}, () => {
-      var modal = new bootstrap.Modal(document.getElementById('deviceRemove'), {
-        keyboard: false
-      });
-      modal.show();
-    });
+                             data: device}});
   }
 
   deviceRemoveConfirm(result) {
@@ -98,26 +95,14 @@ class Config extends Component {
         messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
       });
     }
-    var modal = bootstrap.Modal.getOrCreateInstance(document.querySelector('#deviceRemove'));
-    modal.hide();
   }
   
   deviceAdd() {
-    this.setState({curDevice: {name: "", description: "", display: "", enabled: true, type_uid: "", options: {}}, curDeviceAdd: true, showModalDevice: true}, () => {
-      var modal = new bootstrap.Modal(document.getElementById('modalDevice'), {
-        keyboard: false
-      });
-      modal.show();
-    });
+    this.setState({curDevice: {name: "", description: "", display: "", enabled: true, type_uid: "", options: {}}, curDeviceAdd: true, showModalDevice: true});
   }
   
   deviceEdit(e, device) {
-    this.setState({curDevice: device, curDeviceAdd: false, showModalDevice: true}, () => {
-      var modal = new bootstrap.Modal(document.getElementById('modalDevice'), {
-        keyboard: false
-      });
-      modal.show();
-    });
+    this.setState({curDevice: device, curDeviceAdd: false, showModalDevice: true});
   }
   
   cbDeviceSave(result, device) {
@@ -152,8 +137,16 @@ class Config extends Component {
     modal.hide();
   }
 
+  hideConfirm() {
+    //this.setState({confirm: {show: false, title: "", message: "", cb: false, data: false}});
+  }
+
+  hideModalDevice() {
+    this.setState({showModalDevice: false});
+  }
+
 	render() {
-    let benoicModulesJsx, carleonModulesJsx, benoicDevicesJsx, deviceOption = {}, confirmJsx, modalDeviceJsx;
+    let benoicModulesJsx, carleonModulesJsx, benoicDevicesJsx, deviceOption = {};
     this.state.submodules.forEach(submodule => {
       if (submodule.name === "benoic" && submodule.enabled) {
         let modulesListJsx = [];
@@ -315,19 +308,6 @@ class Config extends Component {
         </div>
       }
     });
-    if (this.state.confirm.show) {
-      confirmJsx = <Confirm name={this.state.confirm.name}
-                 title={this.state.confirm.title}
-                 message={this.state.confirm.message}
-                 cb={this.state.confirm.cb} />
-    }
-    if (this.state.showModalDevice) {
-      modalDeviceJsx = <ModalDevice add={this.state.curDeviceAdd}
-                                    device={this.state.curDevice}
-                                    deviceTypes={this.state.deviceTypes}
-                                    deviceList={this.state.deviceList}
-                                    cb={this.cbDeviceSave} />
-    }
     return (
       <div>
         <hr/>
@@ -358,8 +338,17 @@ class Config extends Component {
         {carleonModulesJsx}
         <hr/>
         {benoicDevicesJsx}
-        {confirmJsx}
-        {modalDeviceJsx}
+        {this.state.confirm.show ? <ModalConfirm handleHideModal={this.hideConfirm}
+                                    name={this.state.confirm.name}
+                                    title={this.state.confirm.title}
+                                    message={this.state.confirm.message}
+                                    cb={this.state.confirm.cb} /> : null}
+        {this.state.showModalDevice ? <ModalDevice handleHideModal={this.hideModalDevice}
+                                      add={this.state.curDeviceAdd}
+                                      device={this.state.curDevice}
+                                      deviceTypes={this.state.deviceTypes}
+                                      deviceList={this.state.deviceList}
+                                      cb={this.cbDeviceSave} /> : null}
       </div>
     );
 	}

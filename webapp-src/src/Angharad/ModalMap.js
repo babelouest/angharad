@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 import i18next from 'i18next';
 
 class ModalMap extends Component {
@@ -6,6 +7,7 @@ class ModalMap extends Component {
     super(props);
 
     this.state = {
+      handleHideModal: props.handleHideModal,
       profileList: props.profileList,
       map: props.map,
       add: props.add,
@@ -23,6 +25,11 @@ class ModalMap extends Component {
 
   static getDerivedStateFromProps(props, state) {
     return props;
+  }
+
+  componentDidMount() {
+    $(ReactDOM.findDOMNode(this)).modal('show');
+    $(ReactDOM.findDOMNode(this)).on('hidden.bs.modal', this.state.handleHideModal);
   }
 
   changeName(e) {
@@ -73,6 +80,7 @@ class ModalMap extends Component {
   }
 
   closeModal(e, result) {
+    $(ReactDOM.findDOMNode(this)).modal('hide');
     e.preventDefault();
     if (this.state.cb) {
       this.state.cb(result, this.state.map);

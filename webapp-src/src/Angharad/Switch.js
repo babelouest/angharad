@@ -59,13 +59,13 @@ class Switch extends Component {
     }
 		return (
       <div className="row elt-top border rounded agrd-element">
-        <div className="col-2">
+        <div className="col-6">
           <label className="d-flex align-items-center" htmlFor={"switcher-"+this.state.device+"-"+this.state.name}>
             <i className="fa fa-power-off elt-left" aria-hidden="true"></i>
             {this.state.element.display}
           </label>
         </div>
-        <div className="col-8 text-center">
+        <div className="col-4 text-center">
           <div className="form-switch">
             <input className="form-check-input"
                    type="checkbox"

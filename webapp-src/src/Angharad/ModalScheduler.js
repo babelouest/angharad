@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 import i18next from 'i18next';
 import "flatpickr/dist/flatpickr.css";
 import Flatpickr from "react-flatpickr";
@@ -11,6 +12,7 @@ class ModalScheduler extends Component {
     super(props);
 
     this.state = {
+      handleHideModal: props.handleHideModal,
       scheduler: props.scheduler,
       schedulerList: props.schedulerList,
       scriptList: props.scriptList,
@@ -38,6 +40,11 @@ class ModalScheduler extends Component {
     return props;
   }
   
+  componentDidMount() {
+    $(ReactDOM.findDOMNode(this)).modal('show');
+    $(ReactDOM.findDOMNode(this)).on('hidden.bs.modal', this.state.handleHideModal);
+  }
+
   changeName(e) {
     let scheduler = this.state.scheduler;
     scheduler.name = e.target.value;
@@ -131,6 +138,7 @@ class ModalScheduler extends Component {
   }
 
   closeModal(e, result) {
+    $(ReactDOM.findDOMNode(this)).modal('hide');
     e.preventDefault();
     if (this.state.cb) {
       if (result) {
@@ -250,30 +258,32 @@ class ModalScheduler extends Component {
       );
     });
     let scriptListJsx = [];
-    this.state.scheduler.scripts.forEach((script, index) => {
-      scriptListJsx.push(
-        <div className="row elt-top" key={index}>
-          <div className="col-10">
-            <div className="form-check form-switch">
-              <input className="form-check-input"
-                     type="checkbox"
-                     role="switch"
-                     id={"schedulerScriptEnabled-"+index}
-                     checked={this.state.scheduler.scripts[index].enabled}
-                     onChange={(e) => this.handleScriptEnabled(e, index)} />
-              <label className="form-check-label" htmlFor={"schedulerScriptEnabled-"+index}>
-                {script.name}
-              </label>
+    if (this.state.scheduler.scripts) {
+      this.state.scheduler.scripts.forEach((script, index) => {
+        scriptListJsx.push(
+          <div className="row elt-top" key={index}>
+            <div className="col-10">
+              <div className="form-check form-switch">
+                <input className="form-check-input"
+                       type="checkbox"
+                       role="switch"
+                       id={"schedulerScriptEnabled-"+index}
+                       checked={this.state.scheduler.scripts[index].enabled}
+                       onChange={(e) => this.handleScriptEnabled(e, index)} />
+                <label className="form-check-label" htmlFor={"schedulerScriptEnabled-"+index}>
+                  {script.name}
+                </label>
+              </div>
+            </div>
+            <div className="col-2">
+              <button type="button" className="btn btn-secondary btn-sm" onClick={(e) => this.removeScriptAt(e, index)}>
+                <i className="fa fa-trash" aria-hidden="true"></i>
+              </button>
             </div>
           </div>
-          <div className="col-2">
-            <button type="button" className="btn btn-secondary btn-sm" onClick={(e) => this.removeScriptAt(e, index)}>
-              <i className="fa fa-trash" aria-hidden="true"></i>
-            </button>
-          </div>
-        </div>
-      );
-    });
+        );
+      });
+    }
     return (
       <div className="modal" tabIndex="-1" id="modalScheduler">
         <div className="modal-dialog">
@@ -383,7 +393,7 @@ class ModalScheduler extends Component {
               </div>
               <div className="modal-footer">
                 <button type="submit" className="btn btn-secondary" onClick={(e) => this.closeModal(e, false)}>{i18next.t("modal.close")}</button>
-                <button type="button" className="btn btn-primary" onClick={(e) => this.closeModal(e, true)} disabled={!this.state.scheduler.name || !this.state.scheduler.next_time || !this.state.nameValid || !this.state.scheduler.scripts.length}>{i18next.t("modal.ok")}</button>
+                <button type="button" className="btn btn-primary" onClick={(e) => this.closeModal(e, true)} disabled={!this.state.scheduler.name || !this.state.scheduler.next_time || !this.state.nameValid || !this.state.scheduler.scripts || !this.state.scheduler.scripts.length}>{i18next.t("modal.ok")}</button>
               </div>
             </form>
           </div>

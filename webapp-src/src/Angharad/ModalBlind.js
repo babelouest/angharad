@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 import i18next from 'i18next';
 
 import RoundPercent from './RoundPercent';
@@ -10,6 +11,7 @@ class ModalBlind extends Component {
     super(props);
 
     this.state = {
+      handleHideModal: props.handleHideModal,
       device: props.device,
       name: props.name,
       element: props.element
@@ -21,6 +23,11 @@ class ModalBlind extends Component {
 
   static getDerivedStateFromProps(props, state) {
     return props;
+  }
+
+  componentDidMount() {
+    $(ReactDOM.findDOMNode(this)).modal('show');
+    $(ReactDOM.findDOMNode(this)).on('hidden.bs.modal', this.state.handleHideModal);
   }
 
   setBlindValue(e, value) {

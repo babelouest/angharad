@@ -27,7 +27,7 @@ class MockServices extends Component {
     let mockServiceList = [], addButtonJsx;
     this.state.service.element.forEach((element, index) => {
       mockServiceList.push(
-        <div className="col-sm elt-top" key={index}>
+        <div className="col-sm-4 elt-top" key={index}>
           <MockService element={element} deviceOverview={this.state.deviceOverview} adminMode={this.state.adminMode}/>
         </div>
       );

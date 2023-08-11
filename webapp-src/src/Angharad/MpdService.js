@@ -41,48 +41,59 @@ class MpdService extends Component {
     this.adjustVolume = this.adjustVolume.bind(this);
     this.sendMpdCommand = this.sendMpdCommand.bind(this);
     this.openTaliesin = this.openTaliesin.bind(this);
+    this.setSwitch = this.setSwitch.bind(this);
     
-    this.getPlayerConfig();
-    this.loopPlayerStatus();
+    this.getPlayerConfig()
+    .finally(() => {
+      this.loopPlayerStatus();
+    });
   }
   
-  loopPlayerStatus() {
-    this.getPlayerStatus();
-    clearTimeout(this.timeout);
-    this.timeout = setTimeout(() => {
-      this.loopPlayerStatus();
-    }, 10000);
-  }
-
   static getDerivedStateFromProps(props, state) {
     return props;
   }
   
+  loopPlayerStatus() {
+    this.getPlayerStatus()
+    .then(() => {
+      let time = 300000;
+      if (this.state.status.state !== "stop") {
+        time = 10000;
+      }
+      clearTimeout(this.timeout);
+      this.timeout = setTimeout(() => {
+        this.loopPlayerStatus();
+      }, time);
+    });
+  }
+
   componentWillUnmount() {
     clearTimeout(this.timeout);
   }
   
   getPlayerConfig() {
-    apiManager.APIRequestCarleon("service-mpd/" + encodeURIComponent(this.state.element.name) + "/playlists")
+    let proms = [];
+    proms.push(apiManager.APIRequestCarleon("service-mpd/" + encodeURIComponent(this.state.element.name) + "/playlists")
     .then(result => {
       this.setState({playlists: result});
     })
     .catch(err => {
       messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
-    });
-    apiManager.APIRequestCarleon("service-mpd/" + encodeURIComponent(this.state.element.name) + "/playlist")
+    }));
+    proms.push(apiManager.APIRequestCarleon("service-mpd/" + encodeURIComponent(this.state.element.name) + "/playlist")
     .then(result => {
       this.setState({curPlaylist: result});
     })
     .catch(err => {
       messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
-    });
+    }));
+    return Promise.allSettled(proms);
   }
   
   getPlayerStatus() {
-    apiManager.APIRequestCarleon("service-mpd/" + encodeURIComponent(this.state.element.name) + "/status")
+    return apiManager.APIRequestCarleon("service-mpd/" + encodeURIComponent(this.state.element.name) + "/status")
     .then(result => {
-      this.setState({status: result}, () => {
+      return this.setState({status: result}, () => {
         this.updateCurrent();
       });
     })
@@ -192,26 +203,30 @@ class MpdService extends Component {
     } else if (this.state.selectedMpdPlaylist) {
       prom = apiManager.APIRequestCarleon("service-mpd/" + encodeURIComponent(this.state.element.name) + "/playlist/" + encodeURIComponent(this.state.selectedMpdPlaylist), "PUT");
     }
-    prom.then(() => {
-      if (this.state.element.device && this.state.element["switch"]) {
-        apiManager.APIRequestBenoic("device/" + encodeURIComponent(this.state.element.device) + "/switch/" + encodeURIComponent(this.state.element["switch"]) + "/set/1" , "PUT")
+    if (prom) {
+      prom.then(() => {
+        clearTimeout(this.timeout);
+        this.loopPlayerStatus();
+        if (this.state.element.device && this.state.element["switch"]) {
+          apiManager.APIRequestBenoic("device/" + encodeURIComponent(this.state.element.device) + "/switch/" + encodeURIComponent(this.state.element["switch"]) + "/set/1" , "PUT")
+          .catch(err => {
+            messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
+          });
+        }
+        apiManager.APIRequestCarleon("service-mpd/" + encodeURIComponent(this.state.element.name) + "/action/play", "PUT")
+        .then(result => {
+          this.setState({selectedStream: false, selectedMpdPlaylist: false, now: false, curPos: -1, isWebradio: false, coverBase64: false}, () => {
+            this.getPlayerStatus();
+          });
+        })
         .catch(err => {
           messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
-        });
-      }
-      apiManager.APIRequestCarleon("service-mpd/" + encodeURIComponent(this.state.element.name) + "/action/play", "PUT")
-      .then(result => {
-        this.setState({selectedStream: false, selectedMpdPlaylist: false, now: false, curPos: -1, isWebradio: false, coverBase64: false}, () => {
-          this.getPlayerStatus();
         });
       })
       .catch(err => {
         messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
       });
-    })
-    .catch(err => {
-      messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
-    });
+    }
   }
   
   togglePlayStop(e) {
@@ -225,7 +240,8 @@ class MpdService extends Component {
       }
       apiManager.APIRequestCarleon("service-mpd/" + encodeURIComponent(this.state.element.name) + "/action/stop", "PUT")
       .then(result => {
-        this.getPlayerStatus();
+        clearTimeout(this.timeout);
+        this.loopPlayerStatus();
       })
       .catch(err => {
         messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
@@ -240,7 +256,8 @@ class MpdService extends Component {
       apiManager.APIRequestCarleon("service-mpd/" + encodeURIComponent(this.state.element.name) + "/action/play", "PUT")
       .then(result => {
         this.setState({selectedStream: false, selectedMpdPlaylist: false}, () => {
-          this.getPlayerStatus();
+          clearTimeout(this.timeout);
+          this.loopPlayerStatus();
         });
       })
       .catch(err => {
@@ -251,7 +268,7 @@ class MpdService extends Component {
   
   sendStreamComand(e, command) {
     e.preventDefault();
-    apiManager.APIRequestTaliesin("stream/" + encodeURIComponent(this.state.currentStream) + "/manage", "PUT", {command: command})
+    return apiManager.APIRequestTaliesin("stream/" + encodeURIComponent(this.state.currentStream) + "/manage", "PUT", {command: command})
     .then(result => {
       messageDispatcher.sendMessage('Notification', {type: "success", message: i18next.t("services.carleon-service-mpd-command-ok")});
       setTimeout(() => {
@@ -287,11 +304,21 @@ class MpdService extends Component {
   
   setVolumeOff(e) {
     e.preventDefault();
-    apiManager.APIRequestCarleon("service-mpd/" + encodeURIComponent(this.state.element.name) + "/volume/0", "PUT")
+    return apiManager.APIRequestCarleon("service-mpd/" + encodeURIComponent(this.state.element.name) + "/volume/0", "PUT")
     .then(() => {
       let status = this.state.status;
       status.volume = 0;
       this.setState({status: status});
+    })
+    .catch(err => {
+      messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
+    });
+  }
+  
+  setSwitch(e, value) {
+    return apiManager.APIRequestBenoic("device/" + encodeURIComponent(this.state.element.device) + "/switch/" + encodeURIComponent(this.state.element["switch"]) + "/set/" + value , "PUT")
+    .then(() => {
+      messageDispatcher.sendMessage('Component', {status: "update", type: "switch", device: this.state.element.device, name: this.state.element["switch"], value: value});
     })
     .catch(err => {
       messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
@@ -336,7 +363,7 @@ class MpdService extends Component {
         }
       }
     }
-    apiManager.APIRequestCarleon("service-mpd/" + encodeURIComponent(this.state.element.name) + "/action/" + command + param, "PUT")
+    return apiManager.APIRequestCarleon("service-mpd/" + encodeURIComponent(this.state.element.name) + "/action/" + command + param, "PUT")
     .then(result => {
       this.getPlayerStatus();
     })
@@ -351,7 +378,7 @@ class MpdService extends Component {
   }
 
 	render() {
-    let adminButtonsJsx, playList = [], titleJsx, curPlaylistJsx, controlButtonsJsx;
+    let adminButtonsJsx, playList = [], titleJsx, curPlaylistJsx, controlButtonsJsx, switchButtonJsx;
     if (this.state.adminMode) {
       adminButtonsJsx =
         <div className="col-2">
@@ -407,6 +434,26 @@ class MpdService extends Component {
     if (this.state.status.repeat) {
       repeatClass = "btn-secondary";
     }
+    if (this.state.element.device && this.state.element["switch"]) {
+      if (this.state.deviceOverview[this.state.element.device] && this.state.deviceOverview[this.state.element.device].switches && this.state.deviceOverview[this.state.element.device].switches[this.state.element["switch"]]) {
+        if (this.state.deviceOverview[this.state.element.device].switches[this.state.element["switch"]].value === 1) {
+          switchButtonJsx = 
+            <button type="button" className="btn btn-secondary" onClick={(e) => this.setSwitch(e, 0)}>
+              <i className="fa fa-toggle-on" aria-hidden="true"></i>
+            </button>
+        } else {
+          switchButtonJsx = 
+            <button type="button" className="btn btn-secondary" onClick={(e) => this.setSwitch(e, 1)}>
+              <i className="fa fa-toggle-off" aria-hidden="true"></i>
+            </button>
+        }
+      } else {
+        switchButtonJsx = 
+          <button type="button" className="btn btn-secondary" disabled={true}>
+            <i className="fa fa-toggle-off" aria-hidden="true"></i>
+          </button>
+      }
+    }
     if (this.state.isWebradio) {
       if (this.state.status.state === "play") {
         controlButtonsJsx =
@@ -420,6 +467,7 @@ class MpdService extends Component {
             <button type="button" className="btn btn-secondary" onClick={(e) => this.sendStreamComand(e, "skip")}>
               <i className="fa fa-step-forward" aria-hidden="true"></i>
             </button>
+            {switchButtonJsx}
             <button type="button" className="btn btn-secondary" onClick={this.openTaliesin}>
               <i className="fa fa-external-link-square" aria-hidden="true"></i>
             </button>
@@ -436,6 +484,7 @@ class MpdService extends Component {
             <button type="button" className="btn btn-secondary" onClick={(e) => this.sendStreamComand(e, "skip")}>
               <i className="fa fa-step-forward" aria-hidden="true"></i>
             </button>
+            {switchButtonJsx}
             <button type="button" className="btn btn-secondary" onClick={this.openTaliesin}>
               <i className="fa fa-external-link-square" aria-hidden="true"></i>
             </button>
@@ -466,6 +515,7 @@ class MpdService extends Component {
           <button type="button" className="btn btn-secondary" onClick={(e) => this.sendMpdCommand(e, "next")}>
             <i className="fa fa-step-forward" aria-hidden="true"></i>
           </button>
+          {switchButtonJsx}
           <button type="button" className={"btn "+randomClass} onClick={(e) => this.sendMpdCommand(e, "random")}>
             <i className="fa fa-random" aria-hidden="true"></i>
           </button>

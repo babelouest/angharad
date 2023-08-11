@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 import i18next from 'i18next';
 
 class ModalElement extends Component {
@@ -6,6 +7,7 @@ class ModalElement extends Component {
     super(props);
 
     this.state = {
+      handleHideModal: props.handleHideModal,
       device: props.device,
       type: props.type,
       name: props.name,
@@ -25,7 +27,13 @@ class ModalElement extends Component {
     return props;
   }
 
+  componentDidMount() {
+    $(ReactDOM.findDOMNode(this)).modal('show');
+    $(ReactDOM.findDOMNode(this)).on('hidden.bs.modal', this.state.handleHideModal);
+  }
+
   closeModal(e, result) {
+    $(ReactDOM.findDOMNode(this)).modal('hide');
     if (this.state.cb) {
       if (result) {
         this.state.cb(true, this.state.device, this.state.type, this.state.name, this.state.element);

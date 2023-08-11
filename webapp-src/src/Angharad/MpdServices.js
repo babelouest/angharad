@@ -29,7 +29,7 @@ class MpdServices extends Component {
     let mockServiceList = [], addButtonJsx;
     this.state.service.element.forEach((element, index) => {
       mockServiceList.push(
-        <div className="col-sm" key={index}>
+        <div className="col-sm-4" key={index}>
           <MpdService element={element} deviceOverview={this.state.deviceOverview} streamList={this.state.streamList} adminMode={this.state.adminMode} config={this.state.config}/>
         </div>
       );

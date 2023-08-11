@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 import i18next from 'i18next';
 
 import RoundPercent from './RoundPercent';
@@ -10,6 +11,7 @@ class ModalConfirm extends Component {
     super(props);
 
     this.state = {
+      handleHideModal: props.handleHideModal,
       title: props.title,
       message: props.message,
       cb: props.cb
@@ -17,7 +19,13 @@ class ModalConfirm extends Component {
     this.closeModal = this.closeModal.bind(this);
   }
 
+  componentDidMount() {
+    $(ReactDOM.findDOMNode(this)).modal('show');
+    $(ReactDOM.findDOMNode(this)).on('hidden.bs.modal', this.state.handleHideModal);
+  }
+
   closeModal(e, result) {
+    $(ReactDOM.findDOMNode(this)).modal('hide');
     if (this.state.cb) {
       this.state.cb(result);
     }

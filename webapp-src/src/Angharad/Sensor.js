@@ -29,7 +29,7 @@ class Sensor extends Component {
   }
 
 	render() {
-    let adminButtonsJsx, valueJsx = this.state.element.value.toFixed(2);
+    let adminButtonsJsx, valueJsx = this.state.element.value;
     if (this.state.adminMode) {
       adminButtonsJsx =
         <ComponentAdminButtons device={this.state.device} name={this.state.name} type={"sensor"} element={this.state.element} />
@@ -39,20 +39,23 @@ class Sensor extends Component {
           <i className="fa fa-line-chart elt-left" aria-hidden="true"></i>
         </a>
     }
+    if (!isNaN(valueJsx) && valueJsx != Math.round(valueJsx)) {
+      valueJsx = valueJsx.toFixed(2)
+    }
     if (this.state.element.options && this.state.element.options.unit) {
       valueJsx += this.state.element.options.unit;
     }
 		return (
       <div className="row elt-top border rounded agrd-element">
-        <div className="col-2">
+        <div className="col-6">
           <label className="d-flex align-items-center">
             <i className="fa fa-area-chart elt-left" aria-hidden="true">
             </i>
             {this.state.element.display}
           </label>
         </div>
-        <div className="col-8 text-center">
-          <pre>
+        <div className="col-4 text-center">
+          <pre data-toggle="tooltip" title={this.state.element.value+this.state.element.options.unit}>
             {valueJsx}
           </pre>
         </div>

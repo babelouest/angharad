@@ -58,6 +58,8 @@ class App extends Component {
       streamList: [],
       profileList: [],
       adminMode: false,
+      showDimmer: false,
+      showBlind: false,
       showModalElement: false,
       showModalMonitor: false,
       showModalService: false,
@@ -74,8 +76,7 @@ class App extends Component {
       modalMapParameters: {add: false, map: {}},
       modalConfirmParameters: {title: false, message: false, cb: false},
       modalOpenService: {element: false, type: false},
-      mapIndex: 0,
-      mapPlace: false
+      mapIndex: 0
     };
 
     routage.addChangeRouteCallback((route) => {
@@ -158,33 +159,15 @@ class App extends Component {
         }
         this.setState({deviceOverview: deviceOverview});
       } else if (message.status === "edit") {
-        this.setState({showModalElement: true, modalElementParameters: {device: message.device, type: message.type, name: message.name, element: message.element}}, () => {
-          var modal = new bootstrap.Modal(document.getElementById('modalElement'), {
-            keyboard: false
-          });
-          modal.show();
-        });
+        this.setState({showModalElement: true,
+                       modalElementParameters: {device: message.device, type: message.type, name: message.name, element: message.element}});
       } else if (message.status === "monitor") {
-        this.setState({showModalMonitor: true, modalElementParameters: {device: message.device, type: message.type, name: message.name, element: message.element}}, () => {
-          var modal = new bootstrap.Modal(document.getElementById('modalMonitor'), {
-            keyboard: false
-          });
-          modal.show();
-        });
+        this.setState({showModalMonitor: true,
+                       showOpenService: false, modalElementParameters: {device: message.device, type: message.type, name: message.name, element: message.element}});
       } else if (message.status === "dimmerModal") {
-        this.setState({modalDimmerParameters: {device: message.device, name: message.name, element: message.element}}, () => {
-          var modal = new bootstrap.Modal(document.getElementById('modalDimmer'), {
-            keyboard: true
-          });
-          modal.show();
-        });
+        this.setState({showDimmer: true, showBlind: false, modalDimmerParameters: {device: message.device, name: message.name, element: message.element}});
       } else if (message.status === "blindModal") {
-        this.setState({modalDimmerParameters: {device: message.device, name: message.name, element: message.element}}, () => {
-          var modal = new bootstrap.Modal(document.getElementById('modalBlind'), {
-            keyboard: true
-          });
-          modal.show();
-        });
+        this.setState({showDimmer: false, showBlind: true, modalDimmerParameters: {device: message.device, name: message.name, element: message.element}});
       } else if (message.status === "refresh") {
         this.refreshData()
         .then((results) => {
@@ -200,26 +183,13 @@ class App extends Component {
                                                 message: i18next.t("services.remove-message", {name: message.element.name}),
                                                 cb: this.cbRemoveService,
                                                 type: message.type,
-                                                element: message.element}}, () => {
-          var modal = new bootstrap.Modal(document.getElementById('modalConfirm'), {
-            keyboard: false
-          });
-          modal.show();
-        });
+                                                element: message.element}});
       } else if (message.status === "open") {
-        this.setState({showOpenService: true, modalOpenService: {type: message.type, element: message.element}}, () => {
-          var modal = new bootstrap.Modal(document.getElementById('modalOpenService'), {
-            keyboard: false
-          });
-          modal.show();
-        });
+        this.setState({showOpenService: true,
+                       modalOpenService: {type: message.type, element: message.element}});
       } else {
-        this.setState({showModalService: true, modalServiceParameters: {type: message.type, element: message.element, add: message.add}}, () => {
-          var modal = new bootstrap.Modal(document.getElementById('modalService'), {
-            keyboard: false
-          });
-          modal.show();
-        });
+        this.setState({showModalService: true,
+                       modalServiceParameters: {type: message.type, element: message.element, add: message.add}});
       }
     });
 
@@ -230,19 +200,9 @@ class App extends Component {
                                                 message: i18next.t("scripts.remove-message", {name: message.script.name}),
                                                 cb: this.cbRemoveScript,
                                                 type: "script",
-                                                script: message.script}}, () => {
-          var modal = new bootstrap.Modal(document.getElementById('modalConfirm'), {
-            keyboard: false
-          });
-          modal.show();
-        });
+                                                script: message.script}});
       } else {
-        this.setState({showModalScript: true, modalScriptParameters: {add: message.add, script: message.script}}, () => {
-          var modal = new bootstrap.Modal(document.getElementById('modalScript'), {
-            keyboard: false
-          });
-          modal.show();
-        });
+        this.setState({showModalScript: true, modalScriptParameters: {add: message.add, script: message.script}});
       }
     });
 
@@ -253,12 +213,7 @@ class App extends Component {
                                                 message: i18next.t("schedulers.remove-message", {name: message.scheduler.name}),
                                                 cb: this.cbRemoveScheduler,
                                                 type: "scheduler",
-                                                scheduler: message.scheduler}}, () => {
-          var modal = new bootstrap.Modal(document.getElementById('modalConfirm'), {
-            keyboard: false
-          });
-          modal.show();
-        });
+                                                scheduler: message.scheduler}});
       } else {
         if (message.status === "refresh") {
           apiManager.APIRequestAngharad("scheduler")
@@ -269,12 +224,7 @@ class App extends Component {
            messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
          });
         } else {
-          this.setState({showModalScheduler: true, modalSchedulerParameters: {add: message.add, scheduler: message.scheduler}}, () => {
-            var modal = new bootstrap.Modal(document.getElementById('modalScheduler'), {
-              keyboard: false
-            });
-            modal.show();
-          });
+          this.setState({showModalScheduler: true, modalSchedulerParameters: {add: message.add, scheduler: message.scheduler}});
         }
       }
     });
@@ -286,12 +236,7 @@ class App extends Component {
                                                 message: i18next.t("maps.remove-message", {name: message.map.name}),
                                                 cb: this.cbRemoveMap,
                                                 type: "map",
-                                                map: message.map}}, () => {
-          var modal = new bootstrap.Modal(document.getElementById('modalConfirm'), {
-            keyboard: false
-          });
-          modal.show();
-        });
+                                                map: message.map}});
       } else {
         if (message.status === "refresh") {
           apiManager.APIRequestAngharad("profile")
@@ -301,8 +246,6 @@ class App extends Component {
          .catch((err) => {
            messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
          });
-        } else if (message.status === "place") {
-          this.setState({mapPlace: !this.state.mapPlace});
         } else if (message.status === "next") {
           if (this.state.profileList.length) {
             let nbMaps = 0;
@@ -340,12 +283,7 @@ class App extends Component {
             }
           }
         } else {
-          this.setState({showModalMap: true, modalMapParameters: {add: message.add, map: message.map}}, () => {
-            var modal = new bootstrap.Modal(document.getElementById('modalMap'), {
-              keyboard: false
-            });
-            modal.show();
-          });
+          this.setState({showModalMap: true, modalMapParameters: {add: message.add, map: message.map}});
         }
       }
     });
@@ -375,6 +313,17 @@ class App extends Component {
     this.cbRemoveScheduler = this.cbRemoveScheduler.bind(this);
     this.cbRemoveMap = this.cbRemoveMap.bind(this);
     this.refreshLoop = this.refreshLoop.bind(this);
+
+    this.hideBlind = this.hideBlind.bind(this);
+    this.hideDimmer = this.hideDimmer.bind(this);
+    this.hideConfirm = this.hideConfirm.bind(this);
+    this.hideElement = this.hideElement.bind(this);
+    this.hideMonitor = this.hideMonitor.bind(this);
+    this.hideService = this.hideService.bind(this);
+    this.hideScript = this.hideScript.bind(this);
+    this.hideScheduler = this.hideScheduler.bind(this);
+    this.hideMap = this.hideMap.bind(this);
+    this.hideOpenService = this.hideOpenService.bind(this);
   }
 
   initModules() {
@@ -465,15 +414,17 @@ class App extends Component {
                  messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.scheduler-error")});
                }));
     this.state.deviceList.forEach(device => {
-      proms.push(apiManager.APIRequestBenoic("device/" + encodeURIComponent(device.name) + "/overview")
-                 .then((results) => {
-                   let deviceOverview = this.state.deviceOverview;
-                   deviceOverview[device.name] = results;
-                   this.setState({deviceOverview: deviceOverview});
-                 })
-                 .catch((err) => {
-                   messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.device-error", {name: device.name})});
-                 }));
+      if (device.enabled && device.connected) {
+        proms.push(apiManager.APIRequestBenoic("device/" + encodeURIComponent(device.name) + "/overview")
+                   .then((results) => {
+                     let deviceOverview = this.state.deviceOverview;
+                     deviceOverview[device.name] = results;
+                     this.setState({deviceOverview: deviceOverview});
+                   })
+                   .catch((err) => {
+                     messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.device-error", {name: device.name})});
+                   }));
+      }
     });
     return Promise.all(proms);
   }
@@ -525,14 +476,10 @@ class App extends Component {
         messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
       });
     }
-    var modal = bootstrap.Modal.getOrCreateInstance(document.querySelector('#modalElement'));
-    modal.hide();
     this.setState({showModalElement: false, modalElementParameters: {device: false, type: false, name: false, element: false}});
   }
   
   cbCloseMonitor() {
-    var modal = bootstrap.Modal.getOrCreateInstance(document.querySelector('#modalMonitor'));
-    modal.hide();
     this.setState({showModalMonitor: false, modalElementParameters: {device: false, type: false, name: false, element: false}});
   }
 
@@ -572,8 +519,6 @@ class App extends Component {
         });
       }
     }
-    var modal = bootstrap.Modal.getOrCreateInstance(document.querySelector('#modalService'));
-    modal.hide();
     this.setState({showModalService: false, modalServiceParameters: {type: false, element: false, name: false, add: false}});
   }
   
@@ -607,8 +552,6 @@ class App extends Component {
         });
       }
     }
-    var modal = bootstrap.Modal.getOrCreateInstance(document.querySelector('#modalScript'));
-    modal.hide();
   }
   
   cbSaveScheduler(result, scheduler, add) {
@@ -633,8 +576,6 @@ class App extends Component {
         });
       }
     }
-    var modal = bootstrap.Modal.getOrCreateInstance(document.querySelector('#modalScheduler'));
-    modal.hide();
   }
   
   cbSaveMap(result, map) {
@@ -648,8 +589,6 @@ class App extends Component {
         messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
       });
     }
-    var modal = bootstrap.Modal.getOrCreateInstance(document.querySelector('#modalMap'));
-    modal.hide();
   }
 
   cbRemoveService(result) {
@@ -670,8 +609,6 @@ class App extends Component {
         messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
       });
     }
-    var modal = bootstrap.Modal.getOrCreateInstance(document.querySelector('#modalConfirm'));
-    modal.hide();
     this.setState({modalConfirmParameters: {title: false, message: false, cb: false}, showModalConfirm: false});
   }
   
@@ -686,8 +623,6 @@ class App extends Component {
         messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
       });
     }
-    var modal = bootstrap.Modal.getOrCreateInstance(document.querySelector('#modalConfirm'));
-    modal.hide();
     this.setState({modalConfirmParameters: {title: false, message: false, cb: false}, showModalConfirm: false});
   }
   
@@ -709,8 +644,6 @@ class App extends Component {
         messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
       });
     }
-    var modal = bootstrap.Modal.getOrCreateInstance(document.querySelector('#modalConfirm'));
-    modal.hide();
     this.setState({modalConfirmParameters: {title: false, message: false, cb: false}, showModalConfirm: false});
   }
   
@@ -732,13 +665,51 @@ class App extends Component {
         messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
       });
     }
-    var modal = bootstrap.Modal.getOrCreateInstance(document.querySelector('#modalConfirm'));
-    modal.hide();
     this.setState({modalConfirmParameters: {title: false, message: false, cb: false}, showModalConfirm: false, mapIndex: 0});
   }
 
+  hideBlind() {
+    this.setState({showBlind: false});
+  }
+
+  hideDimmer() {
+    this.setState({showDimmer: false});
+  }
+
+  hideConfirm() {
+    this.setState({showModalConfirm: false});
+  }
+
+  hideElement() {
+    this.setState({showModalElement: false});
+  }
+
+  hideMonitor() {
+    this.setState({showModalMonitor: false});
+  }
+
+  hideService() {
+    this.setState({showModalService: false});
+  }
+
+  hideScript() {
+    this.setState({showModalScript: false});
+  }
+
+  hideScheduler() {
+    this.setState({showModalScheduler: false});
+  }
+
+  hideMap() {
+    this.setState({showModalMap: false});
+  }
+
+  hideOpenService() {
+    this.setState({showOpenService: false});
+  }
+
   render() {
-    let bodyJsx, modalJsx;
+    let bodyJsx;
     if (this.state.nav == "properties") {
       bodyJsx = <Config config={this.state.config}
                         submodules={this.state.submodules}
@@ -754,6 +725,7 @@ class App extends Component {
       bodyJsx = <Services serviceList={this.state.serviceList}
                           filterServices={this.state.services}
                           adminMode={this.state.adminMode}
+                          deviceOverview={this.state.deviceOverview}
                           streamList={this.state.streamList}
                           config={this.state.config}/>
     } else if (this.state.nav == "scripts") {
@@ -774,58 +746,9 @@ class App extends Component {
                               scheduler={this.state.scheduler}
                               profileList={this.state.profileList}
                               adminMode={this.state.adminMode}
-                              mapIndex={this.state.mapIndex}
-                              mapPlace={this.state.mapPlace}/>
+                              mapIndex={this.state.mapIndex} />
     }
-    if (this.state.showModalElement) {
-      modalJsx = <ModalElement device={this.state.modalElementParameters.device}
-                               type={this.state.modalElementParameters.type}
-                               name={this.state.modalElementParameters.name}
-                               element={this.state.modalElementParameters.element}
-                               cb={this.cbSaveElement} />
-    } else if (this.state.showModalMonitor) {
-      modalJsx = <ModalMonitor device={this.state.modalElementParameters.device}
-                               type={this.state.modalElementParameters.type}
-                               name={this.state.modalElementParameters.name}
-                               element={this.state.modalElementParameters.element}
-                               cb={this.cbCloseMonitor} />
-    } else if (this.state.showModalService) {
-      modalJsx = <ModalService type={this.state.modalServiceParameters.type}
-                               name={this.state.modalServiceParameters.name}
-                               element={this.state.modalServiceParameters.element}
-                               add={this.state.modalServiceParameters.add}
-                               serviceList={this.state.serviceList}
-                               deviceOverview={this.state.deviceOverview}
-                               cb={this.cbSaveService} />
-    } else if (this.state.showModalScript) {
-      modalJsx = <ModalScript script={this.state.modalScriptParameters.script}
-                              add={this.state.modalScriptParameters.add}
-                              serviceList={this.state.serviceList}
-                              deviceOverview={this.state.deviceOverview}
-                              scriptList={this.state.script}
-                              cb={this.cbSaveScript} />
-    } else if (this.state.showModalScheduler) {
-      modalJsx = <ModalScheduler scheduler={this.state.modalSchedulerParameters.scheduler}
-                                 add={this.state.modalSchedulerParameters.add}
-                                 schedulerList={this.state.scheduler}
-                                 scriptList={this.state.script}
-                                 cb={this.cbSaveScheduler} />
-    } else if (this.state.showModalMap) {
-      modalJsx = <ModalMap map={this.state.modalMapParameters.map}
-                           add={this.state.modalMapParameters.add}
-                           profileList={this.state.profileList}
-                           cb={this.cbSaveMap} />
-    } else if (this.state.showModalConfirm) {
-      modalJsx = <ModalConfirm title={this.state.modalConfirmParameters.title}
-                               message={this.state.modalConfirmParameters.message}
-                               cb={this.state.modalConfirmParameters.cb} />
-    } else if (this.state.showOpenService) {
-      modalJsx = <ModalOpenService type={this.state.modalOpenService.type}
-                                   element={this.state.modalOpenService.element}
-                                   deviceOverview={this.state.deviceOverview}
-                                   streamList={this.state.streamList}
-                                   config={this.state.config} />
-    }
+
     return (
       <div className="container-fluid">
         <TopMenu
@@ -835,13 +758,62 @@ class App extends Component {
           serviceList={this.state.serviceList}
           adminMode={this.state.adminMode}/>
         {bodyJsx}
-        {modalJsx}
-        <ModalDimmer device={this.state.modalDimmerParameters.device}
-                             name={this.state.modalDimmerParameters.name}
-                             element={this.state.modalDimmerParameters.element} />
-        <ModalBlind device={this.state.modalDimmerParameters.device}
-                             name={this.state.modalDimmerParameters.name}
-                             element={this.state.modalDimmerParameters.element} />
+        {this.state.showModalConfirm ? <ModalConfirm handleHideModal={this.hideConfirm}
+                                       title={this.state.modalConfirmParameters.title}
+                                       message={this.state.modalConfirmParameters.message}
+                                       cb={this.state.modalConfirmParameters.cb} /> : null}
+        {this.state.showDimmer ? <ModalDimmer handleHideModal={this.hideDimmer}
+                                  device={this.state.modalDimmerParameters.device}
+                                  name={this.state.modalDimmerParameters.name}
+                                  element={this.state.modalDimmerParameters.element} /> : null}
+        {this.state.showBlind ? <ModalBlind handleHideModal={this.hideBlind}
+                                device={this.state.modalDimmerParameters.device}
+                                name={this.state.modalDimmerParameters.name}
+                                element={this.state.modalDimmerParameters.element} /> : null}
+        {this.state.showModalElement ? <ModalElement handleHideModal={this.hideElement}
+                                        device={this.state.modalElementParameters.device}
+                                        type={this.state.modalElementParameters.type}
+                                        name={this.state.modalElementParameters.name}
+                                        element={this.state.modalElementParameters.element}
+                                        cb={this.cbSaveElement} /> : null}
+        {this.state.showModalMonitor ? <ModalMonitor handleHideModal={this.hideMonitor}
+                                        device={this.state.modalElementParameters.device}
+                                        type={this.state.modalElementParameters.type}
+                                        name={this.state.modalElementParameters.name}
+                                        element={this.state.modalElementParameters.element}
+                                        cb={this.cbCloseMonitor} /> : null}
+        {this.state.showModalService ? <ModalService handleHideModal={this.hideService}
+                                        type={this.state.modalServiceParameters.type}
+                                        name={this.state.modalServiceParameters.name}
+                                        element={this.state.modalServiceParameters.element}
+                                        add={this.state.modalServiceParameters.add}
+                                        serviceList={this.state.serviceList}
+                                        deviceOverview={this.state.deviceOverview}
+                                        cb={this.cbSaveService} /> : null}
+        {this.state.showModalScript ? <ModalScript handleHideModal={this.hideScript}
+                                      script={this.state.modalScriptParameters.script}
+                                      add={this.state.modalScriptParameters.add}
+                                      serviceList={this.state.serviceList}
+                                      deviceOverview={this.state.deviceOverview}
+                                      scriptList={this.state.script}
+                                      cb={this.cbSaveScript} /> : null}
+        {this.state.showModalScheduler ? <ModalScheduler handleHideModal={this.hideScheduler}
+                                          scheduler={this.state.modalSchedulerParameters.scheduler}
+                                          add={this.state.modalSchedulerParameters.add}
+                                          schedulerList={this.state.scheduler}
+                                          scriptList={this.state.script}
+                                          cb={this.cbSaveScheduler} /> : null}
+        {this.state.showModalMap ? <ModalMap handleHideModal={this.hideMap}
+                                    map={this.state.modalMapParameters.map}
+                                    add={this.state.modalMapParameters.add}
+                                    profileList={this.state.profileList}
+                                    cb={this.cbSaveMap} /> : null}
+        {this.state.showOpenService ? <ModalOpenService handleHideModal={this.hideOpenService}
+                                      type={this.state.modalOpenService.type}
+                                      element={this.state.modalOpenService.element}
+                                      deviceOverview={this.state.deviceOverview}
+                                      streamList={this.state.streamList}
+                                      config={this.state.config} /> : null}
         <Notification loggedIn={this.state.oidcStatus===false||this.state.oidcStatus === "connected"}/>
       </div>
       );

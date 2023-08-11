@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 import i18next from 'i18next';
 
 import MockService from './MockService';
@@ -9,6 +10,7 @@ class ModalOpenService extends Component {
     super(props);
 
     this.state = {
+      handleHideModal: props.handleHideModal,
       type: props.type,
       element: props.element,
       deviceOverview: props.deviceOverview,
@@ -18,6 +20,11 @@ class ModalOpenService extends Component {
 
   static getDerivedStateFromProps(props, state) {
     return props;
+  }
+
+  componentDidMount() {
+    $(ReactDOM.findDOMNode(this)).modal('show');
+    $(ReactDOM.findDOMNode(this)).on('hidden.bs.modal', this.state.handleHideModal);
   }
 
 	render() {

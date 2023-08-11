@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 import i18next from 'i18next';
 
 import SimpleMonitor from './SimpleMonitor';
@@ -8,6 +9,7 @@ class ModalMonitor extends Component {
     super(props);
 
     this.state = {
+      handleHideModal: props.handleHideModal,
       device: props.device,
       type: props.type,
       name: props.name,
@@ -25,7 +27,13 @@ class ModalMonitor extends Component {
     return props;
   }
 
+  componentDidMount() {
+    $(ReactDOM.findDOMNode(this)).modal('show');
+    $(ReactDOM.findDOMNode(this)).on('hidden.bs.modal', this.state.handleHideModal);
+  }
+
   closeModal() {
+    $(ReactDOM.findDOMNode(this)).modal('hide');
     if (this.state.cb) {
       this.state.cb();
     }
@@ -51,7 +59,7 @@ class ModalMonitor extends Component {
               <div className="modal-body">
                 <div className="mb-3">
                   <label className="form-label">
-                    {i18next.t("components.benoic-element-modal-monitor-element", {name: this.state.element.display|| this.state.name})}
+                    {i18next.t("components.benoic-element-modal-monitor-element", {name: this.state.element.display||this.state.name})}
                   </label>
                 </div>
                 <div className="mb-3">
@@ -76,7 +84,7 @@ class ModalMonitor extends Component {
                   </div>
                 </div>
                 <div className="mb-3">
-                  <SimpleMonitor data={this.state.data} device={this.state.device} type={this.state.type} name={this.state.name} element={this.state.element} from={this.state.from}/>
+                  <SimpleMonitor data={this.state.data} device={this.state.device} type={this.state.type} name={this.state.element.display||this.state.name} element={this.state.element} from={this.state.from}/>
                 </div>
               </div>
               <div className="modal-footer">

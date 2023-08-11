@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 import i18next from 'i18next';
 
 class ModalScript extends Component {
@@ -6,6 +7,7 @@ class ModalScript extends Component {
     super(props);
 
     this.state = {
+      handleHideModal: props.handleHideModal,
       script: props.script,
       add: props.add,
       serviceList: props.serviceList,
@@ -40,6 +42,11 @@ class ModalScript extends Component {
     return props;
   }
   
+  componentDidMount() {
+    $(ReactDOM.findDOMNode(this)).modal('show');
+    $(ReactDOM.findDOMNode(this)).on('hidden.bs.modal', this.state.handleHideModal);
+  }
+
   changeName(e) {
     let script = this.state.script;
     script.name = e.target.value;
@@ -67,12 +74,14 @@ class ModalScript extends Component {
   addAction() {
     let addActionParams = {submodule: "benoic", command: 1, parameters: {element_type: "switch"}};
     Object.keys(this.state.deviceOverview).forEach(dev => {
-      Object.keys(this.state.deviceOverview[dev].switches).forEach(sw => {
-        if (this.state.deviceOverview[dev].switches[sw].enabled && !addActionParams.parameters.device && !addActionParams.element) {
-          addActionParams.parameters.device = dev;
-          addActionParams.element = sw;
-        }
-      });
+      if (this.state.deviceOverview[dev].switches) {
+        Object.keys(this.state.deviceOverview[dev].switches).forEach(sw => {
+          if (this.state.deviceOverview[dev].switches[sw].enabled && !addActionParams.parameters.device && !addActionParams.element) {
+            addActionParams.parameters.device = dev;
+            addActionParams.element = sw;
+          }
+        });
+      }
     });
     this.setState({addActionParams: addActionParams});
   }
@@ -103,12 +112,14 @@ class ModalScript extends Component {
       delete(addActionParams.parameters.device);
       delete(addActionParams.element);
       Object.keys(this.state.deviceOverview).forEach(dev => {
-        Object.keys(this.state.deviceOverview[dev].switches).forEach(sw => {
-          if (this.state.deviceOverview[dev].switches[sw].enabled && !addActionParams.parameters.device && !addActionParams.element) {
-            addActionParams.parameters.device = dev;
-            addActionParams.element = sw;
-          }
-        });
+        if (this.state.deviceOverview[dev].switches) {
+          Object.keys(this.state.deviceOverview[dev].switches).forEach(sw => {
+            if (this.state.deviceOverview[dev].switches[sw].enabled && !addActionParams.parameters.device && !addActionParams.element) {
+              addActionParams.parameters.device = dev;
+              addActionParams.element = sw;
+            }
+          });
+        }
       });
     } else if (type === "dimmer") {
       addActionParams.parameters.element_type = type;
@@ -117,12 +128,14 @@ class ModalScript extends Component {
       delete(addActionParams.parameters.device);
       delete(addActionParams.element);
       Object.keys(this.state.deviceOverview).forEach(dev => {
-        Object.keys(this.state.deviceOverview[dev].dimmers).forEach(di => {
-          if (this.state.deviceOverview[dev].dimmers[di].enabled && !addActionParams.parameters.device && !addActionParams.element) {
-            addActionParams.parameters.device = dev;
-            addActionParams.element = di;
-          }
-        });
+        if (this.state.deviceOverview[dev].dimmers) {
+          Object.keys(this.state.deviceOverview[dev].dimmers).forEach(di => {
+            if (this.state.deviceOverview[dev].dimmers[di].enabled && !addActionParams.parameters.device && !addActionParams.element) {
+              addActionParams.parameters.device = dev;
+              addActionParams.element = di;
+            }
+          });
+        }
       });
     } else if (type === "blind") {
       addActionParams.parameters.element_type = type;
@@ -131,12 +144,14 @@ class ModalScript extends Component {
       delete(addActionParams.parameters.device);
       delete(addActionParams.element);
       Object.keys(this.state.deviceOverview).forEach(dev => {
-        Object.keys(this.state.deviceOverview[dev].blinds).forEach(bl => {
-          if (this.state.deviceOverview[dev].blinds[bl].enabled && !addActionParams.parameters.device && !addActionParams.element) {
-            addActionParams.parameters.device = dev;
-            addActionParams.element = bl;
-          }
-        });
+        if (this.state.deviceOverview[dev].blinds) {
+          Object.keys(this.state.deviceOverview[dev].blinds).forEach(bl => {
+            if (this.state.deviceOverview[dev].blinds[bl].enabled && !addActionParams.parameters.device && !addActionParams.element) {
+              addActionParams.parameters.device = dev;
+              addActionParams.element = bl;
+            }
+          });
+        }
       });
     } else if (type === "mpd-clear-playlist") {
       addActionParams.submodule = "carleon";
@@ -275,6 +290,7 @@ class ModalScript extends Component {
   }
   
   closeModal(e, result) {
+    $(ReactDOM.findDOMNode(this)).modal('hide');
     if (this.state.cb) {
       if (result) {
         this.state.cb(true, this.state.script, this.state.add);
@@ -296,111 +312,96 @@ class ModalScript extends Component {
       }
     }
     let actionListJsx = [], addActionJsx, actionParamJsx;
-    this.state.script.actions.forEach((action, index) => {
-      if (action.parameters.element_type === "switch") {
-        let name = i18next.t("scripts.modal-action-name-not-found", {dev: action.parameters.device, name: action.element}), commandJsx = action.command===1?i18next.t("scripts.modal-action-switch-command-1"):i18next.t("scripts.modal-action-switch-command-0");
-        Object.keys(this.state.deviceOverview).forEach(dev => {
-          Object.keys(this.state.deviceOverview[dev].switches).forEach(sw => {
-            if (dev === action.parameters.device && sw === action.element) {
-              name = this.state.deviceOverview[dev].switches[sw].display;
+
+    if (this.state.script.actions) {
+      this.state.script.actions.forEach((action, index) => {
+        if (action.parameters.element_type === "switch") {
+          let name = i18next.t("scripts.modal-action-name-not-found", {dev: action.parameters.device, name: action.element}), commandJsx = action.command===1?i18next.t("scripts.modal-action-switch-command-1"):i18next.t("scripts.modal-action-switch-command-0");
+          Object.keys(this.state.deviceOverview).forEach(dev => {
+            if (this.state.deviceOverview[dev].switches) {
+              Object.keys(this.state.deviceOverview[dev].switches).forEach(sw => {
+                if (dev === action.parameters.device && sw === action.element) {
+                  name = this.state.deviceOverview[dev].switches[sw].display;
+                }
+              });
             }
           });
-        });
-        actionListJsx.push(
-          <div key={index} className="mb-3">
-            <div className="row">
-              <div className="col-6">
-                <label className="d-flex align-items-center">
-                  <i className="fa fa-power-off elt-left" aria-hidden="true">
-                  </i>
-                  {name}
-                </label>
-              </div>
-              <div className="col-4">
-                {commandJsx}
-              </div>
-              <div className="col-2">
-                <button type="button" className="btn btn-secondary btn-sm" onClick={(e) => this.removeActionAt(e, index)}>
-                  <i className="fa fa-trash" aria-hidden="true"></i>
-                </button>
+          actionListJsx.push(
+            <div key={index} className="mb-3">
+              <div className="row">
+                <div className="col-6">
+                  <label className="d-flex align-items-center">
+                    <i className="fa fa-power-off elt-left" aria-hidden="true">
+                    </i>
+                    {name}
+                  </label>
+                </div>
+                <div className="col-4">
+                  {commandJsx}
+                </div>
+                <div className="col-2">
+                  <button type="button" className="btn btn-secondary btn-sm" onClick={(e) => this.removeActionAt(e, index)}>
+                    <i className="fa fa-trash" aria-hidden="true"></i>
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        );
-      } else if (action.parameters.element_type === "dimmer") {
-        let name = i18next.t("scripts.modal-action-name-not-found", {dev: action.parameters.device, name: action.element}), commandJsx = action.command + "%";
-        Object.keys(this.state.deviceOverview).forEach(dev => {
-          Object.keys(this.state.deviceOverview[dev].dimmers).forEach(di => {
-            if (dev === action.parameters.device && di === action.element) {
-              name = this.state.deviceOverview[dev].dimmers[di].display;
+          );
+        } else if (action.parameters.element_type === "dimmer") {
+          let name = i18next.t("scripts.modal-action-name-not-found", {dev: action.parameters.device, name: action.element}), commandJsx = action.command + "%";
+          Object.keys(this.state.deviceOverview).forEach(dev => {
+            if (this.state.deviceOverview[dev].dimmers) {
+              Object.keys(this.state.deviceOverview[dev].dimmers).forEach(di => {
+                if (dev === action.parameters.device && di === action.element) {
+                  name = this.state.deviceOverview[dev].dimmers[di].display;
+                }
+              });
             }
           });
-        });
-        actionListJsx.push(
-          <div key={index} className="mb-3">
-            <div className="row">
-              <div className="col-6">
-                <label className="d-flex align-items-center">
-                  <i className="fa fa-lightbulb-o elt-left" aria-hidden="true">
-                  </i>
-                  {name}
-                </label>
-              </div>
-              <div className="col-4">
-                {commandJsx}
-              </div>
-              <div className="col-2">
-                <button type="button" className="btn btn-secondary btn-sm" onClick={(e) => this.removeActionAt(e, index)}>
-                  <i className="fa fa-trash" aria-hidden="true"></i>
-                </button>
+          actionListJsx.push(
+            <div key={index} className="mb-3">
+              <div className="row">
+                <div className="col-6">
+                  <label className="d-flex align-items-center">
+                    <i className="fa fa-lightbulb-o elt-left" aria-hidden="true">
+                    </i>
+                    {name}
+                  </label>
+                </div>
+                <div className="col-4">
+                  {commandJsx}
+                </div>
+                <div className="col-2">
+                  <button type="button" className="btn btn-secondary btn-sm" onClick={(e) => this.removeActionAt(e, index)}>
+                    <i className="fa fa-trash" aria-hidden="true"></i>
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        );
-      } else if (action.parameters.element_type === "blind") {
-        let name = i18next.t("scripts.modal-action-name-not-found", {dev: action.parameters.device, name: action.element}), commandJsx = action.command + "%";
-        Object.keys(this.state.deviceOverview).forEach(dev => {
-          Object.keys(this.state.deviceOverview[dev].blinds).forEach(bl => {
-            if (dev === action.parameters.device && bl === action.element) {
-              name = this.state.deviceOverview[dev].blinds[bl].display;
+          );
+        } else if (action.parameters.element_type === "blind") {
+          let name = i18next.t("scripts.modal-action-name-not-found", {dev: action.parameters.device, name: action.element}), commandJsx = action.command + "%";
+          Object.keys(this.state.deviceOverview).forEach(dev => {
+            if (this.state.deviceOverview[dev].blinds) {
+              Object.keys(this.state.deviceOverview[dev].blinds).forEach(bl => {
+                if (dev === action.parameters.device && bl === action.element) {
+                  name = this.state.deviceOverview[dev].blinds[bl].display;
+                }
+              });
             }
           });
-        });
-        actionListJsx.push(
-          <div key={index} className="mb-3">
-            <div className="row">
-              <div className="col-6">
-                <label className="d-flex align-items-center">
-                  <i className="fa fa-window-maximize elt-left" aria-hidden="true">
-                  </i>
-                  {name}
-                </label>
-              </div>
-              <div className="col-4">
-                {commandJsx}
-              </div>
-              <div className="col-2">
-                <button type="button" className="btn btn-secondary btn-sm" onClick={(e) => this.removeActionAt(e, index)}>
-                  <i className="fa fa-trash" aria-hidden="true"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-      } else if (action.parameters.service === "service-mpd") {
-        if (action.command === "clear_playlist") {
           actionListJsx.push(
             <div key={index} className="mb-3">
               <div className="row">
-                <div className="col-4">
+                <div className="col-6">
                   <label className="d-flex align-items-center">
-                    <i className="fa fa-music elt-left" aria-hidden="true">
+                    <i className="fa fa-window-maximize elt-left" aria-hidden="true">
                     </i>
-                    {i18next.t("scripts.modal-action-list-mpd-clear-playlist")}
+                    {name}
                   </label>
                 </div>
-                <div className="col-6">
-                  {action.element}
+                <div className="col-4">
+                  {commandJsx}
                 </div>
                 <div className="col-2">
                   <button type="button" className="btn btn-secondary btn-sm" onClick={(e) => this.removeActionAt(e, index)}>
@@ -410,97 +411,121 @@ class ModalScript extends Component {
               </div>
             </div>
           );
-        } else if (action.command === "play_song") {
-          actionListJsx.push(
-            <div key={index} className="mb-3">
-              <div className="row">
-                <div className="col-4">
-                  <label className="d-flex align-items-center">
-                    <i className="fa fa-music elt-left" aria-hidden="true">
-                    </i>
-                    {i18next.t("scripts.modal-action-list-mpd-play-song")}
-                  </label>
-                </div>
-                <div className="col-6">
-                  {action.element} - {action.parameters.uri}
-                </div>
-                <div className="col-2">
-                  <button type="button" className="btn btn-secondary btn-sm" onClick={(e) => this.removeActionAt(e, index)}>
-                    <i className="fa fa-trash" aria-hidden="true"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        } else if (action.command === "action") {
-          actionListJsx.push(
-            <div key={index} className="mb-3">
-              <div className="row">
-                <div className="col-4">
-                  <label className="d-flex align-items-center">
-                    <i className="fa fa-music elt-left" aria-hidden="true">
-                    </i>
-                    {i18next.t("scripts.modal-action-list-mpd-action")}
-                  </label>
-                </div>
-                <div className="col-6">
-                  {action.element} - {i18next.t("scripts.modal-mpd-action-list-"+action.parameters.action)}
-                </div>
-                <div className="col-2">
-                  <button type="button" className="btn btn-secondary btn-sm" onClick={(e) => this.removeActionAt(e, index)}>
-                    <i className="fa fa-trash" aria-hidden="true"></i>
-                  </button>
+        } else if (action.parameters.service === "service-mpd") {
+          if (action.command === "clear_playlist") {
+            actionListJsx.push(
+              <div key={index} className="mb-3">
+                <div className="row">
+                  <div className="col-4">
+                    <label className="d-flex align-items-center">
+                      <i className="fa fa-music elt-left" aria-hidden="true">
+                      </i>
+                      {i18next.t("scripts.modal-action-list-mpd-clear-playlist")}
+                    </label>
+                  </div>
+                  <div className="col-6">
+                    {action.element}
+                  </div>
+                  <div className="col-2">
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={(e) => this.removeActionAt(e, index)}>
+                      <i className="fa fa-trash" aria-hidden="true"></i>
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        } else if (action.command === "set_volume") {
-          actionListJsx.push(
-            <div key={index} className="mb-3">
-              <div className="row">
-                <div className="col-4">
-                  <label className="d-flex align-items-center">
-                    <i className="fa fa-music elt-left" aria-hidden="true">
-                    </i>
-                    {i18next.t("scripts.modal-action-list-mpd-set-volume")}
-                  </label>
-                </div>
-                <div className="col-6">
-                  {action.element} - {action.parameters.volume}%
-                </div>
-                <div className="col-2">
-                  <button type="button" className="btn btn-secondary btn-sm" onClick={(e) => this.removeActionAt(e, index)}>
-                    <i className="fa fa-trash" aria-hidden="true"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        } else if (action.command === "load_playlist") {
-          actionListJsx.push(
-            <div key={index} className="mb-3">
-              <div className="row">
-                <div className="col-4">
-                  <label className="d-flex align-items-center">
-                    <i className="fa fa-music elt-left" aria-hidden="true">
-                    </i>
-                    {i18next.t("scripts.modal-action-list-mpd-set-playlist")}
-                  </label>
-                </div>
-                <div className="col-6">
-                  {action.element} - {action.parameters.playlist}
-                </div>
-                <div className="col-2">
-                  <button type="button" className="btn btn-secondary btn-sm" onClick={(e) => this.removeActionAt(e, index)}>
-                    <i className="fa fa-trash" aria-hidden="true"></i>
-                  </button>
+            );
+          } else if (action.command === "play_song") {
+            actionListJsx.push(
+              <div key={index} className="mb-3">
+                <div className="row">
+                  <div className="col-4">
+                    <label className="d-flex align-items-center">
+                      <i className="fa fa-music elt-left" aria-hidden="true">
+                      </i>
+                      {i18next.t("scripts.modal-action-list-mpd-play-song")}
+                    </label>
+                  </div>
+                  <div className="col-6">
+                    {action.element} - {action.parameters.uri}
+                  </div>
+                  <div className="col-2">
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={(e) => this.removeActionAt(e, index)}>
+                      <i className="fa fa-trash" aria-hidden="true"></i>
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          );
+            );
+          } else if (action.command === "action") {
+            actionListJsx.push(
+              <div key={index} className="mb-3">
+                <div className="row">
+                  <div className="col-4">
+                    <label className="d-flex align-items-center">
+                      <i className="fa fa-music elt-left" aria-hidden="true">
+                      </i>
+                      {i18next.t("scripts.modal-action-list-mpd-action")}
+                    </label>
+                  </div>
+                  <div className="col-6">
+                    {action.element} - {i18next.t("scripts.modal-mpd-action-list-"+action.parameters.action)}
+                  </div>
+                  <div className="col-2">
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={(e) => this.removeActionAt(e, index)}>
+                      <i className="fa fa-trash" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          } else if (action.command === "set_volume") {
+            actionListJsx.push(
+              <div key={index} className="mb-3">
+                <div className="row">
+                  <div className="col-4">
+                    <label className="d-flex align-items-center">
+                      <i className="fa fa-music elt-left" aria-hidden="true">
+                      </i>
+                      {i18next.t("scripts.modal-action-list-mpd-set-volume")}
+                    </label>
+                  </div>
+                  <div className="col-6">
+                    {action.element} - {action.parameters.volume}%
+                  </div>
+                  <div className="col-2">
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={(e) => this.removeActionAt(e, index)}>
+                      <i className="fa fa-trash" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          } else if (action.command === "load_playlist") {
+            actionListJsx.push(
+              <div key={index} className="mb-3">
+                <div className="row">
+                  <div className="col-4">
+                    <label className="d-flex align-items-center">
+                      <i className="fa fa-music elt-left" aria-hidden="true">
+                      </i>
+                      {i18next.t("scripts.modal-action-list-mpd-set-playlist")}
+                    </label>
+                  </div>
+                  <div className="col-6">
+                    {action.element} - {action.parameters.playlist}
+                  </div>
+                  <div className="col-2">
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={(e) => this.removeActionAt(e, index)}>
+                      <i className="fa fa-trash" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          }
         }
-      }
-    });
+      });
+    }
     if (this.state.addActionParams) {
       addActionJsx =
       <div className="mb-3">
@@ -529,11 +554,13 @@ class ModalScript extends Component {
           switchName = this.state.deviceOverview[this.state.addActionParams.parameters.device]?.switches[this.state.addActionParams.element]?.display;
         }
         Object.keys(this.state.deviceOverview).forEach(dev => {
-          Object.keys(this.state.deviceOverview[dev].switches).forEach(sw => {
-            if (this.state.deviceOverview[dev].switches[sw].enabled) {
-              switchList.push(<li key={dev+"$"+sw}><a className="dropdown-item" href="#" onClick={(e) => this.selectActionSwitch(e, dev, sw)}>{this.state.deviceOverview[dev].switches[sw].display}</a></li>);
-            }
-          });
+          if (this.state.deviceOverview[dev].switches) {
+            Object.keys(this.state.deviceOverview[dev].switches).forEach(sw => {
+              if (this.state.deviceOverview[dev].switches[sw].enabled) {
+                switchList.push(<li key={dev+"$"+sw}><a className="dropdown-item" href="#" onClick={(e) => this.selectActionSwitch(e, dev, sw)}>{this.state.deviceOverview[dev].switches[sw].display}</a></li>);
+              }
+            });
+          }
         });
         actionParamJsx =
         <div className="border rounded script-new-action">
@@ -581,11 +608,13 @@ class ModalScript extends Component {
           dimmerName = this.state.deviceOverview[this.state.addActionParams.parameters.device]?.dimmers[this.state.addActionParams.element]?.display;
         }
         Object.keys(this.state.deviceOverview).forEach(dev => {
-          Object.keys(this.state.deviceOverview[dev].dimmers).forEach(di => {
-            if (this.state.deviceOverview[dev].dimmers[di].enabled) {
-              dimmerList.push(<li key={dev+"$"+di}><a className="dropdown-item" href="#" onClick={(e) => this.selectActionSwitch(e, dev, di)}>{this.state.deviceOverview[dev].dimmers[di].display}</a></li>);
-            }
-          });
+          if (this.state.deviceOverview[dev].dimmers) {
+            Object.keys(this.state.deviceOverview[dev].dimmers).forEach(di => {
+              if (this.state.deviceOverview[dev].dimmers[di].enabled) {
+                dimmerList.push(<li key={dev+"$"+di}><a className="dropdown-item" href="#" onClick={(e) => this.selectActionSwitch(e, dev, di)}>{this.state.deviceOverview[dev].dimmers[di].display}</a></li>);
+              }
+            });
+          }
         });
         actionParamJsx =
         <div className="border rounded script-new-action">
@@ -625,11 +654,13 @@ class ModalScript extends Component {
           blindName = this.state.deviceOverview[this.state.addActionParams.parameters.device]?.blinds[this.state.addActionParams.element]?.display;
         }
         Object.keys(this.state.deviceOverview).forEach(dev => {
-          Object.keys(this.state.deviceOverview[dev].blinds).forEach(bl => {
-            if (this.state.deviceOverview[dev].blinds[bl].enabled) {
-              blindList.push(<li key={dev+"$"+bl}><a className="dropdown-item" href="#" onClick={(e) => this.selectActionSwitch(e, dev, bl)}>{this.state.deviceOverview[dev].blinds[bl].display}</a></li>);
-            }
-          });
+          if (this.state.deviceOverview[dev].blinds) {
+            Object.keys(this.state.deviceOverview[dev].blinds).forEach(bl => {
+              if (this.state.deviceOverview[dev].blinds[bl].enabled) {
+                blindList.push(<li key={dev+"$"+bl}><a className="dropdown-item" href="#" onClick={(e) => this.selectActionSwitch(e, dev, bl)}>{this.state.deviceOverview[dev].blinds[bl].display}</a></li>);
+              }
+            });
+          }
         });
         actionParamJsx =
         <div className="border rounded script-new-action">

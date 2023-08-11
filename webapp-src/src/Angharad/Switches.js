@@ -20,15 +20,17 @@ class Switches extends Component {
 	render() {
     let switchList = [];
     Object.keys(this.state.deviceOverview).forEach(device => {
-      Object.keys(this.state.deviceOverview[device].switches).forEach(name => {
-        if (this.state.adminMode || this.state.deviceOverview[device].switches[name].enabled) {
-          switchList.push(
-            <div className="col-sm" key={device+"-"+name}>
-              <Switch device={device} name={name} element={this.state.deviceOverview[device].switches[name]} adminMode={this.state.adminMode}/>
-            </div>
-          );
-        }
-      });
+      if (this.state.deviceOverview[device].switches) {
+        Object.keys(this.state.deviceOverview[device].switches).forEach(name => {
+          if (this.state.adminMode || this.state.deviceOverview[device].switches[name].enabled) {
+            switchList.push(
+              <div className="col-sm-4" key={device+"-"+name}>
+                <Switch device={device} name={name} element={this.state.deviceOverview[device].switches[name]} adminMode={this.state.adminMode}/>
+              </div>
+            );
+          }
+        });
+      }
     });
 		return (
       <div>

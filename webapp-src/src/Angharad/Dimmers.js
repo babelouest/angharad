@@ -20,15 +20,17 @@ class Dimmers extends Component {
 	render() {
     let dimmerList = [];
     Object.keys(this.state.deviceOverview).forEach(device => {
-      Object.keys(this.state.deviceOverview[device].dimmers).forEach(name => {
-        if (this.state.adminMode || this.state.deviceOverview[device].dimmers[name].enabled) {
-          dimmerList.push(
-            <div className="col-sm" key={device+"-"+name}>
-              <Dimmer device={device} name={name} element={this.state.deviceOverview[device].dimmers[name]} adminMode={this.state.adminMode}/>
-            </div>
-          );
-        }
-      });
+      if (this.state.deviceOverview[device].dimmers) {
+        Object.keys(this.state.deviceOverview[device].dimmers).forEach(name => {
+          if (this.state.adminMode || this.state.deviceOverview[device].dimmers[name].enabled) {
+            dimmerList.push(
+              <div className="col-sm-4" key={device+"-"+name}>
+                <Dimmer device={device} name={name} element={this.state.deviceOverview[device].dimmers[name]} adminMode={this.state.adminMode}/>
+              </div>
+            );
+          }
+        });
+      }
     });
 		return (
       <div>
