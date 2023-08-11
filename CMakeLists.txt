@@ -3,7 +3,7 @@
 #
 # CMake file used to build program
 #
-# Copyright 2018 Nicolas Mora <mail@babelouest.org>
+# Copyright 2018-2023 Nicolas Mora <mail@babelouest.org>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the MIT License
@@ -83,31 +83,24 @@ set(LIBS ${LIBS} ${ZLIB_LIBRARIES})
 # build
 
 add_executable(angharad ${CMAKE_CURRENT_SOURCE_DIR}/src/angharad.h
-								${CMAKE_CURRENT_SOURCE_DIR}/src/iddawc_resource.h
-								${CMAKE_CURRENT_SOURCE_DIR}/src/static_compressed_inmemory_website_callback.h
-								${CMAKE_CURRENT_SOURCE_DIR}/src/http_compression_callback.h
-								${CMAKE_CURRENT_SOURCE_DIR}/src/iddawc_resource.c
-								${CMAKE_CURRENT_SOURCE_DIR}/src/static_compressed_inmemory_website_callback.c
-								${CMAKE_CURRENT_SOURCE_DIR}/src/http_compression_callback.c
-								${CMAKE_CURRENT_SOURCE_DIR}/src/condition.c
-								${CMAKE_CURRENT_SOURCE_DIR}/src/profile.c
-								${CMAKE_CURRENT_SOURCE_DIR}/src/scheduler.c
-								${CMAKE_CURRENT_SOURCE_DIR}/src/script.c
-								${CMAKE_CURRENT_SOURCE_DIR}/src/trigger.c
-								${CMAKE_CURRENT_SOURCE_DIR}/src/webservice.c
-								${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/benoic.h
-								${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/benoic.c
-								${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/device.c
-								${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/device-element.c
-								${CMAKE_CURRENT_SOURCE_DIR}/src/carleon/carleon.h
-								${CMAKE_CURRENT_SOURCE_DIR}/src/carleon/carleon.c
-								${CMAKE_CURRENT_SOURCE_DIR}/src/carleon/service.c
-								${CMAKE_CURRENT_SOURCE_DIR}/src/gareth/gareth.h
-								${CMAKE_CURRENT_SOURCE_DIR}/src/gareth/gareth.c
-								${CMAKE_CURRENT_SOURCE_DIR}/src/gareth/alert.c
-								${CMAKE_CURRENT_SOURCE_DIR}/src/gareth/filter.c
-								${CMAKE_CURRENT_SOURCE_DIR}/src/gareth/message.c
-								${CMAKE_CURRENT_SOURCE_DIR}/src/angharad.c )
+                        ${CMAKE_CURRENT_SOURCE_DIR}/src/iddawc_resource.h
+                        ${CMAKE_CURRENT_SOURCE_DIR}/src/static_compressed_inmemory_website_callback.h
+                        ${CMAKE_CURRENT_SOURCE_DIR}/src/http_compression_callback.h
+                        ${CMAKE_CURRENT_SOURCE_DIR}/src/iddawc_resource.c
+                        ${CMAKE_CURRENT_SOURCE_DIR}/src/static_compressed_inmemory_website_callback.c
+                        ${CMAKE_CURRENT_SOURCE_DIR}/src/http_compression_callback.c
+                        ${CMAKE_CURRENT_SOURCE_DIR}/src/profile.c
+                        ${CMAKE_CURRENT_SOURCE_DIR}/src/scheduler.c
+                        ${CMAKE_CURRENT_SOURCE_DIR}/src/script.c
+                        ${CMAKE_CURRENT_SOURCE_DIR}/src/webservice.c
+                        ${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/benoic.h
+                        ${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/benoic.c
+                        ${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/device.c
+                        ${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/device-element.c
+                        ${CMAKE_CURRENT_SOURCE_DIR}/src/carleon/carleon.h
+                        ${CMAKE_CURRENT_SOURCE_DIR}/src/carleon/carleon.c
+                        ${CMAKE_CURRENT_SOURCE_DIR}/src/carleon/service.c
+                        ${CMAKE_CURRENT_SOURCE_DIR}/src/angharad.c )
 target_link_libraries(angharad ${LIBS})
 set_target_properties(angharad PROPERTIES COMPILE_OPTIONS "-Wextra;-Wconversion")
 
