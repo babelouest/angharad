@@ -16,6 +16,7 @@
     "scheduler-error": "Erreur lors de la récupration des tâches planifiées",
     "device-error": "Erreur lors de la récupration des données pour le module '{{name}}'",
     "api-error": "Erreur dans l'API",
+    "refreshing": "Rafraîchissement en cours",
     "refresh": "Données rafraîches"
   },
   "menu": {
@@ -232,6 +233,7 @@
     "map-editor": "Modifier un plan",
     "modal-name": "Nom",
     "modal-description": "Description",
+    "modal-index": "Index",
     "remove-ok": "Plan supprimé",
     "save-ok": "Plan sauvegardé",
     "name-taken": "Le nom existe déjà pour une autre plan",

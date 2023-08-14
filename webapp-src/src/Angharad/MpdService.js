@@ -189,10 +189,10 @@ class MpdService extends Component {
       let uri = "";
       if (this.state.selectedStream.icecast) {
         uri = this.state.config.taliesinConfig.icecast_remote_address + "/" + this.state.selectedStream.name;
-        prom = apiManager.APIRequestCarleon("service-mpd/" + encodeURIComponent(this.state.element.name) + "/play/" + encodeURIComponent(uri), "POST");
+        prom = apiManager.APIRequestCarleon("service-mpd/" + encodeURIComponent(this.state.element.name) + "/playlist/", "POST", [uri]);
       } else if (this.state.selectedStream.webradio) {
         uri = this.state.config.frontend.taliesinRootUrl + "/" + this.state.config.taliesinConfig.api_prefix + "/stream/" + this.state.selectedStream.name;
-        prom = apiManager.APIRequestCarleon("service-mpd/" + encodeURIComponent(this.state.element.name) + "/play/" + encodeURIComponent(uri), "POST");
+        prom = apiManager.APIRequestCarleon("service-mpd/" + encodeURIComponent(this.state.element.name) + "/playlist/", "POST", [uri]);
       } else {
         let playlist = [];
         for (let i=0; i< this.state.selectedStream.elements; i++) {

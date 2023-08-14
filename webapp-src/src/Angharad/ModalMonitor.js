@@ -59,11 +59,6 @@ class ModalMonitor extends Component {
               <div className="modal-body">
                 <div className="mb-3">
                   <label className="form-label">
-                    {i18next.t("components.benoic-element-modal-monitor-element", {name: this.state.element.display||this.state.name})}
-                  </label>
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">
                     {i18next.t("components.benoic-element-modal-monitor-from")}
                   </label>
                   <div className="dropdown">
@@ -84,7 +79,7 @@ class ModalMonitor extends Component {
                   </div>
                 </div>
                 <div className="mb-3">
-                  <SimpleMonitor data={this.state.data} device={this.state.device} type={this.state.type} name={this.state.element.display||this.state.name} element={this.state.element} from={this.state.from}/>
+                  <SimpleMonitor data={this.state.data} device={this.state.device} type={this.state.type} name={this.state.name} display={this.state.element.display||this.state.name} unit={(this.state.element.options && this.state.element.options.unit)||false} from={this.state.from}/>
                 </div>
               </div>
               <div className="modal-footer">

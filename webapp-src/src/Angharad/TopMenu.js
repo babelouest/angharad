@@ -93,6 +93,7 @@ class TopMenu extends Component {
     benoicSubmenu.push(<li key={"script-sep"}><hr className="dropdown-divider"/></li>);
     benoicSubmenu.push(<li key={"scripts"}><a className="dropdown-item" href="#scripts" onClick={(e) => this.navigateTo(e, "scripts")}>{i18next.t("menu.all-scripts-menu")}</a></li>);
     benoicSubmenu.push(<li key={"schedulers"}><a className="dropdown-item" href="#schedulers" onClick={(e) => this.navigateTo(e, "schedulers")}>{i18next.t("menu.all-schedulers-menu")}</a></li>);
+    console.log(this.state.oidcStatus);
     return (
       <div>
         <a className="close-navbar-toggler collapsed" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -115,7 +116,7 @@ class TopMenu extends Component {
               <span className="navbar-toggler-icon"></span>
             </button>
             <div className="collapse navbar-collapse" id="angharadTopMenu">
-              <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+              {this.state.oidcStatus === "connected" ? <ul className="navbar-nav me-auto mb-2 mb-lg-0">
                 <li className="nav-item dropdown">
                   <a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     {i18next.t("menu.list-menu")}
@@ -124,23 +125,23 @@ class TopMenu extends Component {
                     {benoicSubmenu}
                   </ul>
                 </li>
-              </ul>
+              </ul> : null}
               <ul className="navbar-nav ms-auto flex-nowrap text-right">
-                <li className="nav-item">
+                {this.state.oidcStatus === "connected" ? <li className="nav-item">
                   <a className="nav-link" aria-current="page" href="#" onClick={this.refresh} data-bs-toggle="collapse">
                     <i className="fa fa-refresh" aria-hidden="true"></i>
                   </a>
-                </li>
+                </li> : null}
                 <li className="nav-item dropdown">
                   <a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <i className="fa fa-cog" aria-hidden="true"></i>
                   </a>
                   <ul className="dropdown-menu">
-                    <li>
+                    {this.state.oidcStatus === "connected" ? <li>
                       <a className={"dropdown-item" + adminModeJsx} href="#" onClick={this.setAdminMode} data-bs-toggle="collapse">
                         {i18next.t("menu.admin")}
                       </a>
-                    </li>
+                    </li> : null}
                     <li>
                       <a className="dropdown-item" href="#properties" onClick={this.navigateToProperties} data-bs-toggle="collapse">
                         {i18next.t("menu.config")}

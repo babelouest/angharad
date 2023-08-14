@@ -138,7 +138,7 @@ class Config extends Component {
   }
 
   hideConfirm() {
-    //this.setState({confirm: {show: false, title: "", message: "", cb: false, data: false}});
+    this.setState({confirm: {show: false, title: "", message: "", cb: false, data: false}});
   }
 
   hideModalDevice() {

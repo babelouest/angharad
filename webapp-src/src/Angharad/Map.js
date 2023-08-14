@@ -50,28 +50,16 @@ class Map extends Component {
   }
   
   dropElt(e) {
-    let mapContainer = document.getElementById("mapContainer");
-    let coordX = Math.round(Math.floor((e.clientX + window.scrollX - mapContainer.offsetLeft)*100/mapContainer.clientWidth)/5)*5;
-    let coordY = Math.round(Math.floor((e.clientY + window.scrollY - mapContainer.offsetTop)*100/mapContainer.clientHeight)/5)*5;
-    let map = this.state.map;
-    if (this.state.curDrag) {
-      let curDrag = this.state.curDrag;
-      curDrag.coordX = coordX;
-      curDrag.coordY = coordY;
-      map.elements.push(curDrag);
-      apiManager.APIRequestAngharad("profile/" + encodeURIComponent(map.name), "PUT", map)
-      .then(() => {
-        this.setState({map: map});
-      })
-      .catch((err) => {
-        messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
-      });
-    } else {
-      let curDrag = map.elements[this.state.curIndex];
-      if (curDrag) {
+    if (this.state.adminMode) {
+      let mapContainer = document.getElementById("mapContainer");
+      let coordX = Math.round(Math.floor((e.clientX + window.scrollX - mapContainer.offsetLeft)*100/mapContainer.clientWidth)/5)*5;
+      let coordY = Math.round(Math.floor((e.clientY + window.scrollY - mapContainer.offsetTop)*100/mapContainer.clientHeight)/5)*5;
+      let map = this.state.map;
+      if (this.state.curDrag) {
+        let curDrag = this.state.curDrag;
         curDrag.coordX = coordX;
         curDrag.coordY = coordY;
-        map.elements[this.state.curIndex] = curDrag;
+        map.elements.push(curDrag);
         apiManager.APIRequestAngharad("profile/" + encodeURIComponent(map.name), "PUT", map)
         .then(() => {
           this.setState({map: map});
@@ -79,6 +67,20 @@ class Map extends Component {
         .catch((err) => {
           messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
         });
+      } else {
+        let curDrag = map.elements[this.state.curIndex];
+        if (curDrag) {
+          curDrag.coordX = coordX;
+          curDrag.coordY = coordY;
+          map.elements[this.state.curIndex] = curDrag;
+          apiManager.APIRequestAngharad("profile/" + encodeURIComponent(map.name), "PUT", map)
+          .then(() => {
+            this.setState({map: map});
+          })
+          .catch((err) => {
+            messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
+          });
+        }
       }
     }
   }
@@ -146,7 +148,7 @@ class Map extends Component {
           });
         }
         if (benoicSwitches.length) {
-          switchListJsx = <MapPlace title={i18next.t("components.switches")} eltList={benoicSwitches} deviceOverview={this.state.deviceOverview} type={"switch"} cbDrag={this.dragElt}/>
+          switchListJsx = <MapPlace title={i18next.t("components.switches")} eltList={benoicSwitches} deviceOverview={this.state.deviceOverview} type={"switch"} cbDrag={this.dragElt} adminMode={this.state.adminMode}/>
         }
         if (this.state.deviceOverview[dev].dimmers) {
           Object.keys(this.state.deviceOverview[dev].dimmers).forEach(elt => {
@@ -156,7 +158,7 @@ class Map extends Component {
           });
         }
         if (benoicDimmers.length) {
-          dimmerListJsx = <MapPlace title={i18next.t("components.dimmers")} eltList={benoicDimmers} deviceOverview={this.state.deviceOverview} type={"dimmer"} cbDrag={this.dragElt}/>
+          dimmerListJsx = <MapPlace title={i18next.t("components.dimmers")} eltList={benoicDimmers} deviceOverview={this.state.deviceOverview} type={"dimmer"} cbDrag={this.dragElt} adminMode={this.state.adminMode}/>
         }
         if (this.state.deviceOverview[dev].blinds) {
           Object.keys(this.state.deviceOverview[dev].blinds).forEach(elt => {
@@ -166,7 +168,7 @@ class Map extends Component {
           });
         }
         if (benoicBlinds.length) {
-          blindListJsx = <MapPlace title={i18next.t("components.blinds")} eltList={benoicBlinds} deviceOverview={this.state.deviceOverview} type={"blind"} cbDrag={this.dragElt}/>
+          blindListJsx = <MapPlace title={i18next.t("components.blinds")} eltList={benoicBlinds} deviceOverview={this.state.deviceOverview} type={"blind"} cbDrag={this.dragElt} adminMode={this.state.adminMode}/>
         }
         if (this.state.deviceOverview[dev].sensors) {
           Object.keys(this.state.deviceOverview[dev].sensors).forEach(elt => {
@@ -176,7 +178,7 @@ class Map extends Component {
           });
         }
         if (benoicSensors.length) {
-          sensorListJsx = <MapPlace title={i18next.t("components.sensors")} eltList={benoicSensors} deviceOverview={this.state.deviceOverview} type={"sensor"} cbDrag={this.dragElt}/>
+          sensorListJsx = <MapPlace title={i18next.t("components.sensors")} eltList={benoicSensors} deviceOverview={this.state.deviceOverview} type={"sensor"} cbDrag={this.dragElt} adminMode={this.state.adminMode}/>
         }
       });
       this.state.serviceList.forEach(service => {
@@ -185,22 +187,22 @@ class Map extends Component {
             mockServices.push(elt);
           });
           if (mockServices.length) {
-            mockServiceJsx = <MapPlace title={i18next.t("services.mock-services")} eltList={mockServices} serviceList={this.state.serviceList} deviceOverview={this.state.deviceOverview} type={"serviceMock"} cbDrag={this.dragElt}/>
+            mockServiceJsx = <MapPlace title={i18next.t("services.mock-services")} eltList={mockServices} serviceList={this.state.serviceList} deviceOverview={this.state.deviceOverview} type={"serviceMock"} cbDrag={this.dragElt} adminMode={this.state.adminMode}/>
           }
         } else if (service.name === "service-mpd") {
           service.element.forEach(elt => {
             mpdServices.push(elt);
           });
           if (mpdServices.length) {
-            mpdServiceJsx = <MapPlace title={i18next.t("services.mpd-services")} eltList={mpdServices} serviceList={this.state.serviceList} deviceOverview={this.state.deviceOverview} type={"mpdService"} cbDrag={this.dragElt}/>
+            mpdServiceJsx = <MapPlace title={i18next.t("services.mpd-services")} eltList={mpdServices} serviceList={this.state.serviceList} deviceOverview={this.state.deviceOverview} type={"mpdService"} cbDrag={this.dragElt} adminMode={this.state.adminMode}/>
           }
         }
       });
       if (this.state.script.length) {
-        scriptJsx = <MapPlace title={i18next.t("scripts.title")} eltList={this.state.script} type={"script"} cbDrag={this.dragElt}/>
+        scriptJsx = <MapPlace title={i18next.t("scripts.title")} eltList={this.state.script} type={"script"} cbDrag={this.dragElt} adminMode={this.state.adminMode}/>
       }
       if (this.state.scheduler.length) {
-        schedulerJsx = <MapPlace title={i18next.t("schedulers.title")} eltList={this.state.scheduler} type={"scheduler"} cbDrag={this.dragElt}/>
+        schedulerJsx = <MapPlace title={i18next.t("schedulers.title")} eltList={this.state.scheduler} type={"scheduler"} cbDrag={this.dragElt} adminMode={this.state.adminMode}/>
       }
       mapPlaceJsx =
       <div>
@@ -390,10 +392,6 @@ class Map extends Component {
     });
     return (
       <div className="text-center map-with-margin">
-        <h4>
-          <i className="fa fa-map elt-left" aria-hidden="true"></i>
-          {this.state.map.name}
-        </h4>
         <div className="map-container" id="mapContainer">
           <a href="#" className="map-img-previous btn btn-secondary d-inline-flex align-items-center" onClick={(e) => this.navigate(e, false)}>&laquo;</a>
           <img src={this.state.map.image} className="map-img" onDrop={this.dropElt} onDragOver={this.allowDrop}/>

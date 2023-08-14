@@ -8,7 +8,7 @@ class ModalMap extends Component {
 
     this.state = {
       handleHideModal: props.handleHideModal,
-      profileList: props.profileList,
+      mapList: props.mapList,
       map: props.map,
       add: props.add,
       cb: props.cb,
@@ -20,6 +20,7 @@ class ModalMap extends Component {
     this.closeModal = this.closeModal.bind(this);
     this.changeName = this.changeName.bind(this);
     this.changeDescription = this.changeDescription.bind(this);
+    this.changeIndex = this.changeIndex.bind(this);
     this.onUploadImage = this.onUploadImage.bind(this);
   }
 
@@ -39,7 +40,7 @@ class ModalMap extends Component {
     if (!map.name) {
       nameValid = false;
     } else {
-      this.state.profileList.forEach((curProfile) => {
+      this.state.mapList.forEach((curProfile) => {
         if (curProfile.name === map.name) {
           isValid = false;
           nameValid = false;
@@ -53,6 +54,12 @@ class ModalMap extends Component {
   changeDescription(e) {
     let map = this.state.map;
     map.description = e.target.value;
+    this.setState({map: map});
+  }
+  
+  changeIndex(e) {
+    let map = this.state.map;
+    map.index = parseInt(e.target.value);
     this.setState({map: map});
   }
   
@@ -130,6 +137,12 @@ class ModalMap extends Component {
                   <input type="text" className="form-control" id="mapDescription" value={this.state.map.description} onChange={this.changeDescription}/>
                   <label htmlFor="mapDescription">
                     {i18next.t("maps.modal-description")}
+                  </label>
+                </div>
+                <div className="form-floating mb-3">
+                  <input type="number" min="0" step="1" className="form-control" id="mapIndex" value={this.state.map.index} onChange={this.changeIndex}/>
+                  <label htmlFor="mapIndex">
+                    {i18next.t("maps.modal-index")}
                   </label>
                 </div>
                 <div className="mb-3">

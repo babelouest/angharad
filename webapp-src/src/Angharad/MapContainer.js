@@ -15,12 +15,13 @@ class MapContainer extends Component {
       serviceList: props.serviceList,
       script: props.script,
       scheduler: props.scheduler,
-      profileList: props.profileList,
+      mapList: props.mapList,
       adminMode: props.adminMode,
       mapIndex: props.mapIndex
     }
     
     this.addMap = this.addMap.bind(this);
+    this.selectMap = this.selectMap.bind(this);
   }
   
   static getDerivedStateFromProps(props, state) {
@@ -28,11 +29,16 @@ class MapContainer extends Component {
   }
 
   addMap() {
-    messageDispatcher.sendMessage("Map", {add: true, map: {name: "", description: "", enabled: true, image: false, elements: []}});
+    messageDispatcher.sendMessage("Map", {add: true, map: {name: "", description: "", enabled: true, image: false, elements: [], index: this.state.mapList.length}});
+  }
+  
+  selectMap(e, index) {
+    e.preventDefault();
+    messageDispatcher.sendMessage("Map", {status: "select", index: index});
   }
   
   render() {
-    let addButtonJsx;
+    let addButtonJsx, mapLinksJsx = [];
     if (this.state.adminMode) {
       addButtonJsx = 
         <button type="button" className="btn btn-secondary" onClick={this.addMap}>
@@ -40,33 +46,29 @@ class MapContainer extends Component {
         </button>
     }
     let adminButtonsJsx;
-    let curMapJsx, curIndex = 0;
-    this.state.profileList.forEach((profile, index) => {
-      if (!!profile.image && Array.isArray(profile.elements) && (profile.enabled || this.state.adminMode)) {
-        if (curIndex === this.state.mapIndex) {
-          if (this.state.adminMode) {
-            adminButtonsJsx =
-              <MapAdminButtons map={profile} />
-          }
-          curMapJsx =
-            <div className="row">
-              <div className="col-sm-10">
-                <Map config={this.state.config}
-                     map={profile}
-                     deviceOverview={this.state.deviceOverview} 
-                     serviceList={this.state.serviceList} 
-                     script={this.state.script} 
-                     scheduler={this.state.scheduler} 
-                     adminMode={this.state.adminMode} />
-              </div>
-              <div className="col-sm-2">
-                {adminButtonsJsx}
-              </div>
-            </div>
-        }
-        curIndex++;
+    if (this.state.adminMode) {
+      adminButtonsJsx =
+        <MapAdminButtons map={this.state.mapList[this.state.mapIndex]} />
+    }
+    this.state.mapList.forEach((map, index) => {
+      let className = "btn elt-left elt-top";
+      if (index === this.state.mapIndex) {
+        className += " btn-primary";
+      } else {
+        className += " btn-outline-secondary";
       }
+      mapLinksJsx.push(
+        <a key={index} className={className} href={"#/map/"+index} onClick={(e) => this.selectMap(e, index)}>
+          <i className="fa fa-map elt-left" aria-hidden="true"></i>
+          {map.name}
+        </a>
+      );
     });
+    let classNameMapJsx = "col", classNameButtonJsx = "hidden";
+    if (this.state.adminMode) {
+      classNameMapJsx = "col-sm-10";
+      classNameButtonJsx = "col-sm-2";
+    }
     return (
       <div>
         <div className="row">
@@ -80,7 +82,25 @@ class MapContainer extends Component {
           </div>
         </div>
         <hr/>
-        {curMapJsx}
+        <div className="row elt-top">
+          <div className="col text-center">
+            {mapLinksJsx}
+          </div>
+        </div>
+        <div className="row">
+          <div className={classNameMapJsx}>
+            {this.state.mapList[this.state.mapIndex] ? <Map config={this.state.config}
+                 map={this.state.mapList[this.state.mapIndex]}
+                 deviceOverview={this.state.deviceOverview} 
+                 serviceList={this.state.serviceList} 
+                 script={this.state.script} 
+                 scheduler={this.state.scheduler} 
+                 adminMode={this.state.adminMode} /> : null}
+          </div>
+          <div className={classNameButtonJsx}>
+            {adminButtonsJsx}
+          </div>
+        </div>
       </div>
     );
   }

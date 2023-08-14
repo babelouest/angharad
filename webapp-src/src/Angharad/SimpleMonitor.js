@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-//import ReactECharts from 'echarts-for-react';
 import * as echarts from 'echarts';
 
 import apiManager from '../lib/APIManager';
@@ -12,7 +11,8 @@ class SimpleMonitor extends Component {
       device: props.device,
       type: props.type,
       name: props.name,
-      element: props.element,
+      display: props.display,
+      unit: props.unit,
       from: 86400
     }
     
@@ -32,16 +32,20 @@ class SimpleMonitor extends Component {
       result.forEach(val => {
         data.push([new Date(val.timestamp*1000).toISOString(), val.value]);
       });
+      let legend = this.state.display;
+      if (this.state.unit) {
+        legend += " (" + this.state.unit + ")";
+      }
 
       let option = {
         title: {
-          text: this.state.name
+          text: legend
         },
         tooltip: {
           trigger: 'axis'
         },
         legend: {
-          data: [this.state.name]
+          data: [legend]
         },
         xAxis: {
           type:"time",

@@ -36,11 +36,11 @@ class ModalDevice extends Component {
   }
 
   closeModal(e, result) {
-    $(ReactDOM.findDOMNode(this)).modal('hide');
     if (this.state.cb) {
       if (!result) {
         this.setState({deviceError: {}, nameError: false, typeError: false}, () => {
           this.state.cb(false);
+          $(ReactDOM.findDOMNode(this)).modal('hide');
         });
       } else {
         let deviceError = {}, hasError = false, nameError = false, typeError = false;
@@ -74,6 +74,7 @@ class ModalDevice extends Component {
         if (!hasError) {
           this.setState({deviceError: deviceError, nameError: nameError, typeError: typeError, device: {}}, () => {
             this.state.cb(true, this.state.device);
+            $(ReactDOM.findDOMNode(this)).modal('hide');
           });
         } else {
           this.setState({deviceError: deviceError, nameError: nameError, typeError: typeError});

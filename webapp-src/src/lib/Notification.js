@@ -8,6 +8,7 @@ class Notification extends Component {
     this.state = {
       message: [],
       counter: 0,
+      notHidden: [],
       loggedIn: props.loggedIn
     }
 
@@ -20,7 +21,17 @@ class Notification extends Component {
           if (autohide === undefined) {
             autohide = true;
           }
-          $("#toast-"+(this.state.counter-1)).toast({animation: true, autohide: autohide}).toast('show');
+          let toast = $("#toast-"+(this.state.counter-1)).toast({animation: true, autohide: autohide}).toast('show');
+          if (!autohide) {
+            let notHidden = this.state.notHidden;
+            notHidden.push(toast);
+            this.setState({notHidden: notHidden});
+          }
+        });
+      } else if (message.hideAll) {
+        this.state.notHidden.forEach(toast => {
+          toast.toast('hide');
+          this.setState({notHidden: []});
         });
       }
     });

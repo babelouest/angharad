@@ -24,7 +24,7 @@ class Switches extends Component {
         Object.keys(this.state.deviceOverview[device].switches).forEach(name => {
           if (this.state.adminMode || this.state.deviceOverview[device].switches[name].enabled) {
             switchList.push(
-              <div className="col-sm-4" key={device+"-"+name}>
+              <div className="col-sm-12 col-md-6" key={device+"-"+name}>
                 <Switch device={device} name={name} element={this.state.deviceOverview[device].switches[name]} adminMode={this.state.adminMode}/>
               </div>
             );

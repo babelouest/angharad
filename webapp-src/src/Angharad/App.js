@@ -57,6 +57,7 @@ class App extends Component {
       services: [],
       streamList: [],
       profileList: [],
+      mapList: [],
       adminMode: false,
       showDimmer: false,
       showBlind: false,
@@ -85,7 +86,8 @@ class App extends Component {
 
     messageDispatcher.subscribe('OIDC', (message) => {
       if (message.status === "disconnected") {
-        this.setState({oidcStatus: message.status});
+        apiManager.setToken(false, 0);
+        this.setState({oidcStatus: message.status, submodules: [], deviceTypes: [], deviceList: [], serviceList: [], script: [], scheduler: [], deviceOverview: {}, mapList: []});
         messageDispatcher.sendMessage('Notification', {type: "warning", message: i18next.t("message.disconnected")});
       } else if (message.status === "connected" || message.status === "refresh") {
         var curDate = new Date();
@@ -99,7 +101,7 @@ class App extends Component {
           tokenTimeout = setTimeout(() => {
             messageDispatcher.sendMessage('Notification', {type: "warning", message: i18next.t("message.sessionTimeout"), autohide: false});
             this.setState({oidcStatus: "timeout"});
-          }, message.expires_in*1000);
+          }, (message.expires_in - 120)*1000);
         }
         this.setState({oidcStatus: "connected", tokenTimeout: tokenTimeout});
       } else if (message.status === "profile") {
@@ -169,8 +171,10 @@ class App extends Component {
       } else if (message.status === "blindModal") {
         this.setState({showDimmer: false, showBlind: true, modalDimmerParameters: {device: message.device, name: message.name, element: message.element}});
       } else if (message.status === "refresh") {
+        messageDispatcher.sendMessage('Notification', {type: "success", message: <span><i className="fa fa-refresh fa-spin fa-fw elt-left"></i>{i18next.t("message.refreshing")}</span>, autohide: false});
         this.refreshData()
         .then((results) => {
+          messageDispatcher.sendMessage('Notification', {hideAll: true});
           messageDispatcher.sendMessage('Notification', {type: "success", message: i18next.t("message.refresh")});
         });
       }
@@ -185,8 +189,16 @@ class App extends Component {
                                                 type: message.type,
                                                 element: message.element}});
       } else if (message.status === "open") {
-        this.setState({showOpenService: true,
-                       modalOpenService: {type: message.type, element: message.element}});
+        this.state.serviceList.forEach(service => {
+          if (service.name === message.type && service.enabled) {
+            service.element.forEach(element => {
+              if (element.name === message.element.name) {
+                this.setState({showOpenService: true,
+                               modalOpenService: {type: message.type, element: element}});
+              }
+            });
+          }
+        });
       } else {
         this.setState({showModalService: true,
                        modalServiceParameters: {type: message.type, element: message.element, add: message.add}});
@@ -241,46 +253,46 @@ class App extends Component {
         if (message.status === "refresh") {
           apiManager.APIRequestAngharad("profile")
          .then((results) => {
-           this.setState({profileList: results});
+            let mapList = [];
+            results.forEach((profile, index) => {
+              if (!!profile.image && Array.isArray(profile.elements)) {
+                mapList.push(profile);
+              }
+            });
+           this.setState({profileList: results, mapList: mapList.sort((a, b) => a.index - b.index)});
          })
          .catch((err) => {
            messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
          });
         } else if (message.status === "next") {
-          if (this.state.profileList.length) {
-            let nbMaps = 0;
-            this.state.profileList.forEach((profile) => {
-              if (!!profile.image && Array.isArray(profile.elements) && (profile.enabled || this.state.adminMode)) {
-                nbMaps++;
-              }
+          if (this.state.mapIndex === this.state.mapList.length-1) {
+            this.setState({mapIndex: 0}, () => {
+              routage.addRoute("map/"+this.state.mapIndex);
             });
-            if ((this.state.mapIndex+1) < nbMaps) {
-              this.setState({mapIndex: this.state.mapIndex+1}, () => {
-                routage.addRoute("map/"+this.state.mapIndex);
-              });
-            } else {
-              this.setState({mapIndex: 0}, () => {
-                routage.addRoute("map/"+this.state.mapIndex);
-              });
-            }
+          } else {
+            this.setState({mapIndex: this.state.mapIndex+1}, () => {
+              routage.addRoute("map/"+this.state.mapIndex);
+            });
           }
         } else if (message.status === "previous") {
-          if (this.state.profileList.length) {
-            let nbMaps = 0;
-            this.state.profileList.forEach((profile) => {
-              if (!!profile.image && Array.isArray(profile.elements) && (profile.enabled || this.state.adminMode)) {
-                nbMaps++;
-              }
+          if (this.state.mapIndex === 0) {
+            this.setState({mapIndex: this.state.mapList.length-1}, () => {
+              routage.addRoute("map/"+this.state.mapIndex);
             });
-            if (!this.state.mapIndex) {
-              this.setState({mapIndex: nbMaps-1}, () => {
-                routage.addRoute("map/"+this.state.mapIndex);
-              });
-            } else {
-              this.setState({mapIndex: this.state.mapIndex-1}, () => {
-                routage.addRoute("map/"+this.state.mapIndex);
-              });
-            }
+          } else {
+            this.setState({mapIndex: this.state.mapIndex-1}, () => {
+              routage.addRoute("map/"+this.state.mapIndex);
+            });
+          }
+        } else if (message.status === "select") {
+          if (message.index >= 0 && message.index < this.state.mapList.length) {
+            this.setState({mapIndex: message.index}, () => {
+              routage.addRoute("map/"+this.state.mapIndex);
+            });
+          } else {
+            this.setState({mapIndex: 0}, () => {
+              routage.addRoute("map/"+this.state.mapIndex);
+            });
           }
         } else {
           this.setState({showModalMap: true, modalMapParameters: {add: message.add, map: message.map}});
@@ -385,48 +397,61 @@ class App extends Component {
   
   refreshLoop() {
     setTimeout(() => {
-      this.refreshData();
-      this.refreshLoop();
+      if (this.state.oidcStatus === "connected") {
+        this.refreshData();
+        this.refreshLoop();
+      }
     }, 300000);
   }
 
   refreshData() {
-    let proms = [];
-    proms.push(apiManager.APIRequestAngharad("script")
-               .then((results) => {
-                 this.setState({script: results});
-               })
-               .catch((err) => {
-                 messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.script-error")});
-               }));
-    proms.push(apiManager.APIRequestAngharad("scheduler")
-               .then((results) => {
-                 this.setState({scheduler: results});
-               })
-               .catch((err) => {
-                 messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.scheduler-error")});
-               }));
-    proms.push(apiManager.APIRequestAngharad("profile")
-               .then((results) => {
-                 this.setState({profileList: results});
-               })
-               .catch((err) => {
-                 messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.scheduler-error")});
-               }));
-    this.state.deviceList.forEach(device => {
-      if (device.enabled && device.connected) {
-        proms.push(apiManager.APIRequestBenoic("device/" + encodeURIComponent(device.name) + "/overview")
-                   .then((results) => {
-                     let deviceOverview = this.state.deviceOverview;
-                     deviceOverview[device.name] = results;
-                     this.setState({deviceOverview: deviceOverview});
-                   })
-                   .catch((err) => {
-                     messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.device-error", {name: device.name})});
-                   }));
-      }
+    let promsDevice = [];
+    return apiManager.APIRequestAngharad("profile")
+    .then((results) => {
+      let mapList = [];
+      results.forEach((profile, index) => {
+        if (!!profile.image && Array.isArray(profile.elements)) {
+          mapList.push(profile);
+        }
+      });
+      this.setState({profileList: results, mapList: mapList.sort((a, b) => a.index - b.index)}, () => {
+        this.state.deviceList.forEach(device => {
+          if (device.enabled && device.connected) {
+            promsDevice.push(apiManager.APIRequestBenoic("device/" + encodeURIComponent(device.name) + "/overview")
+                       .then((results) => {
+                         let deviceOverview = this.state.deviceOverview;
+                         deviceOverview[device.name] = results;
+                         this.setState({deviceOverview: deviceOverview});
+                       })
+                       .catch((err) => {
+                         messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.device-error", {name: device.name})});
+                       }));
+          }
+        });
+        return Promise.all(promsDevice)
+        .then(() => {
+          let proms = [];
+          proms.push(apiManager.APIRequestAngharad("script")
+          .then((results) => {
+            this.setState({script: results});
+          })
+          .catch((err) => {
+            messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.script-error")});
+          }));
+          proms.push(apiManager.APIRequestAngharad("scheduler")
+          .then((results) => {
+            this.setState({scheduler: results});
+          })
+          .catch((err) => {
+            messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.scheduler-error")});
+          }));
+          return Promise.all(proms);
+        });
+      });
+    })
+    .catch((err) => {
+      messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.scheduler-error")});
     });
-    return Promise.all(proms);
   }
 
   gotoRoute(route) {
@@ -455,7 +480,11 @@ class App extends Component {
         if (path.length === 1) {
           this.setState({nav: "map", mapIndex: 0});
         } else {
-          this.setState({nav: "map", mapIndex: parseInt(path.splice(1))});
+          let index = parseInt(path.splice(1));
+          if (index < 0 || index >= this.state.mapList.length) {
+            index = 0;
+          }
+          this.setState({nav: "map", mapIndex: 0});
         }
         routage.addRoute(route);
       } else {
@@ -653,7 +682,13 @@ class App extends Component {
       .then(() => {
         apiManager.APIRequestAngharad("profile")
         .then(res => {
-          this.setState({profileList: res}, () => {
+          let mapList = [];
+          results.forEach((profile, index) => {
+            if (!!profile.image && Array.isArray(profile.elements)) {
+              mapList.push(profile);
+            }
+          });
+          this.setState({profileList: res, mapList: mapList.sort((a, b) => a.index - b.index)}, () => {
             messageDispatcher.sendMessage('Notification', {type: "success", message: i18next.t("maps.remove-ok")});
           });
         })
@@ -744,7 +779,7 @@ class App extends Component {
                               serviceList={this.state.serviceList}
                               script={this.state.script}
                               scheduler={this.state.scheduler}
-                              profileList={this.state.profileList}
+                              mapList={this.state.mapList}
                               adminMode={this.state.adminMode}
                               mapIndex={this.state.mapIndex} />
     }
@@ -753,7 +788,7 @@ class App extends Component {
       <div className="container-fluid">
         <TopMenu
           config={this.state.config}
-          oidcStatus={!!this.state.oidcStatus}
+          oidcStatus={this.state.oidcStatus}
           deviceOverview={this.state.deviceOverview}
           serviceList={this.state.serviceList}
           adminMode={this.state.adminMode}/>
@@ -806,7 +841,7 @@ class App extends Component {
         {this.state.showModalMap ? <ModalMap handleHideModal={this.hideMap}
                                     map={this.state.modalMapParameters.map}
                                     add={this.state.modalMapParameters.add}
-                                    profileList={this.state.profileList}
+                                    mapList={this.state.mapList}
                                     cb={this.cbSaveMap} /> : null}
         {this.state.showOpenService ? <ModalOpenService handleHideModal={this.hideOpenService}
                                       type={this.state.modalOpenService.type}

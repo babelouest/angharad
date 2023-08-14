@@ -63,8 +63,7 @@ class APIManager {
 	}
 	
 	APIRequestExecute(url, method, data, accept) {
-    let headers = {
-    };
+    let headers = {};
     if (this.token) {
       headers.Authorization = "Bearer " + this.token;
     }
