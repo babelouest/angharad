@@ -93,7 +93,6 @@ class TopMenu extends Component {
     benoicSubmenu.push(<li key={"script-sep"}><hr className="dropdown-divider"/></li>);
     benoicSubmenu.push(<li key={"scripts"}><a className="dropdown-item" href="#scripts" onClick={(e) => this.navigateTo(e, "scripts")}>{i18next.t("menu.all-scripts-menu")}</a></li>);
     benoicSubmenu.push(<li key={"schedulers"}><a className="dropdown-item" href="#schedulers" onClick={(e) => this.navigateTo(e, "schedulers")}>{i18next.t("menu.all-schedulers-menu")}</a></li>);
-    console.log(this.state.oidcStatus);
     return (
       <div>
         <a className="close-navbar-toggler collapsed" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
