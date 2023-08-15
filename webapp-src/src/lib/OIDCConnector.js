@@ -27,6 +27,7 @@ class OIDCConnector {
     if (parameters) {
       this.parameters.storageType = parameters.storageType || "none";
       this.parameters.responseType = parameters.responseType || "code";
+      this.parameters.required_scope = parameters.required_scope || false;
       this.parameters.scope = parameters.scope || "";
       this.parameters.openidConfigUrl = parameters.openidConfigUrl || "";
       this.parameters.authUrl = parameters.authUrl || "";
@@ -104,10 +105,10 @@ class OIDCConnector {
               });
               this.refreshTokenLoop(refreshToken.refresh_token, this.accessToken.expires_in);
             } else {
-              this.broadcastMessage("disconnected");
+              this.broadcastMessage("error");
             }
           } else {
-            this.broadcastMessage("disconnected");
+            this.broadcastMessage("error");
           }
         });
         window.history.pushState(null, "", document.location.href.split("?")[0]);
@@ -150,7 +151,7 @@ class OIDCConnector {
                 }
               });
             } else {
-              this.broadcastMessage("disconnected");
+              this.broadcastMessage("error");
               this.storeIDToken(false);
             }
           });
@@ -173,7 +174,7 @@ class OIDCConnector {
             let expires_in = Math.floor((((storedData.accessToken.iat + storedData.accessToken.expires_in)*1000) - curDate.getTime())/1000);
             this.broadcastMessage("connected", this.accessToken.access_token, expires_in);
           } else {
-            this.broadcastMessage("disconnected");
+            this.broadcastMessage("error");
             this.accessToken = false;
             this.storeAccessToken(false);
             this.storeIDToken(false);
@@ -406,7 +407,12 @@ class OIDCConnector {
       url: this.parameters.tokenUrl,
       data: data,
       success: (result, status, request) => {
-        cb(result);
+        let scopes = result.scope.split(" ");
+        if (!this.parameters.required_scope || scopes.indexOf(this.parameters.required_scope) > -1) {
+          cb(result);
+        } else {
+          cb(false);
+        }
       },
       error: (error) => {
         if (error.status === 403) {

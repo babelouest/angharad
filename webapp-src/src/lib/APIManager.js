@@ -41,7 +41,7 @@ class APIManager {
 	request(url, method="GET", data=false, accept="application/json; charset=utf-8") {
 		if (this.counter <= 100) {
 			this.counter++;
-			var curDate = new Date();
+			let curDate = new Date();
 			if (!this.token || this.token_expires_at*1000 > curDate.getTime()) {
         this.counter--;
 				return this.APIRequestExecute(url, method, data, accept);
@@ -53,7 +53,7 @@ class APIManager {
           this.token_expires_at = (curDate.getTime()/1000)+res.expires_in;
           return this.APIRequestExecute(url, method, data, accept);
         })
-        .fail(() => {
+        .catch(() => {
           messageDispatcher.sendMessage('App', {action: "sessionTimeout"});
         });
 			}
@@ -62,14 +62,11 @@ class APIManager {
 		}
 	}
 	
-	APIRequestExecute(url, method, data, accept) {
-    let headers = {};
-    if (this.token) {
-      headers.Authorization = "Bearer " + this.token;
-    }
-    if (accept) {
-      headers.accept = accept;
-    }
+	APIRequestExecute(url, method, data, accept, retry = true) {
+    let headers = {
+      Authorization: "Bearer " + this.token,
+      accept: accept
+    };
     let contentType = null;
     let jsonData = !!data?JSON.stringify(data):null;
     if (data) {
@@ -84,7 +81,15 @@ class APIManager {
 		})
     .fail((err) => {
       if (err.status === 401) {
-        messageDispatcher.sendMessage('App', {action: "sessionTimeout"});
+        if (retry) {
+          oidcConnector.runRefreshToken();
+          return $.Deferred().reject(err);
+        } else {
+          messageDispatcher.sendMessage('App', {action: "sessionTimeout"});
+          return $.Deferred().reject('disconnected');
+        }
+      } else {
+        return $.Deferred().reject(err);
       }
     });
 	}

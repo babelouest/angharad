@@ -16,6 +16,7 @@ import routage from '../lib/Routage';
 import oidcConnector from '../lib/OIDCConnector';
 import messageDispatcher from '../lib/MessageDispatcher';
 import Notification from '../lib/Notification';
+import storage from '../lib/Storage';
 
 import TopMenu from './TopMenu';
 import Config from './Config';
@@ -77,7 +78,9 @@ class App extends Component {
       modalMapParameters: {add: false, map: {}},
       modalConfirmParameters: {title: false, message: false, cb: false},
       modalOpenService: {element: false, type: false},
-      mapIndex: 0
+      mapIndex: 0,
+      reRunRefresh: false,
+      wasConnected: false
     };
 
     routage.addChangeRouteCallback((route) => {
@@ -86,14 +89,25 @@ class App extends Component {
 
     messageDispatcher.subscribe('OIDC', (message) => {
       if (message.status === "disconnected") {
-        apiManager.setToken(false, 0);
-        this.setState({oidcStatus: message.status, submodules: [], deviceTypes: [], deviceList: [], serviceList: [], script: [], scheduler: [], deviceOverview: {}, mapList: []});
-        messageDispatcher.sendMessage('Notification', {type: "warning", message: i18next.t("message.disconnected")});
+        if (!this.state.wasConnected && !!storage.getValue("autoConnect")) {
+          oidcConnector.connect();
+        } else {
+          apiManager.setToken(false, 0);
+          this.setState({oidcStatus: message.status, submodules: [], deviceTypes: [], deviceList: [], serviceList: [], script: [], scheduler: [], deviceOverview: {}, mapList: []});
+          messageDispatcher.sendMessage('Notification', {type: "warning", message: i18next.t("message.disconnected")});
+        }
       } else if (message.status === "connected" || message.status === "refresh") {
         var curDate = new Date();
         apiManager.setToken(message.token, (curDate.getTime()/1000)+message.expires_in);
         if (message.status === "connected") {
           messageDispatcher.sendMessage('Notification', {type: "success", message: i18next.t("message.connected")});
+        }
+        if (this.state.reRunRefresh) {
+          this.setState({reRunRefresh: false}, () => {
+            setTimeout(() => {
+              this.refreshData();
+            }, 1000);
+          });
         }
         var tokenTimeout = false;
         if (oidcConnector.getParameter("responseType").search("code") === -1) {
@@ -107,7 +121,7 @@ class App extends Component {
       } else if (message.status === "profile") {
         if (message.profile == "error") {
           messageDispatcher.sendMessage('Notification', {type: "warning", message: i18next.t("message.profileError")});
-          this.setState({oidcStatus: "disconnected"});
+          this.setState({oidcStatus: "disconnected", wasConnected: true});
         } else if (message.profile) {
           let sub = message.profile.sub, name = "";
           if (this.state.config.frontend.oidc?.userIdParameter) {
@@ -116,11 +130,14 @@ class App extends Component {
           if (this.state.config.frontend.oidc?.nameParameter) {
             name = message.profile[this.state.config.frontend.oidc?.nameParameter];
           }
-          this.setState({profile: {sub: sub, name: name}}, () => {
+          this.setState({profile: {sub: sub, name: name}, wasConnected: true}, () => {
             this.gotoRoute(routage.getCurrentRoute());
             this.initModules();
           });
         }
+      } else if (message.status === "error") {
+        messageDispatcher.sendMessage('Notification', {type: "warning", message: i18next.t("message.connectionError")});
+        this.setState({oidcStatus: "disconnected", wasConnected: true});
       }
     });
 
@@ -394,7 +411,7 @@ class App extends Component {
       messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.submodules-error")});
     });
   }
-  
+
   refreshLoop() {
     setTimeout(() => {
       if (this.state.oidcStatus === "connected") {
@@ -418,14 +435,14 @@ class App extends Component {
         this.state.deviceList.forEach(device => {
           if (device.enabled && device.connected) {
             promsDevice.push(apiManager.APIRequestBenoic("device/" + encodeURIComponent(device.name) + "/overview")
-                       .then((results) => {
-                         let deviceOverview = this.state.deviceOverview;
-                         deviceOverview[device.name] = results;
-                         this.setState({deviceOverview: deviceOverview});
-                       })
-                       .catch((err) => {
-                         messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.device-error", {name: device.name})});
-                       }));
+            .then((results) => {
+              let deviceOverview = this.state.deviceOverview;
+              deviceOverview[device.name] = results;
+              this.setState({deviceOverview: deviceOverview});
+            })
+            .catch((err) => {
+              messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.device-error", {name: device.name})});
+            }));
           }
         });
         return Promise.all(promsDevice)
@@ -450,7 +467,11 @@ class App extends Component {
       });
     })
     .catch((err) => {
-      messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.scheduler-error")});
+      if (err.status !== 401) {
+        messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.profile-error")});
+      } else {
+        this.setState({reRunRefresh: true});
+      }
     });
   }
 
@@ -507,7 +528,7 @@ class App extends Component {
     }
     this.setState({showModalElement: false, modalElementParameters: {device: false, type: false, name: false, element: false}});
   }
-  
+
   cbCloseMonitor() {
     this.setState({showModalMonitor: false, modalElementParameters: {device: false, type: false, name: false, element: false}});
   }
@@ -550,7 +571,7 @@ class App extends Component {
     }
     this.setState({showModalService: false, modalServiceParameters: {type: false, element: false, name: false, add: false}});
   }
-  
+
   cbSaveScript(result, script, add) {
     if (result) {
       if (add) {
@@ -582,7 +603,7 @@ class App extends Component {
       }
     }
   }
-  
+
   cbSaveScheduler(result, scheduler, add) {
     if (result) {
       if (add) {
@@ -606,7 +627,7 @@ class App extends Component {
       }
     }
   }
-  
+
   cbSaveMap(result, map) {
     if (result) {
       apiManager.APIRequestAngharad("profile/" + encodeURIComponent(map.name), "PUT", map)
@@ -640,7 +661,7 @@ class App extends Component {
     }
     this.setState({modalConfirmParameters: {title: false, message: false, cb: false}, showModalConfirm: false});
   }
-  
+
   cbRemoveScript(result) {
     if (result) {
       apiManager.APIRequestAngharad("script/" + encodeURIComponent(this.state.modalConfirmParameters.script.name), "DELETE")
@@ -654,7 +675,7 @@ class App extends Component {
     }
     this.setState({modalConfirmParameters: {title: false, message: false, cb: false}, showModalConfirm: false});
   }
-  
+
   cbRemoveScheduler(result) {
     if (result) {
       apiManager.APIRequestAngharad("scheduler/" + encodeURIComponent(this.state.modalConfirmParameters.scheduler.name), "DELETE")
@@ -675,7 +696,7 @@ class App extends Component {
     }
     this.setState({modalConfirmParameters: {title: false, message: false, cb: false}, showModalConfirm: false});
   }
-  
+
   cbRemoveMap(result) {
     if (result) {
       apiManager.APIRequestAngharad("profile/" + encodeURIComponent(this.state.modalConfirmParameters.map.name), "DELETE")
