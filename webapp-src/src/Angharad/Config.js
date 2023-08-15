@@ -24,12 +24,16 @@ class Config extends Component {
       deviceList: props.deviceList,
       serviceList: props.serviceList,
       longSession: !!storage.getValue("longSession"),
+      quickConnect: !!storage.getValue("quickConnect"),
+      autoConnect: !!storage.getValue("autoConnect"),
       confirm: {show: false, name: "", title: "", message: "", cb: false, data: false},
       curDevice: {name: "", description: "", display: "", enabled: true, type_uid: "", option: {}},
       curDeviceAdd: false,
       showModalDevice: false
     };
     this.toggleLongSession = this.toggleLongSession.bind(this);
+    this.toggleQuickConnect = this.toggleQuickConnect.bind(this);
+    this.toggleAutoConnect = this.toggleAutoConnect.bind(this);
     this.deviceConnect = this.deviceConnect.bind(this);
     this.deviceRemove = this.deviceRemove.bind(this);
     this.deviceRemoveConfirm = this.deviceRemoveConfirm.bind(this);
@@ -48,6 +52,19 @@ class Config extends Component {
     this.setState({longSession: !this.state.longSession}, () => {
       storage.setValue("longSession", this.state.longSession);
       oidcConnector.setParameter("responseType", this.state.longSession?"code":"token id_token");
+    });
+  }
+
+  toggleQuickConnect(e) {
+    this.setState({quickConnect: !this.state.quickConnect}, () => {
+      storage.setValue("quickConnect", this.state.quickConnect);
+      oidcConnector.setParameter("additionalParameters", this.state.quickConnect?"g_continue":false);
+    });
+  }
+
+  toggleAutoConnect(e) {
+    this.setState({autoConnect: !this.state.autoConnect}, () => {
+      storage.setValue("autoConnect", this.state.autoConnect);
     });
   }
 
@@ -323,9 +340,21 @@ class Config extends Component {
             {i18next.t("config.select-session")}
           </h3>
           <div className="form-check">
+            <input className="form-check-input" type="checkbox" checked={this.state.quickConnect} id="quickConnect" onChange={(e) => this.toggleQuickConnect(e)} />
+            <label className="form-check-label" htmlFor="quickConnect">
+              {i18next.t("config.quick-connect")}
+            </label>
+          </div>
+          <div className="form-check">
             <input className="form-check-input" type="checkbox" checked={this.state.longSession} id="longSession" onChange={(e) => this.toggleLongSession(e)} />
             <label className="form-check-label" htmlFor="longSession">
               {i18next.t("config.long-session")}
+            </label>
+          </div>
+          <div className="form-check">
+            <input className="form-check-input" type="checkbox" checked={this.state.autoConnect} id="autoConnect" onChange={(e) => this.toggleAutoConnect(e)} />
+            <label className="form-check-label" htmlFor="autoConnect">
+              {i18next.t("config.auto-connect")}
             </label>
           </div>
           <p className="fs-6 fst-italic">
