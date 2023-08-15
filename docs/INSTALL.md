@@ -14,19 +14,6 @@ This documents describes the installation of the application Angharad and the fo
 
 All Angharad system, its submodules and its custom libraries are written in C/C++ language, for better performance and lightweight resources consumption. GCC and Makefile were used for the development.
 
-### Benoic modules prerequisites
-
-Benoic implements a ZWave module to control ZWave nodes and a [Taulas](https://github.com/babelouest/taulas) module.
-
-The Benoic module is based on the [OpenZwave library](http://www.openzwave.net/). You must download and install this library before installing benoic zwave device module, version 1.2 or above, preferably a stable version.
-
-### Carleon modules prerequisites
-
-Carleon modules available are the following:
-- Motion control, to view pictures and real-time streams of a motion application
-- MPD Control, for basic control of a MPD instance: volume, play/pause/stop and playlist loading, depends on [libmpdclient](https://www.musicpd.org/libs/libmpdclient/) (`apt-get install libmpdclient-dev`)
-- Liquidsoap Control, for basic control of a [liquidsoap](http://liquidsoap.fm/) based webradio: play/stop/next and view the 10 last played songs
-
 The following libraies are required to build Angharad and its submodules:
 
 ```
@@ -36,48 +23,17 @@ libcurl
 libmysqlclient
 libsqlite3
 libconfig
-libssl
 libopenzwave
 libmpdclient
-libjwt
 ```
 
 On Debian-based systems (Debian, Raspbian, Ubuntu), use the following comand to install the dependencies:
 
 ```shell
-$ sudo apt-get install -y libmicrohttpd-dev libjansson-dev libcurl4-gnutls-dev libmysqlclient-dev libsqlite3-dev libconfig-dev libssl-dev libopenzwave1.5-dev libmpdclient-dev
-# Install libjwt
-$ git clone https://github.com/benmcollins/libjwt.git
-$ cd libjwt/
-$ autoreconf -i
-$ ./configure
-$ make
-$ sudo make install
+$ sudo apt-get install -y libmicrohttpd-dev libjansson-dev libcurl4-gnutls-dev libmysqlclient-dev libsqlite3-dev libconfig-dev libopenzwave1.5-dev libmpdclient-dev libshout-dev
 ```
 
-## Pre-compiled packages
-
-You can install Angharad with a pre-compiled package available in the [release pages](https://github.com/babelouest/angharad/releases/latest/). The package files `angharad-full_*` contain the package libraries of `orcania`, `yder`, `ulfius` and `hoel` precompiled for `angharad`, plus `angharad` package.
-
-For example, to install Angharad with the `
-For example, to install Hutch with the `hutch-full_1.2.0_Debian_stretch_x86_64.tar.gz` package downloaded on the `releases` page, you must execute the following commands:
-
-```shell
-$ sudo apt-get install -y libmicrohttpd-dev libjansson-dev libcurl4-gnutls-dev libmysqlclient-dev libsqlite3-dev libconfig-dev libssl-dev libopenzwave1.5-dev libmpdclient-dev
-$ wget https://github.com/benmcollins/libjwt/archive/v1.9.0.tar.gz
-$ tar -zxvf v1.9.0.tar.gz
-$ cd libjwt-1.9.0
-$ autoreconf -i
-$ ./configure
-$ make && sudo make install
-$ wget https://github.com/babelouest/angharad/releases/download/v1.2.0/angharad-full_1.2.0_Debian_stretch_x86_64.tar.gz
-$ tar xf angharad-full_1.2.0_Debian_stretch_x86_64.tar.gz
-$ sudo dpkg -i liborcania_1.2.0_Debian_stretch_x86_64.deb
-$ sudo dpkg -i libyder_1.2.0_Debian_stretch_x86_64.deb
-$ sudo dpkg -i libhoel_1.4.0_Debian_stretch_x86_64.deb
-$ sudo dpkg -i libulfius_2.3.1_Debian_stretch_x86_64.deb
-$ sudo dpkg -i angharad_1.2.0-b.3_Debian_stretch_x86_64.deb
-```
+Angharad requires [orcania](https://github.com/babelouest/orcania), [yder](https://github.com/babelouest/yder), [ulfius](https://github.com/babelouest/ulfius), [hoel](https://github.com/babelouest/hoel), [rhonabwy](https://github.com/babelouest/rhonabwy), [iddawc](https://github.com/babelouest/iddawc) and their dependencies.
 
 ## Build from source
 
@@ -85,8 +41,6 @@ Then, download Angharad source code and its submodules.
 
 ```shell
 git clone https://github.com/babelouest/angharad.git
-cd angharad
-git submodule update --init
 ```
 
 ### CMake build
@@ -137,6 +91,18 @@ $ cd hoel/src/
 $ make -DWITH_PGSQL=off
 $ sudo make install
 
+# Install Rhonabwy
+$ git clone https://github.com/babelouest/rhonabwy.git
+$ cd rhonabwy/src/
+$ make
+$ sudo make install
+
+# Install Iddawc
+$ git clone https://github.com/babelouest/iddawc.git
+$ cd iddawc/src/
+$ make
+$ sudo make install
+
 # Install Angharad
 $ cd angharad
 $ make && sudo make install
@@ -152,6 +118,7 @@ The module named `device-mock.c` is a mock device that is used to test the behav
 cd benoic/device-modules
 make libdevzwave.so # For ZWave device
 make libdevtaulas.so # For Taulas device
+make libdevesp8266.so # For ESP8266 bridge device
 make libdevmock.so # For mock device
 sudo make install # to install compiled devices in $PREFIX/lib/angharad/benoic directory
 ```
@@ -204,9 +171,7 @@ cp angharad.conf.sample /usr/local/etc/angharad.conf
 
 `app_files_path` is used for the static files server, in this case, [Sagremor](https://github.com/babelouest/sagremor) is the dedicated web application and can be hosted there.
 
-Beware that the static web server is not secured with SSL connection, so don't use it outside a trusted network. i.e., don't forward ports directly outside your network.
-
-If you want to access Angharad in a secure connection, you can use apache `mod_proxy` and an https instance for example, and embed Angharad access in it.
+It's recommended to disable the static web server for better security, just comment out the property line in the configuration file. It's better to serve the statis files via a webserver such as Apache or NGINX.
 
 ## Database
 
@@ -214,8 +179,7 @@ Specify the database parameters in the `database {}` block, depending on your da
 
 ## Authentication
 
-Angharad comes with an OAuth2 authentication method. You can use any OAuth2 authentication provider, as long as it provides [JSON Web Tokens](https://jwt.io/) with Glewlwyd format informations. Or you can install [Glewlwyd](https://github.com/babelouest/glewlwyd) as OAuth2 authentication server.
-
+Angharad comes with an OIDC authentication method. You can use any OIDC authentication provider, as long as it provides access tokens using the [JSON Web Token (JWT) Profile for OAuth 2.0 Access Tokens](https://www.rfc-editor.org/rfc/rfc9068.html) method
 The scope required for the backend API is `angharad` by default.
 
 Please note that users and profile are not linked, any authenticated user can use any profile.
