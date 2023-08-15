@@ -81,18 +81,6 @@
 .upload {
   display:none;
 }
-.map-img-previous {
-  position:absolute;
-  top:0px;
-  left:-3%;
-  height: 100%;
-}
-.map-img-next {
-  position:absolute;
-  top:0px;
-  left:100%;
-  height: 100%;
-}
 .map-img-element {
   position:absolute;
 }
