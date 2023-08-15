@@ -57,15 +57,25 @@ var initApp = () => {
         if (!backendConfig.value.oidc) {
           oidc = false;
         }
-        let scope = [];
-        if (taliesinConfig.status === "fulfilled") {
+        let scope = [], required_scope = false;
+        if (taliesinConfig.status === "fulfilled" && taliesinConfig.value) {
           scope.push(taliesinConfig.value.oauth_scope_user);
         }
         if (frontEndConfig.oidc.scope) {
           scope.push(frontEndConfig.oidc.scope);
+          required_scope = frontEndConfig.oidc.scope;
         } else {
           if (backendConfig.value.oauth_scope) {
             scope.push(backendConfig.value.oauth_scope);
+            required_scope = backendConfig.value.oauth_scope;
+          }
+        }
+        let additionalParams = frontEndConfig.oidc.additionalParameters;
+        if (storage.getValue("quickConnect")) {
+          if (additionalParams) {
+            additionalParams += "&" + storage.getValue("quickConnect");
+          } else {
+            additionalParams = storage.getValue("quickConnect");
           }
         }
         let config = {
@@ -98,6 +108,7 @@ var initApp = () => {
           redirectUri: frontEndConfig.oidc.redirectUri,
           usePkce: frontEndConfig.oidc.usePkce,
           scope: config.scope,
+          required_scope: required_scope,
           userinfoUrl: frontEndConfig.oidc.userinfoUrl,
           refreshTokenLoop: frontEndConfig.oidc.refreshTokenLoop,
           additionalParameters: frontEndConfig.oidc.additionalParameters,
