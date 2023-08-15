@@ -393,9 +393,7 @@ class Map extends Component {
     return (
       <div className="text-center map-with-margin">
         <div className="map-container" id="mapContainer">
-          <a href="#" className="map-img-previous btn btn-secondary d-inline-flex align-items-center" onClick={(e) => this.navigate(e, false)}>&laquo;</a>
           <img src={this.state.map.image} className="map-img" onDrop={this.dropElt} onDragOver={this.allowDrop}/>
-          <a href="#" className="map-img-next btn btn-secondary d-inline-flex align-items-center" onClick={(e) => this.navigate(e, true)}>&raquo;</a>
           {elementList}
         </div>
         {mapPlaceJsx}
