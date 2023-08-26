@@ -64,7 +64,7 @@ class ModalDimmer extends Component {
                 {this.state.element.display}
               </h5>
               <div className="mb-3">
-                <RoundPercent value={this.state.element.value} />
+                <RoundPercent value={this.state.element.value===99?100:this.state.element.value} />
               </div>
               <div className="mb-3 text-center">
                 <div className="btn-group" role="group">

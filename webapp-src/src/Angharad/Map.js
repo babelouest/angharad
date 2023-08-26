@@ -4,6 +4,7 @@ import i18next from 'i18next';
 import messageDispatcher from '../lib/MessageDispatcher';
 import apiManager from '../lib/APIManager';
 import MapPlace from './MapPlace';
+import MapMpdServiceButton from './MapMpdServiceButton';
 
 class Map extends Component {
   constructor(props) {
@@ -263,7 +264,7 @@ class Map extends Component {
           elementList.push(
             <a key={index} href="#" className={className} title={this.state.deviceOverview[element.device].dimmers[element.name].display} style={style} onClick={(e) => this.selectElement(e, element, index)} draggable={true} onDragStart={(e) => this.dragMoveElt(e, index)}>
               <i className="fa fa-lightbulb-o elt-left" aria-hidden="true"></i>
-              {this.state.deviceOverview[element.device].dimmers[element.name].value}%
+              {this.state.deviceOverview[element.device].dimmers[element.name].value===99?100:this.state.deviceOverview[element.device].dimmers[element.name].value}%
             </a>
           );
         }
@@ -332,16 +333,8 @@ class Map extends Component {
           if (service.name === "service-mpd") {
             service.element.forEach(elt => {
               if (elt.name === element.name) {
-                let className = "map-img-element btn";
-                if (this.state.adminMode) {
-                  className += " btn-danger";
-                } else {
-                  className += " btn-secondary";
-                }
                 elementList.push(
-                  <a key={index} href="#" className={className} title={element.name} style={style} onClick={(e) => this.selectElement(e, element, index)} draggable={true} onDragStart={(e) => this.dragMoveElt(e, index)}>
-                    <i className="fa fa-music" aria-hidden="true"></i>
-                  </a>
+                  <MapMpdServiceButton key={index} element={element} adminMode={this.state.adminMode} style={style} selectCb={this.selectElement} draggable={true} onDragStart={(e) => this.dragMoveElt(e, index)} />
                 );
               }
             });

@@ -57,7 +57,7 @@ class Dimmer extends Component {
         </div>
         <div className="col-8">
           <a href="#" onClick={this.openDimmer}>
-            <RoundPercent value={this.state.element.value} />
+            <RoundPercent value={this.state.element.value===99?100:this.state.element.value} />
           </a>
         </div>
         <div className="col-2">
