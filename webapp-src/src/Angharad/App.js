@@ -768,6 +768,7 @@ class App extends Component {
     let bodyJsx;
     if (this.state.nav == "properties") {
       bodyJsx = <Config config={this.state.config}
+                        adminMode={this.state.adminMode}
                         submodules={this.state.submodules}
                         deviceTypes={this.state.deviceTypes}
                         deviceList={this.state.deviceList}

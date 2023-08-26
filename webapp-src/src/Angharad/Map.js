@@ -262,7 +262,8 @@ class Map extends Component {
           }
           elementList.push(
             <a key={index} href="#" className={className} title={this.state.deviceOverview[element.device].dimmers[element.name].display} style={style} onClick={(e) => this.selectElement(e, element, index)} draggable={true} onDragStart={(e) => this.dragMoveElt(e, index)}>
-              <i className="fa fa-lightbulb-o" aria-hidden="true"></i>
+              <i className="fa fa-lightbulb-o elt-left" aria-hidden="true"></i>
+              {this.state.deviceOverview[element.device].dimmers[element.name].value}%
             </a>
           );
         }
@@ -280,7 +281,8 @@ class Map extends Component {
           }
           elementList.push(
             <a key={index} href="#" className={className} title={this.state.deviceOverview[element.device].blinds[element.name].display} style={style} onClick={(e) => this.selectElement(e, element, index)} draggable={true} onDragStart={(e) => this.dragMoveElt(e, index)}>
-              <i className="fa fa-window-maximize" aria-hidden="true"></i>
+              <i className="fa fa-window-maximize elt-left" aria-hidden="true"></i>
+              {this.state.deviceOverview[element.device].blinds[element.name].value}%
             </a>
           );
         }

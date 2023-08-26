@@ -43,21 +43,16 @@
   display: inline-block;
   max-width: 10rem;
 }
-
 .myCharts {
-  width: 450px;
   height:400px;
 }
-
 .mpd-element {
   min-height:400px;
 }
-
 .mpd-text {
 	color: #ffffff;
 	text-shadow: 1px 1px #000000;
 }
-
 .mpd-cover {
 	background: center;
 	background-size: 100%;
@@ -88,7 +83,6 @@
   margin-bottom: 40px;
 }
 .navbar{
-/*   z-index should be above .close-navbar-toggler */
   z-index:2;
 }
 .close-navbar-toggler{

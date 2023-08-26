@@ -31,7 +31,7 @@ class Schedulers extends Component {
     let schedulerList = [], addButtonJsx;
     this.state.scheduler.forEach((scheduler, index) => {
       schedulerList.push(
-      <div className="col-sm-4" key={"scr-"+index}>
+      <div className="col-sm-12 col-lg-4" key={"scr-"+index}>
         <Scheduler scriptList={this.state.script} scheduler={scheduler} adminMode={this.state.adminMode}/>
       </div>
       );

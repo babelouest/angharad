@@ -19,6 +19,7 @@ class Config extends Component {
     super(props);
     this.state = {
       config: props.config,
+      adminMode: props.adminMode,
       submodules: props.submodules,
       deviceTypes: props.deviceTypes,
       deviceList: props.deviceList,
@@ -235,13 +236,13 @@ class Config extends Component {
             </td>
             <td>
               <div className="btn-group">
-                <button type="button" className="btn btn-primary" title={i18next.t("config.benoic-device-enable")} onClick={(e) => this.deviceConnect(e, device)}>
+                <button type="button" className="btn btn-primary" title={i18next.t("config.benoic-device-enable")} onClick={(e) => this.deviceConnect(e, device)} disabled={!this.state.adminMode}>
                   {enabledButtonJsx}
                 </button>
-                <button type="button" className="btn btn-primary" title={i18next.t("config.benoic-device-edit")} onClick={(e) => this.deviceEdit(e, device)}>
+                <button type="button" className="btn btn-primary" title={i18next.t("config.benoic-device-edit")} onClick={(e) => this.deviceEdit(e, device)} disabled={!this.state.adminMode}>
                   <i className="fa fa-edit" aria-hidden="true"></i>
                 </button>
-                <button type="button" className="btn btn-primary" title={i18next.t("config.benoic-device-remove")} onClick={(e) => this.deviceRemove(e, device)}>
+                <button type="button" className="btn btn-primary" title={i18next.t("config.benoic-device-remove")} onClick={(e) => this.deviceRemove(e, device)} disabled={!this.state.adminMode}>
                   <i className="fa fa-trash" aria-hidden="true"></i>
                 </button>
               </div>
@@ -253,7 +254,7 @@ class Config extends Component {
           <h3>
             {i18next.t("config.benoic-device-list")}
           </h3>
-          <button type="button" className="btn btn-primary" title={i18next.t("config.benoic-device-add")} onClick={this.deviceAdd}>
+          <button type="button" className="btn btn-primary" title={i18next.t("config.benoic-device-add")} onClick={this.deviceAdd} disabled={!this.state.adminMode}>
             <i className="fa fa-plus" aria-hidden="true"></i>
           </button>
           <table className="table">
@@ -362,11 +363,11 @@ class Config extends Component {
           </p>
         </div>
         <hr/>
+        {benoicDevicesJsx}
+        <hr/>
         {benoicModulesJsx}
         <hr/>
         {carleonModulesJsx}
-        <hr/>
-        {benoicDevicesJsx}
         {this.state.confirm.show ? <ModalConfirm handleHideModal={this.hideConfirm}
                                     name={this.state.confirm.name}
                                     title={this.state.confirm.title}
