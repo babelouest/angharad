@@ -34,7 +34,7 @@ class MapContainer extends Component {
   
   selectMap(e, index) {
     e.preventDefault();
-    messageDispatcher.sendMessage("Map", {status: "select", index: index});
+    messageDispatcher.sendMessage("Navigation", {route: {path: "map/" + index}});
   }
   
   render() {

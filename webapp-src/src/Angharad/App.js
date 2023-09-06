@@ -151,8 +151,8 @@ class App extends Component {
           this.gotoRoute(message.route.path);
         }
       } else {
-        this.setState({nav: false,mapIndex: 0}, () => {
-          this.gotoRoute("");
+        this.setState({nav: false, mapIndex: 0}, () => {
+          this.gotoRoute(this.state.defaultRoute);
         });
       }
     });
@@ -405,11 +405,7 @@ class App extends Component {
                   defaultRoute = "map";
                 }
                 this.setState({defaultRoute: defaultRoute}, () => {
-                  if (routage.getCurrentRoute()) {
-                    this.gotoRoute(routage.getCurrentRoute());
-                  } else {
-                    this.gotoRoute(this.state.defaultRoute);
-                  }
+                  this.gotoRoute(routage.getCurrentRoute()||storage.getValue("lastRoute")||this.state.defaultRoute);
                 });
               });
             });
@@ -493,6 +489,7 @@ class App extends Component {
       if (route === "properties" || route.startsWith("scripts") || route.startsWith("schedulers")) {
         this.setState({nav: route});
         routage.addRoute(route);
+        storage.setValue("lastRoute", route);
       } else if (route.startsWith("components")) {
         let path = route.split("/");
         if (path.length === 1) {
@@ -501,6 +498,7 @@ class App extends Component {
           this.setState({nav: "components", components: path.splice(1)});
         }
         routage.addRoute(route);
+        storage.setValue("lastRoute", route);
       } else if (route.startsWith("services")) {
         let path = route.split("/");
         if (path.length === 1) {
@@ -509,6 +507,7 @@ class App extends Component {
           this.setState({nav: "services", services: path.splice(1)});
         }
         routage.addRoute(route);
+        storage.setValue("lastRoute", route);
       } else if (route.startsWith("map")) {
         let path = route.split("/");
         if (path.length === 1) {
@@ -521,11 +520,8 @@ class App extends Component {
           this.setState({nav: "map", mapIndex: index});
         }
         routage.addRoute(route);
-      } else {
-        routage.addRoute("");
+        storage.setValue("lastRoute", route);
       }
-    } else {
-      routage.addRoute("");
     }
   }
 
