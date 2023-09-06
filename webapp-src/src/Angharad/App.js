@@ -80,7 +80,8 @@ class App extends Component {
       modalOpenService: {element: false, type: false},
       mapIndex: 0,
       reRunRefresh: false,
-      wasConnected: false
+      wasConnected: false,
+      defaultRoute: "components"
     };
 
     routage.addChangeRouteCallback((route) => {
@@ -396,9 +397,21 @@ class App extends Component {
           }
           if (newState) {
             return this.setState(newState, () => {
-              this.refreshData();
-              this.refreshLoop();
-              this.gotoRoute(routage.getCurrentRoute());
+              this.refreshData()
+              .always(() => {
+                this.refreshLoop();
+                let defaultRoute = "components";
+                if (this.state.mapList.length) {
+                  defaultRoute = "map";
+                }
+                this.setState({defaultRoute: defaultRoute}, () => {
+                  if (routage.getCurrentRoute()) {
+                    this.gotoRoute(routage.getCurrentRoute());
+                  } else {
+                    this.gotoRoute(this.state.defaultRoute);
+                  }
+                });
+              });
             });
           }
         })
@@ -505,7 +518,7 @@ class App extends Component {
           if (index < 0 || index >= this.state.mapList.length) {
             index = 0;
           }
-          this.setState({nav: "map", mapIndex: 0});
+          this.setState({nav: "map", mapIndex: index});
         }
         routage.addRoute(route);
       } else {
@@ -795,7 +808,7 @@ class App extends Component {
                             scheduler={this.state.scheduler}
                             adminMode={this.state.adminMode}
                             config={this.state.config}/>
-    } else if (this.state.nav == "map" || !this.state.nav) {
+    } else if (this.state.nav == "map") {
       bodyJsx = <MapContainer config={this.state.config}
                               deviceOverview={this.state.deviceOverview}
                               serviceList={this.state.serviceList}
@@ -804,6 +817,11 @@ class App extends Component {
                               mapList={this.state.mapList}
                               adminMode={this.state.adminMode}
                               mapIndex={this.state.mapIndex} />
+    } else {
+      bodyJsx = 
+      <div className="text-center">
+        <img className="img-fluid" src="favicon.ico"/>
+      </div>
     }
 
     return (
@@ -813,7 +831,8 @@ class App extends Component {
           oidcStatus={this.state.oidcStatus}
           deviceOverview={this.state.deviceOverview}
           serviceList={this.state.serviceList}
-          adminMode={this.state.adminMode}/>
+          adminMode={this.state.adminMode}
+          defaultRoute={this.state.defaultRoute} />
         {bodyJsx}
         {this.state.showModalConfirm ? <ModalConfirm handleHideModal={this.hideConfirm}
                                        title={this.state.modalConfirmParameters.title}

@@ -16,7 +16,8 @@ class TopMenu extends Component {
       oidcStatus: props.oidcStatus,
       deviceOverview: props.deviceOverview,
       serviceList: props.serviceList,
-      adminMode: props.adminMode
+      adminMode: props.adminMode,
+      defaultRoute: props.defaultRoute
     };
     
     this.navigateTo = this.navigateTo.bind(this);
@@ -100,9 +101,9 @@ class TopMenu extends Component {
         <nav className="navbar navbar-expand-lg nav-pills navbar-light bg-light">
           <div className="container-fluid">
             <a className="navbar-brand"
-               href="#"
+               href={"#" + this.state.defaultRoute}
               data-bs-toggle="collapse"
-               onClick={(e) => this.navigateTo(e, false)}>
+               onClick={(e) => this.navigateTo(e, this.state.defaultRoute)}>
               Angharad
             </a>
             <button className="navbar-toggler"
