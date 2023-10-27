@@ -32,8 +32,6 @@ dev:
 
 webapp: build-webapp install-webapp
 
-polyfill: build-polyfill-webapp install-polyfill
-
 build-webapp:
 	rm -f dist/bundle.js*
 	$(JSC) run build

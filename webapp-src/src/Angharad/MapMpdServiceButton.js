@@ -17,6 +17,12 @@ class MapMpdServiceButton extends Component {
       status: {state: "stop"}
     }
     
+    messageDispatcher.subscribe('MpdServiceButton', (message) => {
+      if (message.status === "refresh") {
+        this.getPlayerStatus();
+      }
+    });
+    
     this.getPlayerStatus = this.getPlayerStatus.bind(this);
     this.loopPlayerStatus = this.loopPlayerStatus.bind(this);
     
@@ -47,7 +53,9 @@ class MapMpdServiceButton extends Component {
       return this.setState({status: result});
     })
     .catch(err => {
-      messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
+      if (err.status !== 401) {
+        messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
+      }
     });
   }
   

@@ -21,9 +21,9 @@ class LangDropdown extends Component {
   }
   
 	render() {
-    var langList = [];
+    let langList = [];
     this.state.config.frontend.lang.forEach((lang, index) => {
-      var classValue = "dropdown-item";
+      let classValue = "dropdown-item";
       if (i18next.language === lang) {
         classValue += " active"
       }

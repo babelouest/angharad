@@ -24,14 +24,17 @@ class Config extends Component {
       deviceTypes: props.deviceTypes,
       deviceList: props.deviceList,
       serviceList: props.serviceList,
+      mapList: props.mapList,
       longSession: !!storage.getValue("longSession"),
       quickConnect: !!storage.getValue("quickConnect"),
       autoConnect: !!storage.getValue("autoConnect"),
+      configRoute: storage.getValue("configRoute"),
       confirm: {show: false, name: "", title: "", message: "", cb: false, data: false},
       curDevice: {name: "", description: "", display: "", enabled: true, type_uid: "", option: {}},
       curDeviceAdd: false,
       showModalDevice: false
     };
+    this.changeDefaultRoute = this.changeDefaultRoute.bind(this);
     this.toggleLongSession = this.toggleLongSession.bind(this);
     this.toggleQuickConnect = this.toggleQuickConnect.bind(this);
     this.toggleAutoConnect = this.toggleAutoConnect.bind(this);
@@ -47,6 +50,12 @@ class Config extends Component {
 
   static getDerivedStateFromProps(props, state) {
     return props;
+  }
+
+  changeDefaultRoute(e, route) {
+    e.preventDefault();
+    storage.setValue("configRoute", route);
+    this.setState({configRoute: route});
   }
 
   toggleLongSession(e) {
@@ -164,7 +173,12 @@ class Config extends Component {
   }
 
 	render() {
-    let benoicModulesJsx, carleonModulesJsx, benoicDevicesJsx, deviceOption = {};
+    let selectedConfigRoute = i18next.t("config.default-route-system"), classValue;
+    classValue = "dropdown-item";
+    if (!this.state.configRoute) {
+      classValue += " active";
+    }
+    let benoicModulesJsx, carleonModulesJsx, benoicDevicesJsx, deviceOption = {}, routeList = [<li key={-1}><a className={classValue} href="#" onClick={(e) => this.changeDefaultRoute(e, "")}>{i18next.t("config.default-route-system")}</a></li>];
     this.state.submodules.forEach(submodule => {
       if (submodule.name === "benoic" && submodule.enabled) {
         let modulesListJsx = [];
@@ -236,7 +250,7 @@ class Config extends Component {
             </td>
             <td>
               <div className="btn-group">
-                <button type="button" className="btn btn-primary" title={i18next.t("config.benoic-device-enable")} onClick={(e) => this.deviceConnect(e, device)} disabled={!this.state.adminMode}>
+                <button type="button" className="btn btn-primary" title={i18next.t("config.benoic-device-enable")} onClick={(e) => this.deviceConnect(e, device)}>
                   {enabledButtonJsx}
                 </button>
                 <button type="button" className="btn btn-primary" title={i18next.t("config.benoic-device-edit")} onClick={(e) => this.deviceEdit(e, device)} disabled={!this.state.adminMode}>
@@ -326,6 +340,24 @@ class Config extends Component {
         </div>
       }
     });
+    this.state.mapList.forEach((map, index) => {
+      classValue = "dropdown-item";
+      if (this.state.configRoute === ("map/"+index)) {
+        classValue += " active";
+        selectedConfigRoute = map.name;
+      }
+      routeList.push(
+        <li key={index}><a className={classValue} href="#" onClick={(e) => this.changeDefaultRoute(e, "map/"+index)}>{map.name}</a></li>
+      );
+    });
+    classValue = "dropdown-item";
+    if (this.state.configRoute === ("components")) {
+      classValue += " active";
+      selectedConfigRoute = i18next.t("config.default-route-components");
+    }
+    routeList.push(
+      <li key={routeList.length+1}><a className={classValue} href="#" onClick={(e) => this.changeDefaultRoute(e, "components")}>{i18next.t("config.default-route-components")}</a></li>
+    );
     return (
       <div>
         <hr/>
@@ -334,6 +366,20 @@ class Config extends Component {
             {i18next.t("config.select-lang")}
           </h3>
           <LangDropdown config={this.state.config}/>
+        </div>
+        <hr/>
+        <div>
+          <h3>
+            {i18next.t("config.select-default-route")}
+          </h3>
+          <div className="dropdown">
+            <button className="btn btn-secondary dropdown-toggle" type="button" id="routeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              {selectedConfigRoute}
+            </button>
+            <ul className="dropdown-menu" aria-labelledby="routeDropdown">
+              {routeList}
+            </ul>
+          </div>
         </div>
         <hr/>
         <div>

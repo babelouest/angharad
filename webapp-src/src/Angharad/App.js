@@ -79,7 +79,6 @@ class App extends Component {
       modalConfirmParameters: {title: false, message: false, cb: false},
       modalOpenService: {element: false, type: false},
       mapIndex: 0,
-      reRunRefresh: false,
       wasConnected: false,
       defaultRoute: "components"
     };
@@ -103,12 +102,11 @@ class App extends Component {
         if (message.status === "connected") {
           messageDispatcher.sendMessage('Notification', {type: "success", message: i18next.t("message.connected")});
         }
-        if (this.state.reRunRefresh) {
-          this.setState({reRunRefresh: false}, () => {
-            setTimeout(() => {
-              this.refreshData();
-            }, 1000);
-          });
+        if (message.status === "refresh") {
+          setTimeout(() => {
+            this.refreshData();
+            messageDispatcher.sendMessage('MpdServiceButton', {status: "refresh"});
+          }, 1000);
         }
         var tokenTimeout = false;
         if (oidcConnector.getParameter("responseType").search("code") === -1) {
@@ -190,7 +188,7 @@ class App extends Component {
         this.setState({showDimmer: false, showBlind: true, modalDimmerParameters: {device: message.device, name: message.name, element: message.element}});
       } else if (message.status === "refresh") {
         messageDispatcher.sendMessage('Notification', {type: "success", message: <span><i className="fa fa-refresh fa-spin fa-fw elt-left"></i>{i18next.t("message.refreshing")}</span>, autohide: false});
-        this.refreshData()
+        this.refreshData(true)
         .then((results) => {
           messageDispatcher.sendMessage('Notification', {hideAll: true});
           messageDispatcher.sendMessage('Notification', {type: "success", message: i18next.t("message.refresh")});
@@ -405,7 +403,7 @@ class App extends Component {
                   defaultRoute = "map";
                 }
                 this.setState({defaultRoute: defaultRoute}, () => {
-                  this.gotoRoute(routage.getCurrentRoute()||storage.getValue("lastRoute")||this.state.defaultRoute);
+                  this.gotoRoute(routage.getCurrentRoute()||storage.getValue("configRoute")||this.state.defaultRoute);
                 });
               });
             });
@@ -430,7 +428,7 @@ class App extends Component {
     }, 300000);
   }
 
-  refreshData() {
+  refreshData(fromButton=false) {
     let promsDevice = [];
     return apiManager.APIRequestAngharad("profile")
     .then((results) => {
@@ -476,20 +474,20 @@ class App extends Component {
       });
     })
     .catch((err) => {
-      if (err.status !== 401) {
+      if (err.status !== 401 || fromButton) {
         messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.profile-error")});
-      } else {
-        this.setState({reRunRefresh: true});
       }
     });
   }
 
   gotoRoute(route) {
     if (route) {
-      if (route === "properties" || route.startsWith("scripts") || route.startsWith("schedulers")) {
+      if (route === "properties") {
         this.setState({nav: route});
         routage.addRoute(route);
-        storage.setValue("lastRoute", route);
+      } else if (route.startsWith("scripts") || route.startsWith("schedulers")) {
+        this.setState({nav: route});
+        routage.addRoute(route);
       } else if (route.startsWith("components")) {
         let path = route.split("/");
         if (path.length === 1) {
@@ -498,7 +496,6 @@ class App extends Component {
           this.setState({nav: "components", components: path.splice(1)});
         }
         routage.addRoute(route);
-        storage.setValue("lastRoute", route);
       } else if (route.startsWith("services")) {
         let path = route.split("/");
         if (path.length === 1) {
@@ -507,7 +504,6 @@ class App extends Component {
           this.setState({nav: "services", services: path.splice(1)});
         }
         routage.addRoute(route);
-        storage.setValue("lastRoute", route);
       } else if (route.startsWith("map")) {
         let path = route.split("/");
         if (path.length === 1) {
@@ -520,7 +516,6 @@ class App extends Component {
           this.setState({nav: "map", mapIndex: index});
         }
         routage.addRoute(route);
-        storage.setValue("lastRoute", route);
       }
     }
   }
@@ -781,7 +776,8 @@ class App extends Component {
                         submodules={this.state.submodules}
                         deviceTypes={this.state.deviceTypes}
                         deviceList={this.state.deviceList}
-                        serviceList={this.state.serviceList}/>
+                        serviceList={this.state.serviceList}
+                        mapList={this.state.mapList}/>
     } else if (this.state.nav == "components") {
       bodyJsx = <Components deviceOverview={this.state.deviceOverview}
                             serviceList={this.state.serviceList}

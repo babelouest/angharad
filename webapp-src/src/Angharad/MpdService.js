@@ -98,7 +98,9 @@ class MpdService extends Component {
       });
     })
     .catch(err => {
-      messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
+      if (err.status !== 401) {
+        messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
+      }
     });
   }
   

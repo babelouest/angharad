@@ -227,7 +227,7 @@ class Map extends Component {
         top: element.coordY+"%"
       }
       if (element.type === "switch") {
-        if (this.state.deviceOverview[element.device] && this.state.deviceOverview[element.device].switches && this.state.deviceOverview[element.device].switches[element.name]) {
+        if (this.state.deviceOverview[element.device] && this.state.deviceOverview[element.device].switches && this.state.deviceOverview[element.device].switches[element.name] && (this.state.deviceOverview[element.device].switches[element.name].enabled || this.state.adminMode)) {
           if (this.state.deviceOverview[element.device].switches[element.name].value === 1) {
             iconJsx = <i className="fa fa-toggle-on" aria-hidden="true"></i>
           } else {
@@ -250,7 +250,7 @@ class Map extends Component {
           );
         }
       } else if (element.type === "dimmer") {
-        if (this.state.deviceOverview[element.device] && this.state.deviceOverview[element.device].dimmers && this.state.deviceOverview[element.device].dimmers[element.name]) {
+        if (this.state.deviceOverview[element.device] && this.state.deviceOverview[element.device].dimmers && this.state.deviceOverview[element.device].dimmers[element.name] && (this.state.deviceOverview[element.device].dimmers[element.name].enabled || this.state.adminMode)) {
           let className = "map-img-element btn";
           if (this.state.adminMode) {
             className += " btn-danger";
@@ -269,7 +269,7 @@ class Map extends Component {
           );
         }
       } else if (element.type === "blind") {
-        if (this.state.deviceOverview[element.device] && this.state.deviceOverview[element.device].blinds && this.state.deviceOverview[element.device].blinds[element.name]) {
+        if (this.state.deviceOverview[element.device] && this.state.deviceOverview[element.device].blinds && this.state.deviceOverview[element.device].blinds[element.name] && (this.state.deviceOverview[element.device].blinds[element.name].enabled || this.state.adminMode)) {
           let className = "map-img-element btn";
           if (this.state.adminMode) {
             className += " btn-danger";
@@ -288,7 +288,7 @@ class Map extends Component {
           );
         }
       } else if (element.type === "sensor") {
-        if (this.state.deviceOverview[element.device] && this.state.deviceOverview[element.device].sensors && this.state.deviceOverview[element.device].sensors[element.name]) {
+        if (this.state.deviceOverview[element.device] && this.state.deviceOverview[element.device].sensors && this.state.deviceOverview[element.device].sensors[element.name] && (this.state.deviceOverview[element.device].sensors[element.name].enabled || this.state.adminMode)) {
           let className = "map-img-element btn";
           let valueJsx = this.state.deviceOverview[element.device].sensors[element.name].value;
           if (!isNaN(valueJsx) && valueJsx != Math.round(valueJsx)) {

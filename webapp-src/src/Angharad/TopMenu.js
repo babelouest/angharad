@@ -48,6 +48,7 @@ class TopMenu extends Component {
   refresh(e) {
     e.preventDefault();
     messageDispatcher.sendMessage('Component', {status: "refresh"});
+    messageDispatcher.sendMessage('MpdServiceButton', {status: "refresh"});
   }
   
 	render() {
@@ -101,9 +102,9 @@ class TopMenu extends Component {
         <nav className="navbar navbar-expand-lg nav-pills navbar-light bg-light">
           <div className="container-fluid">
             <a className="navbar-brand"
-               href={"#" + this.state.defaultRoute}
+               href={"#"}
               data-bs-toggle="collapse"
-               onClick={(e) => this.navigateTo(e, this.state.defaultRoute)}>
+               onClick={(e) => this.navigateTo(e, false)}>
               Angharad
             </a>
             <button className="navbar-toggler"
