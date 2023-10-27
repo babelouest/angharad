@@ -42,6 +42,9 @@
   },
   "config": {
     "select-lang": "Sélectionner la langue",
+    "select-default-route": "Page de chargement",
+    "default-route-system": "Défaut",
+    "default-route-components": "Composants",
     "lang-fr": "Français",
     "lang-en": "Anglais",
     "select-session": "Type de session",
