@@ -47,6 +47,12 @@ find_package_handle_standard_args(LibMPDClient
 if (LIBMPDCLIENT_FOUND)
     set(LIBMPDCLIENT_LIBRARIES ${LIBMPDCLIENT_LIBRARY})
     set(LIBMPDCLIENT_INCLUDE_DIRS ${LIBMPDCLIENT_INCLUDE_DIR}/mpd)
+    if (NOT TARGET LibMPDClient::LibMPDClient)
+        add_library(LibMPDClient::LibMPDClient UNKNOWN IMPORTED)
+        set_target_properties(LibMPDClient::LibMPDClient PROPERTIES
+                IMPORTED_LOCATION "${LIBMPDCLIENT_LIBRARY}"
+                INTERFACE_INCLUDE_DIRECTORIES "${LIBMPDCLIENT_INCLUDE_DIR}")
+    endif ()
 endif ()
 
 mark_as_advanced(LIBMPDCLIENT_INCLUDE_DIR LIBMPDCLIENT_LIBRARY)

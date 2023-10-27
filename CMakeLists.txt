@@ -18,9 +18,12 @@ cmake_minimum_required(VERSION 3.5)
 project(angharad)
 
 set(CMAKE_C_STANDARD 99)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -Wconversion")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror")
 
 # library info
+
+set(AGRD_LIBS )
+set(BENOIC_DEVICES )
 
 set(PROGRAM_VERSION_MAJOR "1")
 set(PROGRAM_VERSION_MINOR "3")
@@ -28,11 +31,11 @@ set(PROGRAM_VERSION_PATCH "0")
 set(PROJECT_DESCRIPTION "Online password and secret locker")
 set(PROJECT_BUGREPORT_PATH "https://github.com/babelouest/angharad/issues")
 set(ORCANIA_VERSION_REQUIRED "2.3.3")
-set(YDER_VERSION_REQUIRED "1.4.19")
-set(ULFIUS_VERSION_REQUIRED "2.7.14")
-set(HOEL_VERSION_REQUIRED "1.4.27")
-set(RHONABWY_VERSION_REQUIRED "1.1.12")
-set(IDDAWC_VERSION_REQUIRED "1.1.8")
+set(YDER_VERSION_REQUIRED "1.4.20")
+set(ULFIUS_VERSION_REQUIRED "2.7.15")
+set(HOEL_VERSION_REQUIRED "1.4.29")
+set(RHONABWY_VERSION_REQUIRED "1.1.13")
+set(IDDAWC_VERSION_REQUIRED "1.1.9")
 
 set(BENOIC_MODULES_SRC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/device-modules/")
 set(CARLEON_MODULES_SRC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src/carleon/service-modules/")
@@ -41,6 +44,8 @@ set(CARLEON_SERVICES "")
 
 include(GNUInstallDirs)
 include(CheckSymbolExists)
+include(CMakeDependentOption)
+include(CMakePackageConfigHelpers)
 
 # cmake modules
 
@@ -62,23 +67,22 @@ if (_GNU_SOURCE)
 		add_definitions(-D_GNU_SOURCE)
 endif ()
 
+list(APPEND AGRD_LIBS "-ldl -lcrypt")
+
+find_package(Threads REQUIRED)
+list(APPEND AGRD_LIBS ${CMAKE_THREAD_LIBS_INIT})
+
 include(FindJansson)
 set(JANSSON_MIN_VERSION 2.4)
 find_package(Jansson ${JANSSON_MIN_VERSION} REQUIRED)
-if (JANSSON_FOUND)
-		set(LIBS ${JANSSON_LIBRARIES})
-endif ()
+list(APPEND AGRD_LIBS Jansson::Jansson)
 
 include(FindLibconfig)
 find_package(Libconfig REQUIRED)
-if (LIBCONFIG_FOUND)
-		set(LIBS ${LIBS} ${LIBCONFIG_LIBRARIES})
-		include_directories(${LIBCONFIG_INCLUDE_DIRS})
-endif ()
+list(APPEND AGRD_LIBS LibConfig::LibConfig)
 
-include(FindZLIB)
 find_package(ZLIB REQUIRED)
-set(LIBS ${LIBS} ${ZLIB_LIBRARIES})
+list(APPEND AGRD_LIBS ZLIB::ZLIB)
 
 # build
 
@@ -101,44 +105,62 @@ add_executable(angharad ${CMAKE_CURRENT_SOURCE_DIR}/src/angharad.h
                         ${CMAKE_CURRENT_SOURCE_DIR}/src/carleon/carleon.c
                         ${CMAKE_CURRENT_SOURCE_DIR}/src/carleon/service.c
                         ${CMAKE_CURRENT_SOURCE_DIR}/src/angharad.c )
-target_link_libraries(angharad ${LIBS})
+target_link_libraries(angharad ${AGRD_LIBS})
 set_target_properties(angharad PROPERTIES COMPILE_OPTIONS "-Wextra;-Wconversion")
 
-include(FindOrcania)
 find_package(Orcania ${ORCANIA_VERSION_REQUIRED} REQUIRED)
-set(LIBS ${LIBS} ${ORCANIA_LIBRARIES})
-include_directories(${ORCANIA_INCLUDE_DIRS})
+if ("${ORCANIA_VERSION_STRING}" VERSION_GREATER_EQUAL "${ORCANIA_VERSION_REQUIRED}")
+    message(STATUS "Orcania found: ${ORCANIA_VERSION_STRING}")
+else ()
+    message( FATAL_ERROR "Orcania version required: ${ORCANIA_VERSION_REQUIRED} - version installed: ${ORCANIA_VERSION_STRING}")
+endif ()
+list(APPEND AGRD_LIBS Orcania::Orcania)
 
-include(FindYder)
 find_package(Yder ${YDER_VERSION_REQUIRED} REQUIRED)
-set(LIBS ${LIBS} ${YDER_LIBRARIES})
-include_directories(${YDER_INCLUDE_DIRS})
+if ("${YDER_VERSION_STRING}" VERSION_GREATER_EQUAL "${YDER_VERSION_REQUIRED}")
+    message(STATUS "Yder found: ${YDER_VERSION_STRING}")
+else ()
+    message( FATAL_ERROR "Yder version required: ${YDER_VERSION_REQUIRED} - version installed: ${YDER_VERSION_STRING}")
+endif ()
+list(APPEND AGRD_LIBS Yder::Yder)
 
-include(FindUlfius)
 find_package(Ulfius ${ULFIUS_VERSION_REQUIRED} REQUIRED)
-set(LIBS ${LIBS} ${ULFIUS_LIBRARIES})
-include_directories(${ULFIUS_INCLUDE_DIRS})
+if ("${ULFIUS_VERSION_STRING}" VERSION_GREATER_EQUAL "${ULFIUS_VERSION_REQUIRED}")
+    message(STATUS "Ulfius found: ${ULFIUS_VERSION_STRING}")
+else ()
+    message( FATAL_ERROR "Ulfius version required: ${ULFIUS_VERSION_REQUIRED} - version installed: ${ULFIUS_VERSION_STRING}")
+endif ()
+list(APPEND AGRD_LIBS Ulfius::Ulfius)
 
-include(FindHoel)
 find_package(Hoel ${HOEL_VERSION_REQUIRED} REQUIRED)
-set(LIBS ${LIBS} ${HOEL_LIBRARIES})
-include_directories(${HOEL_INCLUDE_DIRS})
+if ("${HOEL_VERSION_STRING}" VERSION_GREATER_EQUAL "${HOEL_VERSION_REQUIRED}")
+    message(STATUS "Hoel found: ${HOEL_VERSION_STRING}")
+else ()
+    message( FATAL_ERROR "Hoel version required: ${HOEL_VERSION_REQUIRED} - version installed: ${HOEL_VERSION_STRING}")
+endif ()
+list(APPEND AGRD_LIBS Hoel::Hoel)
 
 if (DISABLE_OAUTH2)
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DDISABLE_OAUTH2")
 else ()
-    include(FindIddawc)
-    find_package(Iddawc ${IDDAWC_VERSION_REQUIRED} REQUIRED)
-    set(LIBS ${LIBS} ${IDDAWC_LIBRARIES})
-    include_directories(${IDDAWC_INCLUDE_DIRS})
-
-    include(FindRhonabwy)
     find_package(Rhonabwy ${RHONABWY_VERSION_REQUIRED} REQUIRED)
-    set(LIBS ${LIBS} ${RHONABWY_LIBRARIES})
-    include_directories(${RHONABWY_INCLUDE_DIRS})
+    if ("${RHONABWY_VERSION_STRING}" VERSION_GREATER_EQUAL "${RHONABWY_VERSION_REQUIRED}")
+        message(STATUS "Rhonabwy found: ${RHONABWY_VERSION_STRING}")
+    else ()
+        message( FATAL_ERROR "Rhonabwy version required: ${RHONABWY_VERSION_REQUIRED} - version installed: ${RHONABWY_VERSION_STRING}")
+    endif ()
+    list(APPEND AGRD_LIBS Rhonabwy::Rhonabwy)
+
+    find_package(Iddawc ${IDDAWC_VERSION_REQUIRED} REQUIRED)
+    if ("${IDDAWC_VERSION_STRING}" VERSION_GREATER_EQUAL "${IDDAWC_VERSION_REQUIRED}")
+        message(STATUS "Iddawc found: ${IDDAWC_VERSION_STRING}")
+    else ()
+        message( FATAL_ERROR "Iddawc version required: ${IDDAWC_VERSION_REQUIRED} - version installed: ${IDDAWC_VERSION_STRING}")
+    endif ()
+    list(APPEND AGRD_LIBS Iddawc::Iddawc)
 endif ()
 
-target_link_libraries(angharad ${LIBS} pthread m dl)
+target_link_libraries(angharad ${AGRD_LIBS} pthread m dl)
 
 # benoic device modules
 
@@ -152,32 +174,33 @@ if (WITH_MOCKDEV)
 		set_target_properties(devmock PROPERTIES
 						COMPILE_OPTIONS "-Wextra;-Wconversion")
 		target_link_libraries(devmock ${MOCK_LIBS})
-		set(BENOIC_DEVICES ${BENOIC_DEVICES} devmock)
+		list(APPEND BENOIC_DEVICES devmock)
 endif ()
 
 option(WITH_ZWAVE "Build ZWave device" on)
 if (WITH_ZWAVE)
 		set(ZWAVE_LIB_SRC ${BENOIC_MODULES_SRC_PATH}/device-zwave.cpp)
-
-		include(FindOpenZWAVE)
-		find_package(OpenZWAVE REQUIRED)
+    set(ZWAVE_LIBS )
+    include(FindOpenZWAVE)
+    find_package(OpenZWAVE REQUIRED)
+    list(APPEND ZWAVE_LIBS libopenzwave::libopenzwave)
 		if (OPENZWAVE_FOUND)
-				set(ZWAVE_LIBS ${OPENZWAVE_LIBRARIES} "-ldl -Wl,-R '-Wl,-R$$ORIGIN'")
-				include_directories(${OPENZWAVE_INCLUDE_DIRS})
+				list(APPEND ZWAVE_LIBS "-ldl -Wl,-R '-Wl,-R$$ORIGIN'")
 		endif ()
 
 		add_library(devzwave MODULE ${ZWAVE_LIB_SRC})
 		set_target_properties(devzwave PROPERTIES
 						COMPILE_OPTIONS "-Wextra;-Wconversion")
 		target_link_libraries(devzwave ${ZWAVE_LIBS})
-		set(BENOIC_DEVICES ${BENOIC_DEVICES} devzwave)
+		list(APPEND BENOIC_DEVICES devzwave)
 endif ()
 
 option(WITH_TAULAS "Build Taulas device" on)
 if (WITH_TAULAS)
 		set(TAULAS_LIB_SRC ${BENOIC_MODULES_SRC_PATH}/device-taulas.c)
+    set(TAULAS_LIBS )
 
-		set(TAULAS_LIBS "-ldl")
+    list(APPEND TAULAS_LIBS "-ldl")
 
 		add_library(devtaulas MODULE ${TAULAS_LIB_SRC})
 		set_target_properties(devtaulas PROPERTIES
@@ -188,14 +211,15 @@ endif ()
 
 option(WITH_ESP8266 "Build Taulas device" on)
 if (WITH_ESP8266)
-		set(TAULAS_LIB_SRC ${BENOIC_MODULES_SRC_PATH}/device-esp8266.c)
+		set(ESP8266_LIBS_SRC ${BENOIC_MODULES_SRC_PATH}/device-esp8266.c)
+    set(ESP8266_LIBS )
 
-		set(TAULAS_LIBS "-ldl")
+    list(APPEND ESP8266_LIBS "-ldl")
 
-		add_library(devesp8266 MODULE ${TAULAS_LIB_SRC})
+		add_library(devesp8266 MODULE ${ESP8266_LIBS_SRC})
 		set_target_properties(devesp8266 PROPERTIES
 						COMPILE_OPTIONS "-Wextra;-Wconversion")
-		target_link_libraries(devesp8266 ${TAULAS_LIBS})
+		target_link_libraries(devesp8266 ${ESP8266_LIBS})
 		set(BENOIC_DEVICES ${BENOIC_DEVICES} devesp8266)
 endif ()
 
@@ -204,8 +228,9 @@ endif ()
 option(WITH_MOCKSERVICE "Build Mock service" off)
 if (WITH_MOCKSERVICE)
 		set(MOCK_LIB_SRC ${CARLEON_MODULES_SRC_PATH}/service-mock.c)
+    set(MOCK_LIBS )
 
-		set(MOCK_LIBS "-ldl")
+		list(APPEND MOCK_LIBS "-ldl")
 
 		add_library(servicemock MODULE ${MOCK_LIB_SRC})
 		set_target_properties(servicemock PROPERTIES
@@ -217,8 +242,9 @@ endif ()
 option(WITH_MOTION "Build Motion service" on)
 if (WITH_MOTION)
 		set(MOTION_LIB_SRC ${CARLEON_MODULES_SRC_PATH}/service-motion.c)
+    set(MOTION_LIBS )
 
-		set(MOTION_LIBS "-ldl")
+		list(APPEND MOTION_LIBS "-ldl")
 
 		add_library(servicemotion MODULE ${MOTION_LIB_SRC})
 		set_target_properties(servicemotion PROPERTIES
@@ -230,8 +256,9 @@ endif ()
 option(WITH_LIQUIDSOAP "Build Liquidsoap service" on)
 if (WITH_LIQUIDSOAP)
 		set(LIQUIDSOAP_LIB_SRC ${CARLEON_MODULES_SRC_PATH}/service-liquidsoap.c)
+    set(LIQUIDSOAP_LIBS )
 
-		set(LIQUIDSOAP_LIBS "-ldl")
+		list(APPEND LIQUIDSOAP_LIBS "-ldl")
 
 		add_library(serviceliquidsoap MODULE ${LIQUIDSOAP_LIB_SRC})
 		set_target_properties(serviceliquidsoap PROPERTIES
@@ -243,12 +270,13 @@ endif ()
 option(WITH_MPD "Build MPD service" on)
 if (WITH_MPD)
 		set(MPD_LIB_SRC ${CARLEON_MODULES_SRC_PATH}/service-mpd.c)
+    set(LIBMPDCLIENT_LIBRARIES )
 
 		include(FindLibMPDClient)
 		find_package(LibMPDClient REQUIRED)
+    list(APPEND LIBMPDCLIENT_LIBRARIES LibMPDClient::LibMPDClient)
 		if (LIBMPDCLIENT_FOUND)
-				set(LIBMPDCLIENT_LIBRARIES ${LIBMPDCLIENT_LIBRARIES} "-ldl")
-				include_directories(${LIBMPDCLIENT_INCLUDE_DIRS})
+				list(APPEND LIBMPDCLIENT_LIBRARIES "-ldl")
 		endif ()
 
 		add_library(servicempd MODULE ${MPD_LIB_SRC})
@@ -263,32 +291,45 @@ endif ()
 option(BUILD_TESTING "Build the testing tree." OFF)
 
 if (BUILD_TESTING)
-		include(FindCheck)
-		find_package(Check REQUIRED)
-		if (CHECK_FOUND)
-				include(FindSubunit)
-				find_package(Subunit REQUIRED)
+    find_package(Check REQUIRED)
+    if (CHECK_FOUND)
+        if (NOT WIN32 AND NOT APPLE)
+            include(FindSubunit)
+            find_package(Subunit REQUIRED)
+        endif ()
 
-				enable_testing()
+        enable_testing()
 
-				set(CMAKE_CTEST_COMMAND ctest -V)
+        set(CMAKE_CTEST_COMMAND ctest -V)
 
-				set(TST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test)
-				set(LIBS ${LIBS} ${CHECK_LIBRARIES} ulfius yder orcania)
-				find_package(Threads REQUIRED)
-				set(LIBS ${LIBS} ${SUBUNIT_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} m rt)
+        set(TST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test)
+        set(U_RESOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/docs/resources/ulfius/)
+        set(TST_LIBS Check::Check)
+        if (NOT WIN32)
+            find_package(Threads REQUIRED)
+            list(APPEND TST_LIBS ${CMAKE_THREAD_LIBS_INIT} m)
+        endif ()
+        if (NOT APPLE AND NOT WIN32)
+            list(APPEND TST_LIBS rt)
+        endif ()
+        if (NOT WIN32 AND NOT APPLE)
+            list(APPEND TST_LIBS Subunit::Subunit)
+        endif ()
 
-				set(TESTS angharad_submodule
-									angharad_script
-									angharad_scheduler
-									angharad_profile
-									benoic_device
-									benoic_device_element
-									benoic_monitor
-									carleon_service
-									carleon_liquidsoap
-									carleon_motion
-									carleon_mpd)
+        list(APPEND TST_LIBS ${AGRD_LIBS})
+
+        set(TESTS )
+				list(APPEND TESTS angharad_submodule
+                          angharad_script
+                          angharad_scheduler
+                          angharad_profile
+                          benoic_device
+                          benoic_device_element
+                          benoic_monitor
+                          carleon_service
+                          carleon_liquidsoap
+                          carleon_motion
+                          carleon_mpd)
 						
 
 				configure_file(
@@ -299,7 +340,7 @@ if (BUILD_TESTING)
         foreach (t ${TESTS})
             add_executable(${t} EXCLUDE_FROM_ALL ${TST_DIR}/${t}.c ${TST_DIR}/unit-tests.c ${TST_DIR}/unit-tests.h)
             target_include_directories(${t} PUBLIC ${TST_DIR})
-            target_link_libraries(${t} PUBLIC ${LIBS})
+            target_link_libraries(${t} PUBLIC ${TST_LIBS})
             add_test(NAME ${t}
                     COMMAND ${t} "private-test.jwks")
         endforeach ()

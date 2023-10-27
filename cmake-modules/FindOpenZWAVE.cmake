@@ -49,7 +49,16 @@ find_package_handle_standard_args(OpenZWAVE
 
 if (OPENZWAVE_FOUND)
     set(OPENZWAVE_LIBRARIES ${OPENZWAVE_LIBRARY})
-    set(OPENZWAVE_INCLUDE_DIRS ${OPENZWAVE_INCLUDE_DIR}/openzwave/ ${OPENZWAVE_INCLUDE_DIR}/openzwave/command_classes ${OPENZWAVE_INCLUDE_DIR}/openzwave/platform ${OPENZWAVE_INCLUDE_DIR}/openzwave/value_classes)
+    set(OPENZWAVE_INCLUDE_DIRS ${OPENZWAVE_INCLUDE_DIR}/openzwave/
+                               ${OPENZWAVE_INCLUDE_DIR}/openzwave/command_classes
+                               ${OPENZWAVE_INCLUDE_DIR}/openzwave/platform
+                               ${OPENZWAVE_INCLUDE_DIR}/openzwave/value_classes)
+    if (NOT TARGET libopenzwave::libopenzwave)
+        add_library(libopenzwave::libopenzwave UNKNOWN IMPORTED)
+        set_target_properties(libopenzwave::libopenzwave PROPERTIES
+                IMPORTED_LOCATION "${OPENZWAVE_LIBRARY}"
+                INTERFACE_INCLUDE_DIRECTORIES "${OPENZWAVE_INCLUDE_DIRS}")
+    endif ()
 endif ()
 
 mark_as_advanced(OPENZWAVE_INCLUDE_DIR OPENZWAVE_LIBRARY)
