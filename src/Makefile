@@ -31,7 +31,6 @@ CFLAGS=-c -Wall -Werror -Wextra -Wconversion -D_REENTRANT -I$(PREFIX)/include $(
 LIBS=-L$(PREFIX)/lib -lc -lm -lpthread -ldl -ljansson -lulfius -lhoel -lyder -lorcania -liddawc -lmicrohttpd -lz
 
 # subprojects locations
-GARETH_LOCATION=gareth
 BENOIC_LOCATION=benoic
 CARLEON_LOCATION=carleon
 
@@ -65,7 +64,6 @@ release: angharad
 
 clean:
 	rm -f *.o angharad valgrind.txt
-	cd $(GARETH_LOCATION) && $(MAKE) clean
 	cd $(BENOIC_LOCATION) && $(MAKE) clean
 	cd $(CARLEON_LOCATION) && $(MAKE) clean
 
