@@ -106,7 +106,7 @@ add_executable(angharad ${CMAKE_CURRENT_SOURCE_DIR}/src/angharad.h
                         ${CMAKE_CURRENT_SOURCE_DIR}/src/carleon/service.c
                         ${CMAKE_CURRENT_SOURCE_DIR}/src/angharad.c )
 target_link_libraries(angharad ${AGRD_LIBS})
-set_target_properties(angharad PROPERTIES COMPILE_OPTIONS "-Wextra;-Wconversion")
+set_target_properties(angharad PROPERTIES COMPILE_OPTIONS "-Wextra;-Wconversion;-Wpedantic")
 
 find_package(Orcania ${ORCANIA_VERSION_REQUIRED} REQUIRED)
 if ("${ORCANIA_VERSION_STRING}" VERSION_GREATER_EQUAL "${ORCANIA_VERSION_REQUIRED}")
@@ -172,7 +172,7 @@ if (WITH_MOCKDEV)
 
 		add_library(devmock MODULE ${MOCK_LIB_SRC})
 		set_target_properties(devmock PROPERTIES
-						COMPILE_OPTIONS "-Wextra;-Wconversion")
+						COMPILE_OPTIONS "-Wextra;-Wconversion;-Wpedantic")
 		target_link_libraries(devmock ${MOCK_LIBS})
 		list(APPEND BENOIC_DEVICES devmock)
 endif ()
@@ -190,7 +190,7 @@ if (WITH_ZWAVE)
 
 		add_library(devzwave MODULE ${ZWAVE_LIB_SRC})
 		set_target_properties(devzwave PROPERTIES
-						COMPILE_OPTIONS "-Wextra;-Wconversion")
+						COMPILE_OPTIONS "-Wextra;-Wconversion;-Wpedantic")
 		target_link_libraries(devzwave ${ZWAVE_LIBS})
 		list(APPEND BENOIC_DEVICES devzwave)
 endif ()
@@ -204,7 +204,7 @@ if (WITH_TAULAS)
 
 		add_library(devtaulas MODULE ${TAULAS_LIB_SRC})
 		set_target_properties(devtaulas PROPERTIES
-						COMPILE_OPTIONS "-Wextra;-Wconversion")
+						COMPILE_OPTIONS "-Wextra;-Wconversion;-Wpedantic")
 		target_link_libraries(devtaulas ${TAULAS_LIBS})
 		set(BENOIC_DEVICES ${BENOIC_DEVICES} devtaulas)
 endif ()
@@ -218,7 +218,7 @@ if (WITH_ESP8266)
 
 		add_library(devesp8266 MODULE ${ESP8266_LIBS_SRC})
 		set_target_properties(devesp8266 PROPERTIES
-						COMPILE_OPTIONS "-Wextra;-Wconversion")
+						COMPILE_OPTIONS "-Wextra;-Wconversion;-Wpedantic")
 		target_link_libraries(devesp8266 ${ESP8266_LIBS})
 		set(BENOIC_DEVICES ${BENOIC_DEVICES} devesp8266)
 endif ()
@@ -234,7 +234,7 @@ if (WITH_MOCKSERVICE)
 
 		add_library(servicemock MODULE ${MOCK_LIB_SRC})
 		set_target_properties(servicemock PROPERTIES
-						COMPILE_OPTIONS "-Wextra;-Wconversion")
+						COMPILE_OPTIONS "-Wextra;-Wconversion;-Wpedantic")
 		target_link_libraries(servicemock ${MOCK_LIBS})
 		set(CARLEON_SERVICES ${CARLEON_SERVICES} servicemock)
 endif ()
@@ -248,7 +248,7 @@ if (WITH_MOTION)
 
 		add_library(servicemotion MODULE ${MOTION_LIB_SRC})
 		set_target_properties(servicemotion PROPERTIES
-						COMPILE_OPTIONS "-Wextra;-Wconversion")
+						COMPILE_OPTIONS "-Wextra;-Wconversion;-Wpedantic")
 		target_link_libraries(servicemotion ${MOTION_LIBS})
 		set(CARLEON_SERVICES ${CARLEON_SERVICES} servicemotion)
 endif ()
@@ -262,7 +262,7 @@ if (WITH_LIQUIDSOAP)
 
 		add_library(serviceliquidsoap MODULE ${LIQUIDSOAP_LIB_SRC})
 		set_target_properties(serviceliquidsoap PROPERTIES
-						COMPILE_OPTIONS "-Wextra;-Wconversion")
+						COMPILE_OPTIONS "-Wextra;-Wconversion;-Wpedantic")
 		target_link_libraries(serviceliquidsoap ${LIQUIDSOAP_LIBS})
 		set(CARLEON_SERVICES ${CARLEON_SERVICES} serviceliquidsoap)
 endif ()
@@ -281,7 +281,7 @@ if (WITH_MPD)
 
 		add_library(servicempd MODULE ${MPD_LIB_SRC})
 		set_target_properties(servicempd PROPERTIES
-						COMPILE_OPTIONS "-Wextra;-Wconversion")
+						COMPILE_OPTIONS "-Wextra;-Wconversion;-Wpedantic")
 		target_link_libraries(servicempd ${LIBMPDCLIENT_LIBRARIES})
 		set(CARLEON_SERVICES ${CARLEON_SERVICES} servicempd)
 endif ()
