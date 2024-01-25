@@ -42,7 +42,7 @@ var initApp = () => {
     let proms = [];
     proms.push(getServerConfigAngharad(frontEndConfig.angharadRootUrl));
     if (frontEndConfig.taliesinRootUrl) {
-      proms.push(getServerConfigTaliesin(frontEndConfig.taliesinRootUrl));
+      proms.push(getServerConfigTaliesin(frontEndConfig.taliesinRootUrl[0]));
     } else {
       proms.push(Promise.reject('no taliesin'));
     }
@@ -53,15 +53,15 @@ var initApp = () => {
       if (backendConfig.status === "fulfilled") {
         let oidc = {
           status: "connecting"
-        }
+        };
         if (!backendConfig.value.oidc) {
-          oidc = false;
+          oidc = false
         }
         let scope = [], required_scope = false;
         if (taliesinConfig.status === "fulfilled" && taliesinConfig.value) {
           scope.push(taliesinConfig.value.oauth_scope_user);
         }
-        if (frontEndConfig.oidc.scope) {
+        if (frontEndConfig.oidc?.scope) {
           scope.push(frontEndConfig.oidc.scope);
           required_scope = frontEndConfig.oidc.scope;
         } else {
@@ -70,7 +70,7 @@ var initApp = () => {
             required_scope = backendConfig.value.oauth_scope;
           }
         }
-        let additionalParams = frontEndConfig.oidc.additionalParameters;
+        let additionalParams = frontEndConfig.oidc?.additionalParameters;
         if (storage.getValue("quickConnect")) {
           if (additionalParams) {
             additionalParams += "&" + storage.getValue("quickConnect");
@@ -87,35 +87,37 @@ var initApp = () => {
           benoicEndpoint: frontEndConfig.benoic_endpoint || backendConfig.value.benoic_endpoint,
           carleonEndpoint: frontEndConfig.carleon_endpoint || backendConfig.value.carleon_endpoint,
           scope: scope.join(" ") || false,
-          oidc_server_remote_config: frontEndConfig.oidc.oidc_server_remote_config || backendConfig.value.oidc_server_remote_config || false
+          oidc_server_remote_config: frontEndConfig.oidc?.oidc_server_remote_config || backendConfig.value.oidc_server_remote_config || false
         };
         let apiConfig = {
           angharadRoot: frontEndConfig.angharadRootUrl,
           angharadApi: config.angharadEndpoint,
           benoicApi: config.benoicEndpoint,
           carleonApi: config.carleonEndpoint,
-          taliesinRoot: frontEndConfig.taliesinRootUrl||false,
+          taliesinRoot: frontEndConfig.taliesinRootUrl[0]||false,
           taliesinApi: taliesinConfig.value?.api_prefix||false
         };
-        oidcConnector.init({
-          storagePrefix: "angharadOidc",
-          storageType: storage.storageType,
-          responseType: storage.getValue("longSession")?"code":"token id_token",
-          openidConfigUrl: config.oidc_server_remote_config,
-          authUrl: frontEndConfig.oidc.authUrl,
-          tokenUrl: frontEndConfig.oidc.tokenUrl,
-          clientId: frontEndConfig.oidc.clientId,
-          redirectUri: frontEndConfig.oidc.redirectUri,
-          usePkce: frontEndConfig.oidc.usePkce,
-          scope: config.scope,
-          required_scope: required_scope,
-          userinfoUrl: frontEndConfig.oidc.userinfoUrl,
-          refreshTokenLoop: frontEndConfig.oidc.refreshTokenLoop,
-          additionalParameters: frontEndConfig.oidc.additionalParameters,
-          changeStatusCb: function (newStatus, token, expires_in, profile) {
-            messageDispatcher.sendMessage('OIDC', {status: newStatus, token: token, expires_in: expires_in, profile: profile});
-          }
-        });
+        if (oidc) {
+          oidcConnector.init({
+            storagePrefix: "angharadOidc",
+            storageType: storage.storageType,
+            responseType: storage.getValue("longSession")?"code":"token id_token",
+            openidConfigUrl: config.oidc_server_remote_config,
+            authUrl: frontEndConfig.oidc?.authUrl,
+            tokenUrl: frontEndConfig.oidc?.tokenUrl,
+            clientId: frontEndConfig.oidc?.clientId,
+            redirectUri: frontEndConfig.oidc?.redirectUri,
+            usePkce: frontEndConfig.oidc?.usePkce,
+            scope: config.scope,
+            required_scope: required_scope,
+            userinfoUrl: frontEndConfig.oidc?.userinfoUrl,
+            refreshTokenLoop: frontEndConfig.oidc?.refreshTokenLoop,
+            additionalParameters: frontEndConfig.oidc?.additionalParameters,
+            changeStatusCb: function (newStatus, token, expires_in, profile) {
+              messageDispatcher.sendMessage('OIDC', {status: newStatus, token: token, expires_in: expires_in, profile: profile});
+            }
+          });
+        }
         apiManager.setConfig(apiConfig);
         root.render(<App config={config} />);
       } else {

@@ -12,6 +12,7 @@ class ModalElement extends Component {
       type: props.type,
       name: props.name,
       element: props.element,
+      deviceOverview: props.deviceOverview,
       cb: props.cb
     }
 
@@ -21,6 +22,7 @@ class ModalElement extends Component {
     this.handleEnabled = this.handleEnabled.bind(this);
     this.handleMonitored = this.handleMonitored.bind(this);
     this.selectMonitoredEvery = this.selectMonitoredEvery.bind(this);
+    this.selectBlindBattery = this.selectBlindBattery.bind(this);
   }
 
   static getDerivedStateFromProps(props, state) {
@@ -77,14 +79,57 @@ class ModalElement extends Component {
     this.setState({element: element});
   }
   
+  selectBlindBattery(e, device, sensor) {
+    e.preventDefault();
+    let element = this.state.element;
+    if (device && element) {
+      element.options.battery = {
+        device: device,
+        sensor: sensor
+      };
+    } else {
+      delete (element.options.battery);
+    }
+    this.setState({element: element});
+  }
+
 	render() {
-    let monitoredEveryJsx, unitJsx;
+    let monitoredEveryJsx, unitJsx, batteryElementJsx, batterySelected = i18next.t("components.benoic-element-modal-battery-none");
+    if (this.state.type === "blind") {
+      let sensorList = [<li key={"none"}><a className="dropdown-item" href="#" onClick={(e) => this.selectBlindBattery(e, false, false)}>{i18next.t("components.benoic-element-modal-battery-none")}</a></li>];
+      Object.keys(this.state.deviceOverview).forEach(dev => {
+        if (this.state.deviceOverview[dev].sensors) {
+          Object.keys(this.state.deviceOverview[dev].sensors).forEach(name => {
+            if (this.state.element.options?.battery?.device === dev && this.state.element.options?.battery?.sensor === name) {
+              batterySelected = this.state.deviceOverview[dev].sensors[name].display;
+            }
+            sensorList.push(
+              <li key={dev+"-"+name}><a className="dropdown-item" href="#" onClick={(e) => this.selectBlindBattery(e, dev, name)}>{this.state.deviceOverview[dev].sensors[name].display}</a></li>
+            );
+          });
+        }
+      });
+      batteryElementJsx =
+        <div>
+          <hr/>
+          <div className="mb-3">
+            <label className="form-label">
+              {i18next.t("components.benoic-element-modal-battery")}
+            </label>
+            <div className="dropdown">
+              <button className="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                {batterySelected}
+              </button>
+              <ul className="dropdown-menu">
+                {sensorList}
+              </ul>
+            </div>
+          </div>
+        </div>
+    }
     if (this.state.element.monitored) {
       monitoredEveryJsx =
         <div className="mb-3">
-          <label className="form-label">
-            {i18next.t("components.benoic-element-modal-monitored")}
-          </label>
           <div className="dropdown">
             <button className="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
               {i18next.t("components.benoic-element-modal-monitored-every-"+this.state.element.monitored_every)}
@@ -170,6 +215,7 @@ class ModalElement extends Component {
                   </label>
                 </div>
                 {monitoredEveryJsx}
+                {batteryElementJsx}
               </div>
               <div className="modal-footer">
                 <button type="submit" className="btn btn-secondary" onClick={(e) => this.closeModal(e, false)}>{i18next.t("modal.close")}</button>

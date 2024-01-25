@@ -10,7 +10,6 @@ class Scheduler extends Component {
     super(props);
 
     this.state = {
-      scriptList: props.scriptList,
       scheduler: props.scheduler
     }
     
@@ -23,14 +22,19 @@ class Scheduler extends Component {
   
   toggleScheduler() {
     let url = "scheduler/" + encodeURIComponent(this.state.scheduler.name) + "/enable/";
+    let scheduler = this.state.scheduler;
     if (this.state.scheduler.enabled) {
       url += "0";
+      scheduler.enabled = 0;
     } else {
       url += "1";
+      scheduler.enabled = 1;
     }
     apiManager.APIRequestAngharad(url, "PUT")
     .then(() => {
-      messageDispatcher.sendMessage("Scheduler", {status: "refresh"});
+      this.setState({scheduler: scheduler}, () => {
+        messageDispatcher.sendMessage("Scheduler", {status: "refresh"});
+      });
     })
     .catch((err) => {
       messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});

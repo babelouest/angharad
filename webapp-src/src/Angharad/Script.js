@@ -23,6 +23,7 @@ class Script extends Component {
   scriptRun() {
     apiManager.APIRequestAngharad("script/"+this.state.script.name+"/run")
     .then(() => {
+      messageDispatcher.sendMessage('Component', {status: "silentRefresh"});
       messageDispatcher.sendMessage('Notification', {type: "success", message: i18next.t("scripts.executed")});
     })
     .catch((err) => {

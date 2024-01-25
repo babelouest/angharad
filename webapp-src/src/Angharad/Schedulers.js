@@ -9,7 +9,6 @@ class Schedulers extends Component {
     super(props);
 
     this.state = {
-      script: props.script,
       scheduler: props.scheduler,
       adminMode: props.adminMode
     }
@@ -32,7 +31,7 @@ class Schedulers extends Component {
     this.state.scheduler.forEach((scheduler, index) => {
       schedulerList.push(
       <div className="col-sm-12 col-lg-4" key={"scr-"+index}>
-        <Scheduler scriptList={this.state.script} scheduler={scheduler} adminMode={this.state.adminMode}/>
+        <Scheduler scheduler={scheduler} adminMode={this.state.adminMode}/>
       </div>
       );
     });

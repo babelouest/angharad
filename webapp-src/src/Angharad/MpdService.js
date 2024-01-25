@@ -105,13 +105,20 @@ class MpdService extends Component {
   }
   
   updateCurrent() {
-    let curPos = this.state.curPos, manageOption = false, stream = false, isWebradio = false, index = -1, isTaliesin = false;
+    let curPos = this.state.curPos, manageOption = false, stream = false, isWebradio = false, index = -1, isTaliesin = false, taliesinRootUrl = false;
     if (curPos !== this.state.status.song_pos || curPos === -1 || this.state.status.song_pos === -1) {
       if (this.state.status.uri) {
         let statusUri = this.state.status.uri.replace(/([^:]\/)\/+/g, "$1");
-        if (statusUri.startsWith(this.state.config.frontend.taliesinRootUrl + "/" + this.state.config.taliesinConfig.api_prefix + "/stream/")) {
+        console.log("statusUri", statusUri);
+        this.state.config.frontend.taliesinRootUrl.forEach(url => {
+          if (statusUri.startsWith(url + "/" + this.state.config.taliesinConfig.api_prefix + "/stream/")) {
+            taliesinRootUrl = url;
+          }
+        });
+        console.log(taliesinRootUrl);
+        if (taliesinRootUrl) {
           isTaliesin = true;
-          stream = statusUri.substring((this.state.config.frontend.taliesinRootUrl + "/" + this.state.config.taliesinConfig.api_prefix + "/stream/").length);
+          stream = statusUri.substring((taliesinRootUrl + "/" + this.state.config.taliesinConfig.api_prefix + "/stream/").length);
           if (stream.indexOf("?") > -1) {
             stream = stream.substring(0, stream.indexOf("?"));
           }
@@ -131,6 +138,7 @@ class MpdService extends Component {
             }
           }
         } else if (statusUri.startsWith(this.state.config.taliesinConfig.icecast_remote_address)) {
+          console.log("icecast");
           isTaliesin = true;
           isWebradio = true;
           stream = statusUri.substring(this.state.config.taliesinConfig.icecast_remote_address.length + 1);
@@ -193,12 +201,12 @@ class MpdService extends Component {
         uri = this.state.config.taliesinConfig.icecast_remote_address + "/" + this.state.selectedStream.name;
         prom = apiManager.APIRequestCarleon("service-mpd/" + encodeURIComponent(this.state.element.name) + "/playlist/", "POST", [uri]);
       } else if (this.state.selectedStream.webradio) {
-        uri = this.state.config.frontend.taliesinRootUrl + "/" + this.state.config.taliesinConfig.api_prefix + "/stream/" + this.state.selectedStream.name;
+        uri = this.state.config.frontend.taliesinRootUrl[0] + "/" + this.state.config.taliesinConfig.api_prefix + "/stream/" + this.state.selectedStream.name;
         prom = apiManager.APIRequestCarleon("service-mpd/" + encodeURIComponent(this.state.element.name) + "/playlist/", "POST", [uri]);
       } else {
         let playlist = [];
         for (let i=0; i< this.state.selectedStream.elements; i++) {
-          playlist.push(this.state.config.frontend.taliesinRootUrl + "/" + this.state.config.taliesinConfig.api_prefix + "/stream/" + this.state.selectedStream.name + "?index=" + i);
+          playlist.push(this.state.config.frontend.taliesinRootUrl[0] + "/" + this.state.config.taliesinConfig.api_prefix + "/stream/" + this.state.selectedStream.name + "?index=" + i);
         }
         prom = apiManager.APIRequestCarleon("service-mpd/" + encodeURIComponent(this.state.element.name) + "/playlist/" + encodeURIComponent(uri), "POST", playlist);
       }
@@ -211,12 +219,16 @@ class MpdService extends Component {
         this.loopPlayerStatus();
         if (this.state.element.device && this.state.element["switch"]) {
           apiManager.APIRequestBenoic("device/" + encodeURIComponent(this.state.element.device) + "/switch/" + encodeURIComponent(this.state.element["switch"]) + "/set/1" , "PUT")
+          .then(() => {
+            messageDispatcher.sendMessage('Component', {status: "silentRefresh", device: this.state.element.device});
+          })
           .catch(err => {
             messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
           });
         }
         apiManager.APIRequestCarleon("service-mpd/" + encodeURIComponent(this.state.element.name) + "/action/play", "PUT")
         .then(result => {
+          messageDispatcher.sendMessage('MpdServiceButton', {status: "refresh"});
           this.setState({selectedStream: false, selectedMpdPlaylist: false, now: false, curPos: -1, isWebradio: false, coverBase64: false}, () => {
             this.getPlayerStatus();
           });
@@ -236,12 +248,16 @@ class MpdService extends Component {
     if (this.state.status.state === "play") {
       if (this.state.element.device && this.state.element["switch"]) {
         apiManager.APIRequestBenoic("device/" + encodeURIComponent(this.state.element.device) + "/switch/" + encodeURIComponent(this.state.element["switch"]) + "/set/0" , "PUT")
+        .then(() => {
+          messageDispatcher.sendMessage('Component', {status: "silentRefresh", device: this.state.element.device});
+        })
         .catch(err => {
           messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
         });
       }
       apiManager.APIRequestCarleon("service-mpd/" + encodeURIComponent(this.state.element.name) + "/action/stop", "PUT")
       .then(result => {
+        messageDispatcher.sendMessage('MpdServiceButton', {status: "refresh"});
         clearTimeout(this.timeout);
         this.loopPlayerStatus();
       })
@@ -251,12 +267,16 @@ class MpdService extends Component {
     } else {
       if (this.state.element.device && this.state.element["switch"]) {
         apiManager.APIRequestBenoic("device/" + encodeURIComponent(this.state.element.device) + "/switch/" + encodeURIComponent(this.state.element["switch"]) + "/set/1" , "PUT")
+        .then(() => {
+          messageDispatcher.sendMessage('Component', {status: "silentRefresh", device: this.state.element.device});
+        })
         .catch(err => {
           messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
         });
       }
       apiManager.APIRequestCarleon("service-mpd/" + encodeURIComponent(this.state.element.name) + "/action/play", "PUT")
       .then(result => {
+        messageDispatcher.sendMessage('MpdServiceButton', {status: "refresh"});
         this.setState({selectedStream: false, selectedMpdPlaylist: false}, () => {
           clearTimeout(this.timeout);
           this.loopPlayerStatus();
@@ -376,7 +396,7 @@ class MpdService extends Component {
   
   openTaliesin(e) {
     e.preventDefault();
-    window.open(this.state.config.frontend.taliesinRootUrl + "#playerCarleon/" + this.state.element.name, "_blank");
+    window.open(this.state.config.frontend.taliesinRootUrl[0] + "#playerCarleon/" + this.state.element.name, "_blank");
   }
 
 	render() {
@@ -388,8 +408,12 @@ class MpdService extends Component {
         </div>
     }
     this.state.streamList.forEach((stream, index) => {
+      let displayName = stream.display_name;
+      if (displayName.startsWith("{") && displayName.indexOf("} - ") > 0) {
+        displayName = displayName.substring(displayName.indexOf("} - ") + 4);
+      }
       playList.push(
-        <li key={"tal-"+index}><a className="dropdown-item" href="#" onClick={(e) => this.selectStream(e, stream)}>{stream.display_name}</a></li>
+        <li key={"tal-"+index}><a className="dropdown-item" href="#" onClick={(e) => this.selectStream(e, stream)}>{displayName}</a></li>
       );
     });
     if (playList.length) {
@@ -410,14 +434,22 @@ class MpdService extends Component {
       }
     }
     if (this.state.selectedStream) {
-      curPlaylistJsx = this.state.selectedStream.display_name;
+      let displayName = this.state.selectedStream.display_name;
+      if (displayName.startsWith("{") && displayName.indexOf("} - ") > 0) {
+        displayName = displayName.substring(displayName.indexOf("} - ") + 4);
+      }
+      curPlaylistJsx = displayName;
     } else if (this.state.selectedMpdPlaylist) {
       curPlaylistJsx = this.state.selectedMpdPlaylist;
     } else if (this.state.currentStream) {
       curPlaylistJsx = i18next.t("services.carleon-service-mpd-playlists");
       this.state.streamList.forEach((stream, index) => {
         if (stream.name === this.state.currentStream) {
-          curPlaylistJsx = stream.display_name;
+          let displayName = stream.display_name;
+          if (displayName.startsWith("{") && displayName.indexOf("} - ") > 0) {
+            displayName = displayName.substring(displayName.indexOf("} - ") + 4);
+          }
+          curPlaylistJsx = displayName;
         }
       });
     } else {
@@ -518,6 +550,9 @@ class MpdService extends Component {
             <i className="fa fa-step-forward" aria-hidden="true"></i>
           </button>
           {switchButtonJsx}
+          <button type="button" className="btn btn-secondary" onClick={this.openTaliesin}>
+            <i className="fa fa-external-link-square" aria-hidden="true"></i>
+          </button>
           <button type="button" className={"btn "+randomClass} onClick={(e) => this.sendMpdCommand(e, "random")}>
             <i className="fa fa-random" aria-hidden="true"></i>
           </button>
@@ -558,7 +593,7 @@ class MpdService extends Component {
           </div>
           <div className="btn-group" role="group" aria-label="Basic example">
             <div className="btn-group" role="group">
-              <button className="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <button className="btn btn-secondary dropdown-toggle longName" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                 {curPlaylistJsx}
               </button>
               <ul className="dropdown-menu">

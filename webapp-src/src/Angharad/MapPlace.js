@@ -111,6 +111,7 @@ class MapPlace extends Component {
           <div key={"scheduler-"+index} className="col-sm-3 border rounded elt-left" draggable={this.state.adminMode} onDragStart={(e) => this.dragElt(e, undefined, "scheduler", elt.name)}>
             <label className="d-flex align-items-center">
               <i className="fa fa-calendar elt-left" aria-hidden="true"></i>
+              {elt.name}
             </label>
           </div>
         );

@@ -125,7 +125,10 @@
     "benoic-element-modal-monitor-from-172800": "2 jours",
     "benoic-element-modal-monitor-from-259200": "3 jours",
     "benoic-element-modal-monitor-from-604800": "1 semaine",
-    "benoic-element-modal-monitor-from-2592000": "30 jours"
+    "benoic-element-modal-monitor-from-2592000": "30 jours",
+    "benoic-element-modal-monitor-to": "Fin",
+    "benoic-element-modal-battery": "Batterie associée",
+    "benoic-element-modal-battery-none": "Aucun"
   },
   "services": {
     "title": "Liste des services",

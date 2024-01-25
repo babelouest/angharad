@@ -130,7 +130,7 @@ class Map extends Component {
           messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
         });
       } else if (element.type === "scheduler") {
-        messageDispatcher.sendMessage("Scheduler", {scheduler: element.scheduler, add: false, remove: false});
+        messageDispatcher.sendMessage("Scheduler", {show: true, scheduler: element.scheduler});
       }
     }
   }
@@ -354,15 +354,8 @@ class Map extends Component {
           </a>
         );
       } else if (element.type === "scheduler") {
-        let nextTimeJsx;
         this.state.scheduler.forEach(scheduler => {
           if (scheduler.name === element.name) {
-            if (scheduler.enabled) {
-              let nextTime = new Date(scheduler.next_time*1000);
-              nextTimeJsx = nextTime.toLocaleString('fr-CA',{hour12: false, year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute:'2-digit'});
-            } else {
-              nextTimeJsx = i18next.t("schedulers.disabled")
-            }
             let className = "map-img-element btn";
             if (this.state.adminMode) {
               className += " btn-danger";
@@ -370,14 +363,15 @@ class Map extends Component {
               className += " btn-secondary";
             }
             element.scheduler = scheduler;
+            let classJsx = "fa fa-calendar-times-o";
+            if (scheduler.enabled) {
+              classJsx = "fa fa-calendar-check-o";
+            }
             elementList.push(
               <a key={index} href="#" className={className} title={element.name} style={style} onClick={(e) => this.selectElement(e, element, index)} draggable={true} onDragStart={(e) => this.dragMoveElt(e, index)}>
                 <div>
-                  <i className="fa fa-calendar elt-left" aria-hidden="true"></i>
+                  <i className={classJsx + " elt-left"} aria-hidden="true"></i>
                   {element.name}
-                </div>
-                <div>
-                  {nextTimeJsx}
                 </div>
               </a>
             );

@@ -97,3 +97,9 @@
 .close-navbar-toggler.collapsed{
   z-index:-1;
 }
+.longName {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}

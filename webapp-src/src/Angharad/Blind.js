@@ -50,8 +50,7 @@ class Blind extends Component {
       <div className="row elt-top border rounded agrd-element">
         <div className="col-2">
           <label className="d-flex align-items-center">
-            <i className="fa fa-window-maximize elt-left" aria-hidden="true">
-            </i>
+            <i className="fa fa-window-maximize elt-left" aria-hidden="true"></i>
             {this.state.element.display}
           </label>
         </div>

@@ -31,6 +31,7 @@ import ModalBlind from './ModalBlind';
 import ModalService from './ModalService';
 import ModalScript from './ModalScript';
 import ModalScheduler from './ModalScheduler';
+import ModalSchedulerShow from './ModalSchedulerShow';
 import ModalMap from './ModalMap';
 import ModalConfirm from './ModalConfirm';
 import ModalOpenService from './ModalOpenService';
@@ -67,6 +68,7 @@ class App extends Component {
       showModalService: false,
       showModalScript: false,
       showModalScheduler: false,
+      showModalSchedulerShow: false,
       showModalMap: false,
       showModalConfirm: false,
       showOpenService: false,
@@ -75,6 +77,7 @@ class App extends Component {
       modalServiceParameters: {type: false, element: false, add: false},
       modalScriptParameters: {add: false, script: {}},
       modalSchedulerParameters: {add: false, scheduler: {}},
+      modalSchedulerShowParameters: {scheduler: {}},
       modalMapParameters: {add: false, map: {}},
       modalConfirmParameters: {title: false, message: false, cb: false},
       modalOpenService: {element: false, type: false},
@@ -178,10 +181,23 @@ class App extends Component {
         this.setState({deviceOverview: deviceOverview});
       } else if (message.status === "edit") {
         this.setState({showModalElement: true,
-                       modalElementParameters: {device: message.device, type: message.type, name: message.name, element: message.element}});
+                       modalElementParameters: {
+                         device: message.device,
+                         type: message.type,
+                         name: message.name,
+                         element: message.element
+                        }
+                      });
       } else if (message.status === "monitor") {
         this.setState({showModalMonitor: true,
-                       showOpenService: false, modalElementParameters: {device: message.device, type: message.type, name: message.name, element: message.element}});
+                       showOpenService: false,
+                       modalElementParameters: {
+                         device: message.device,
+                         type: message.type,
+                         name: message.name,
+                         element: message.element
+                       }
+                    });
       } else if (message.status === "dimmerModal") {
         this.setState({showDimmer: true, showBlind: false, modalDimmerParameters: {device: message.device, name: message.name, element: message.element}});
       } else if (message.status === "blindModal") {
@@ -193,6 +209,16 @@ class App extends Component {
           messageDispatcher.sendMessage('Notification', {hideAll: true});
           messageDispatcher.sendMessage('Notification', {type: "success", message: i18next.t("message.refresh")});
         });
+      } else if (message.status === "silentRefresh") {
+        if (message.device) {
+          this.refreshDevice(message.device);
+        } else {
+          this.state.deviceList.forEach(device => {
+            if (device.enabled && device.connected) {
+              this.refreshDevice(device.name);
+            }
+          });
+        }
       }
     });
 
@@ -242,6 +268,8 @@ class App extends Component {
                                                 cb: this.cbRemoveScheduler,
                                                 type: "scheduler",
                                                 scheduler: message.scheduler}});
+      } else if (message.show) {
+        this.setState({showModalSchedulerShow: true, modalSchedulerShowParameters: {scheduler: message.scheduler}});
       } else {
         if (message.status === "refresh") {
           apiManager.APIRequestAngharad("scheduler")
@@ -326,12 +354,14 @@ class App extends Component {
     });
 
     if (!this.state.config.oidc) {
+      this.state.oidcStatus = "connected";
       this.initModules();
     }
 
     this.gotoRoute = this.gotoRoute.bind(this);
     this.initModules = this.initModules.bind(this);
     this.refreshData = this.refreshData.bind(this);
+    this.refreshDevice = this.refreshDevice.bind(this);
     this.cbSaveElement = this.cbSaveElement.bind(this);
     this.cbSaveService = this.cbSaveService.bind(this);
     this.cbSaveScript = this.cbSaveScript.bind(this);
@@ -350,6 +380,7 @@ class App extends Component {
     this.hideService = this.hideService.bind(this);
     this.hideScript = this.hideScript.bind(this);
     this.hideScheduler = this.hideScheduler.bind(this);
+    this.hideSchedulerShow = this.hideSchedulerShow.bind(this);
     this.hideMap = this.hideMap.bind(this);
     this.hideOpenService = this.hideOpenService.bind(this);
   }
@@ -441,15 +472,7 @@ class App extends Component {
       this.setState({profileList: results, mapList: mapList.sort((a, b) => a.index - b.index)}, () => {
         this.state.deviceList.forEach(device => {
           if (device.enabled && device.connected) {
-            promsDevice.push(apiManager.APIRequestBenoic("device/" + encodeURIComponent(device.name) + "/overview")
-            .then((results) => {
-              let deviceOverview = this.state.deviceOverview;
-              deviceOverview[device.name] = results;
-              this.setState({deviceOverview: deviceOverview});
-            })
-            .catch((err) => {
-              messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.device-error", {name: device.name})});
-            }));
+            promsDevice.push(this.refreshDevice(device.name));
           }
         });
         return Promise.all(promsDevice)
@@ -478,6 +501,18 @@ class App extends Component {
         messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.profile-error")});
       }
     });
+  }
+
+  refreshDevice(device) {
+    return apiManager.APIRequestBenoic("device/" + encodeURIComponent(device) + "/overview")
+    .then((results) => {
+      let deviceOverview = this.state.deviceOverview;
+      deviceOverview[device] = results;
+      this.setState({deviceOverview: deviceOverview});
+    })
+    .catch((err) => {
+      messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.device-error", {name: device})});
+    })
   }
 
   gotoRoute(route) {
@@ -760,6 +795,10 @@ class App extends Component {
     this.setState({showModalScheduler: false});
   }
 
+  hideSchedulerShow() {
+    this.setState({showModalSchedulerShow: false});
+  }
+
   hideMap() {
     this.setState({showModalMap: false});
   }
@@ -837,12 +876,14 @@ class App extends Component {
         {this.state.showBlind ? <ModalBlind handleHideModal={this.hideBlind}
                                 device={this.state.modalDimmerParameters.device}
                                 name={this.state.modalDimmerParameters.name}
-                                element={this.state.modalDimmerParameters.element} /> : null}
+                                element={this.state.modalDimmerParameters.element}
+                                deviceOverview={this.state.deviceOverview} /> : null}
         {this.state.showModalElement ? <ModalElement handleHideModal={this.hideElement}
                                         device={this.state.modalElementParameters.device}
                                         type={this.state.modalElementParameters.type}
                                         name={this.state.modalElementParameters.name}
                                         element={this.state.modalElementParameters.element}
+                                        deviceOverview={this.state.deviceOverview}
                                         cb={this.cbSaveElement} /> : null}
         {this.state.showModalMonitor ? <ModalMonitor handleHideModal={this.hideMonitor}
                                         device={this.state.modalElementParameters.device}
@@ -871,6 +912,8 @@ class App extends Component {
                                           schedulerList={this.state.scheduler}
                                           scriptList={this.state.script}
                                           cb={this.cbSaveScheduler} /> : null}
+        {this.state.showModalSchedulerShow ? <ModalSchedulerShow handleHideModal={this.hideSchedulerShow}
+                                              scheduler={this.state.modalSchedulerShowParameters.scheduler} /> : null}
         {this.state.showModalMap ? <ModalMap handleHideModal={this.hideMap}
                                     map={this.state.modalMapParameters.map}
                                     add={this.state.modalMapParameters.add}

@@ -12,8 +12,10 @@ class SimpleMonitor extends Component {
       type: props.type,
       name: props.name,
       display: props.display,
+      value: props.value,
       unit: props.unit,
-      from: 86400
+      from: props.from,
+      to: props.to
     }
     
     this.updateData = this.updateData.bind(this);
@@ -26,15 +28,21 @@ class SimpleMonitor extends Component {
   }
   
   updateData() {
-    apiManager.APIRequestBenoic("monitor/" + encodeURIComponent(this.state.device) + "/" + encodeURIComponent(this.state.type) + "/" + encodeURIComponent(this.state.name) + "?from=" + (Math.floor(Date.now()/1000) - this.state.from))
+    let from = Math.floor(this.state.to - this.state.from);
+    apiManager.APIRequestBenoic("monitor/" + encodeURIComponent(this.state.device) + "/" + encodeURIComponent(this.state.type) + "/" + encodeURIComponent(this.state.name) + "?from=" + from + "&to=" + this.state.to)
     .then(result => {
       let data = [];
       result.forEach(val => {
         data.push([new Date(val.timestamp*1000).toISOString(), val.value]);
       });
       let legend = this.state.display;
-      if (this.state.unit) {
-        legend += " (" + this.state.unit + ")";
+      if (isNaN(this.state.value)) {
+        legend += " (" + this.state.unit.trim() + ")";
+      } else {
+        legend += ": " + this.state.value.toFixed(2);
+        if (this.state.unit) {
+          legend += this.state.unit;
+        }
       }
 
       let option = {
