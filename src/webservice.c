@@ -42,7 +42,7 @@ int callback_angharad_server_configuration (const struct _u_request * request, s
                                            U_OPT_HEADER_PARAMETER, ULFIUS_HTTP_HEADER_CONTENT, ULFIUS_HTTP_ENCODING_JSON,
                                            U_OPT_NONE);
   return U_CALLBACK_CONTINUE;
-};
+}
 
 int callback_angharad_submodule_list (const struct _u_request * request, struct _u_response * response, void * user_data) {
   UNUSED(request);

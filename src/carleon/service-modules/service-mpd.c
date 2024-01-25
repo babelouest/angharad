@@ -51,7 +51,7 @@
 
 #define MPD_TABLE_NAME "c_service_mpd"
 #define MPD_WEBSOCKET_TABLE_NAME "c_mpd_websocket"
-#define MPD_CONNECT_TIMEOUT 10000
+#define MPD_CONNECT_TIMEOUT 2000
 #define MPD_WEBSOCKET_NAME_SIZE 32
 
 int set_response_json_body_and_clean(struct _u_response * response, uint status, json_t * json_body) {

@@ -24,7 +24,7 @@ MODULES_TARGET=$(PREFIX)/lib/angharad/benoic
 LIBZWPATH=/usr/lib
 CC=gcc
 CPP=g++
-CFLAGS=-c -fPIC -Wall -Wconversion -Wconversion -Wno-unknown-pragmas -D_REENTRANT -I$(PREFIX)/include -Wno-pragmas $(ADDITIONALFLAGS)
+CFLAGS=-c -fPIC -Wall -Wconversion -Wconversion -Wno-unknown-pragmas -Wpedantic -D_REENTRANT -I$(PREFIX)/include -Wno-pragmas $(ADDITIONALFLAGS)
 LIBS=-L$(PREFIX)/lib -lc -ljansson -lyder -lorcania -lulfius -ldl
 LDFLAGS += -Wl,-R '-Wl,-R$$ORIGIN' -lopenzwave
 

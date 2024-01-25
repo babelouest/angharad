@@ -137,7 +137,7 @@ json_t * b_device_ping (json_t * device, void * device_ptr) {
   
   UNUSED(device_ptr);
   res = ulfius_send_http_request(&req, &resp);
-  if (res == U_OK && o_strncmp("POLO", resp.binary_body, strlen("POLO"))) {
+  if (res == U_OK && o_strncmp("POLO", (const char *)resp.binary_body, strlen("POLO"))) {
 	  if (json_object_get(json_object_get(device, "options"), "old_version") == json_true()) {
       j_param = json_pack("{si}", "result", WEBSERVICE_RESULT_OK);
 	  } else {
@@ -179,7 +179,7 @@ json_t * b_device_overview (json_t * device, void * device_ptr) {
   if (res == U_OK) {
 	  if (json_object_get(json_object_get(device, "options"), "old_version") == json_true()) {
       overview = json_object();
-      saved_body = o_strndup(resp.binary_body, resp.binary_body_length);
+      saved_body = o_strndup((const char *)resp.binary_body, resp.binary_body_length);
       saved_body[strlen(saved_body) - 1] = '\0';
       str = saved_body;
       token = strtok_r(str + sizeof(char), ";", &saveptr);
@@ -301,7 +301,7 @@ json_t * b_device_get_sensor (json_t * device, const char * sensor_name, void * 
   if (res == U_OK) {
 	  if (json_object_get(json_object_get(device, "options"), "old_version") == json_true()) {
       j_result = json_pack("{si}", "result", WEBSERVICE_RESULT_OK);
-      value = resp.binary_body + sizeof(char);
+      value = ((char*)resp.binary_body) + 1;
       value[strlen(value) - 1] = '\0';
       d_value = strtod(value, &endptr);
       if (value == endptr) {
@@ -352,7 +352,7 @@ json_t * b_device_get_switch (json_t * device, const char * switch_name, void * 
   res = ulfius_send_http_request(&req, &resp);
   if (res == U_OK) {
 	  if (json_object_get(json_object_get(device, "options"), "old_version") == json_true()) {
-      value = resp.binary_body + sizeof(char);
+      value = ((char*)resp.binary_body) + 1;
       value[strlen(value) - 1] = '\0';
       i_value = strtol(value, &endptr, 10);
       if (value == endptr) {
@@ -433,7 +433,7 @@ json_t * b_device_get_dimmer (json_t * device, const char * dimmer_name, void * 
   res = ulfius_send_http_request(&req, &resp);
   if (res == U_OK) {
 	  if (json_object_get(json_object_get(device, "options"), "old_version") == json_true()) {
-      value = resp.binary_body + sizeof(char);
+      value = ((char*)resp.binary_body) + 1;
       value[strlen(value) - 1] = '\0';
       i_value = strtol(value, &endptr, 10);
       if (value == endptr) {

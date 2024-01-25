@@ -28,16 +28,16 @@
 
 /**
  * init_benoic
- * 
+ *
  * Initialize Benoic webservice with prefix and database connection parameters
- * 
+ *
  */
 int init_benoic(struct _u_instance * instance, const char * url_prefix, struct _benoic_config * config) {
   pthread_t thread_monitor;
   int thread_ret_monitor = 0, thread_detach_monitor = 0;
 
   if (instance != NULL && url_prefix != NULL && config != NULL) {
-    
+
     // Devices management
     ulfius_add_endpoint_by_val(instance, "GET", url_prefix, "/deviceTypes/", 2, &callback_benoic_device_get_types, (void*)config);
     ulfius_add_endpoint_by_val(instance, "PUT", url_prefix, "/deviceTypes/reload", 2, &callback_benoic_device_reload_types, (void*)config);
@@ -49,10 +49,10 @@ int init_benoic(struct _u_instance * instance, const char * url_prefix, struct _
     ulfius_add_endpoint_by_val(instance, "GET", url_prefix, "/device/@device_name/connect", 2, &callback_benoic_device_connect, (void*)config);
     ulfius_add_endpoint_by_val(instance, "GET", url_prefix, "/device/@device_name/disconnect", 2, &callback_benoic_device_disconnect, (void*)config);
     ulfius_add_endpoint_by_val(instance, "GET", url_prefix, "/device/@device_name/ping", 2, &callback_benoic_device_ping, (void*)config);
-    
+
     // Device elements overview
     ulfius_add_endpoint_by_val(instance, "GET", url_prefix, "/device/@device_name/overview", 2, &callback_benoic_device_overview, (void*)config);
-    
+
     // Elements get, set and put
     ulfius_add_endpoint_by_val(instance, "GET", url_prefix, "/device/@device_name/@element_type/@element_name", 2, &callback_benoic_device_element_get, (void*)config);
     ulfius_add_endpoint_by_val(instance, "GET", url_prefix, "/device/@device_name/@element_type/@element_name/@command", 2, &callback_benoic_device_element_set, (void*)config);
@@ -61,7 +61,7 @@ int init_benoic(struct _u_instance * instance, const char * url_prefix, struct _
     ulfius_add_endpoint_by_val(instance, "PUT", url_prefix, "/device/@device_name/@element_type/@element_name/@tag", 2, &callback_benoic_device_element_add_tag, (void*)config);
     ulfius_add_endpoint_by_val(instance, "DELETE", url_prefix, "/device/@device_name/@element_type/@element_name/@tag", 2, &callback_benoic_device_element_remove_tag, (void*)config);
     ulfius_add_endpoint_by_val(instance, "GET", url_prefix, "/monitor/@device_name/@element_type/@element_name/", 2, &callback_benoic_device_element_monitor, (void*)config);
-    
+
     // Get differents types available for devices by loading library files in module_path
     if (init_device_type_list(config) != B_OK) {
       y_log_message(Y_LOG_LEVEL_ERROR, "init_benoic - Error loading device types list");
@@ -70,7 +70,7 @@ int init_benoic(struct _u_instance * instance, const char * url_prefix, struct _
       y_log_message(Y_LOG_LEVEL_ERROR, "init_benoic - Error connecting devices");
       return B_ERROR_IO;
     }
-    
+
     // Start monitor thread
     config->benoic_status = BENOIC_STATUS_RUN;
     thread_ret_monitor = pthread_create(&thread_monitor, NULL, thread_monitor_run, (void *)config);
@@ -80,7 +80,7 @@ int init_benoic(struct _u_instance * instance, const char * url_prefix, struct _
                   thread_ret_monitor, thread_detach_monitor);
       return B_ERROR_IO;
     }
-    
+
     y_log_message(Y_LOG_LEVEL_INFO, "benoic is available on prefix %s", url_prefix);
     return B_OK;
   } else {
@@ -91,12 +91,12 @@ int init_benoic(struct _u_instance * instance, const char * url_prefix, struct _
 
 /**
  * stop_benoic
- * 
+ *
  * Send a stop signal to thread_monitor and disconnect all devices
  */
 int close_benoic(struct _u_instance * instance, const char * url_prefix, struct _benoic_config * config) {
   int res;
-  
+
   if (instance != NULL && url_prefix != NULL && config != NULL) {
     ulfius_remove_endpoint_by_val(instance, "GET", url_prefix, "/deviceTypes/");
     ulfius_remove_endpoint_by_val(instance, "PUT", url_prefix, "/deviceTypes/reload");
@@ -115,14 +115,14 @@ int close_benoic(struct _u_instance * instance, const char * url_prefix, struct 
     ulfius_remove_endpoint_by_val(instance, "PUT", url_prefix, "/device/@device_name/@element_type/@element_name/@tag");
     ulfius_remove_endpoint_by_val(instance, "DELETE", url_prefix, "/device/@device_name/@element_type/@element_name/@tag");
     ulfius_remove_endpoint_by_val(instance, "GET", url_prefix, "/monitor/@device_name/@element_type/@element_name/");
-    
+
     if (config->benoic_status == BENOIC_STATUS_RUN) {
       config->benoic_status = BENOIC_STATUS_STOPPING;
       while (config->benoic_status != BENOIC_STATUS_STOP) {
         sleep(1);
       }
     }
-    
+
     res = disconnect_all_devices(config);
     if (res != B_OK) {
       y_log_message(Y_LOG_LEVEL_ERROR, "close_benoic - Error disconnecting all devices");
@@ -146,7 +146,7 @@ int close_benoic(struct _u_instance * instance, const char * url_prefix, struct 
 
 /**
  * clean_benoic
- * 
+ *
  * clean configuration structure
  */
 void clean_benoic(struct _benoic_config * config) {
@@ -154,23 +154,115 @@ void clean_benoic(struct _benoic_config * config) {
   o_free(config);
 }
 
+struct _monitor_runner {
+  struct _benoic_config * config;
+  json_t * j_element;
+};
+
+static void * thread_monitor_element_run(void * args) {
+  struct _monitor_runner * mointor_runner = (struct _monitor_runner *)args;
+  json_t * device, * value, * j_query;
+  char * s_value, * s_next_time;
+  int res;
+
+  y_log_message(Y_LOG_LEVEL_DEBUG, "run monitor for %s/%s", json_string_value(json_object_get(mointor_runner->j_element, "bd_name")), json_string_value(json_object_get(mointor_runner->j_element, "be_name")));
+  device = get_device(mointor_runner->config, json_string_value(json_object_get(mointor_runner->j_element, "bd_name")));
+  if (device != NULL) {
+    if (json_object_get(device, "enabled") == json_true() && json_object_get(device, "connected") == json_true()) {
+      // Getting value
+      value = NULL;
+      if (has_element(mointor_runner->config, device, (int)json_integer_value(json_object_get(mointor_runner->j_element, "be_type")), json_string_value(json_object_get(mointor_runner->j_element, "be_name")))) {
+        switch (json_integer_value(json_object_get(mointor_runner->j_element, "be_type"))) {
+          case BENOIC_ELEMENT_TYPE_SENSOR:
+            value = get_sensor(mointor_runner->config, device, json_string_value(json_object_get(mointor_runner->j_element, "be_name")));
+            break;
+          case BENOIC_ELEMENT_TYPE_SWITCH:
+            value = get_switch(mointor_runner->config, device, json_string_value(json_object_get(mointor_runner->j_element, "be_name")));
+            break;
+          case BENOIC_ELEMENT_TYPE_DIMMER:
+            value = get_dimmer(mointor_runner->config, device, json_string_value(json_object_get(mointor_runner->j_element, "be_name")));
+            break;
+          case BENOIC_ELEMENT_TYPE_HEATER:
+            value = get_heater(mointor_runner->config, device, json_string_value(json_object_get(mointor_runner->j_element, "be_name")));
+            break;
+          case BENOIC_ELEMENT_TYPE_BLIND:
+            value = get_blind(mointor_runner->config, device, json_string_value(json_object_get(mointor_runner->j_element, "be_name")));
+            break;
+        }
+      }
+
+      // Inserting value in monitor table
+      if (value != NULL) {
+        s_value = NULL;
+        if (json_is_integer(json_object_get(value, "value"))) {
+          s_value = msprintf("%" JSON_INTEGER_FORMAT, json_integer_value(json_object_get(value, "value")));
+        } else if (json_is_number(json_object_get(value, "value"))) {
+          s_value = msprintf("%.2f", json_number_value(json_object_get(value, "value")));
+        } else if (json_is_string(json_object_get(value, "value"))) {
+          s_value = o_strdup(json_string_value(json_object_get(value, "value")));
+        }
+        if (s_value != NULL) {
+          j_query = json_pack("{sss{sIss}}",
+                              "table",
+                              BENOIC_TABLE_MONITOR,
+                              "values",
+                                "be_id",
+                                json_integer_value(json_object_get(mointor_runner->j_element, "be_id")),
+                                "bm_value",
+                                s_value);
+          res = h_insert(mointor_runner->config->conn, j_query, NULL);
+          json_decref(j_query);
+          if (res != H_OK) {
+            y_log_message(Y_LOG_LEVEL_ERROR, "thread_monitor_element_run - Error inserting data for monitor %s/%s", json_string_value(json_object_get(mointor_runner->j_element, "bd_name")), json_string_value(json_object_get(mointor_runner->j_element, "be_name")));
+          }
+          y_log_message(Y_LOG_LEVEL_DEBUG, "element %s/%s monitored", json_string_value(json_object_get(mointor_runner->j_element, "bd_name")), json_string_value(json_object_get(mointor_runner->j_element, "be_name")));
+          o_free(s_value);
+        }
+        json_decref(value);
+      }
+
+      // Updating next monitor time
+      if (mointor_runner->config->conn->type == HOEL_DB_TYPE_MARIADB) {
+        s_next_time = msprintf("CURRENT_TIMESTAMP + INTERVAL %" JSON_INTEGER_FORMAT " SECOND", json_integer_value(json_object_get(mointor_runner->j_element, "be_monitored_every")));
+      } else {
+        s_next_time = msprintf("strftime('%%s','now')+%" JSON_INTEGER_FORMAT, json_integer_value(json_object_get(mointor_runner->j_element, "be_monitored_every")));
+      }
+      j_query = json_pack("{sss{s{ss}}s{sI}}", "table", BENOIC_TABLE_ELEMENT, "set", "be_monitored_next", "raw", s_next_time, "where", "be_id", json_integer_value(json_object_get(mointor_runner->j_element, "be_id")));
+      res = h_update(mointor_runner->config->conn, j_query, NULL);
+      json_decref(j_query);
+      o_free(s_next_time);
+      if (res != H_OK) {
+        y_log_message(Y_LOG_LEVEL_ERROR, "thread_monitor_element_run - Error updating next_time for monitor %s/%s", json_string_value(json_object_get(mointor_runner->j_element, "bd_name")), json_string_value(json_object_get(mointor_runner->j_element, "be_name")));
+      }
+    }
+  } else {
+    y_log_message(Y_LOG_LEVEL_ERROR, "thread_monitor_element_run - device %s not found", json_string_value(json_object_get(mointor_runner->j_element, "bd_name")));
+  }
+  json_decref(device);
+  json_decref(mointor_runner->j_element);
+  o_free(mointor_runner);
+  return NULL;
+}
+
 /**
  * thread_monitor_run
- * 
+ *
  * thread for monitoring data
  * loop every minutes and get data to monitor (sensor values, switches, dimmers and heaters commands)
  * end when benoic_status is different than BENOIC_STATUS_RUN
- * 
+ *
  */
 void * thread_monitor_run(void * args) {
   struct _benoic_config * config = (struct _benoic_config *)args;
   time_t now;
   struct tm ts;
   int res;
-  json_t * j_query, * j_result, * j_element, * device, * value;
+  json_t * j_query, * j_result, * j_element;
   size_t index;
-  char * s_value, * s_next_time;
-  
+  pthread_t thread_monitor_element;
+  int thread_ret_monitor_element = 0, thread_detach_monitor_element = 0;
+  struct _monitor_runner * monitor_runner;
+
   if (config != NULL) {
     while (config->benoic_status == BENOIC_STATUS_RUN) {
       // Run monitoring task every minute
@@ -183,78 +275,20 @@ void * thread_monitor_run(void * args) {
           json_decref(j_query);
           if (res == H_OK) {
             json_array_foreach(j_result, index, j_element) {
-              device = get_device(config, json_string_value(json_object_get(j_element, "bd_name")));
-              if (device != NULL) {
-                if (json_object_get(device, "enabled") == json_true() && json_object_get(device, "connected") == json_true()) {
-                  // Getting value
-                  value = NULL;
-                  if (has_element(config, device, (int)json_integer_value(json_object_get(j_element, "be_type")), json_string_value(json_object_get(j_element, "be_name")))) {
-                    switch (json_integer_value(json_object_get(j_element, "be_type"))) {
-                      case BENOIC_ELEMENT_TYPE_SENSOR:
-                        value = get_sensor(config, device, json_string_value(json_object_get(j_element, "be_name")));
-                        break;
-                      case BENOIC_ELEMENT_TYPE_SWITCH:
-                        value = get_switch(config, device, json_string_value(json_object_get(j_element, "be_name")));
-                        break;
-                      case BENOIC_ELEMENT_TYPE_DIMMER:
-                        value = get_dimmer(config, device, json_string_value(json_object_get(j_element, "be_name")));
-                        break;
-                      case BENOIC_ELEMENT_TYPE_HEATER:
-                        value = get_heater(config, device, json_string_value(json_object_get(j_element, "be_name")));
-                        break;
-                      case BENOIC_ELEMENT_TYPE_BLIND:
-                        value = get_blind(config, device, json_string_value(json_object_get(j_element, "be_name")));
-                        break;
-                    }
-                  }
-                  
-                  // Inserting value in monitor table
-                  if (value != NULL) {
-                    s_value = NULL;
-                    if (json_is_integer(json_object_get(value, "value"))) {
-                      s_value = msprintf("%" JSON_INTEGER_FORMAT, json_integer_value(json_object_get(value, "value")));
-                    } else if (json_is_number(json_object_get(value, "value"))) {
-                      s_value = msprintf("%.2f", json_number_value(json_object_get(value, "value")));
-                    } else if (json_is_string(json_object_get(value, "value"))) {
-                      s_value = o_strdup(json_string_value(json_object_get(value, "value")));
-                    }
-                    if (s_value != NULL) {
-                      j_query = json_pack("{sss{sIss}}", 
-                                          "table", 
-                                          BENOIC_TABLE_MONITOR, 
-                                          "values", 
-                                            "be_id", 
-                                            json_integer_value(json_object_get(j_element, "be_id")), 
-                                            "bm_value", 
-                                            s_value);
-                      res = h_insert(config->conn, j_query, NULL);
-                      json_decref(j_query);
-                      if (res != H_OK) {
-                        y_log_message(Y_LOG_LEVEL_ERROR, "thread_monitor_run - Error inserting data for monitor %s/%s", json_string_value(json_object_get(j_element, "bd_name")), json_string_value(json_object_get(j_element, "be_name")));
-                      }
-                      o_free(s_value);
-                    }
-                    json_decref(value);
-                  }
-                  
-                  // Updating next monitor time
-                  if (config->conn->type == HOEL_DB_TYPE_MARIADB) {
-                    s_next_time = msprintf("CURRENT_TIMESTAMP + INTERVAL %" JSON_INTEGER_FORMAT " SECOND", json_integer_value(json_object_get(j_element, "be_monitored_every")));
-                  } else {
-                    s_next_time = msprintf("strftime('%%s','now')+%" JSON_INTEGER_FORMAT, json_integer_value(json_object_get(j_element, "be_monitored_every")));
-                  }
-                  j_query = json_pack("{sss{s{ss}}s{sI}}", "table", BENOIC_TABLE_ELEMENT, "set", "be_monitored_next", "raw", s_next_time, "where", "be_id", json_integer_value(json_object_get(j_element, "be_id")));
-                  res = h_update(config->conn, j_query, NULL);
-                  json_decref(j_query);
-                  o_free(s_next_time);
-                  if (res != H_OK) {
-                    y_log_message(Y_LOG_LEVEL_ERROR, "thread_monitor_run - Error updating next_time for monitor %s/%s", json_string_value(json_object_get(j_element, "bd_name")), json_string_value(json_object_get(j_element, "be_name")));
-                  }
+              if ((monitor_runner = o_malloc(sizeof(struct _monitor_runner))) != NULL) {
+                monitor_runner->config = config;
+                monitor_runner->j_element = json_incref(j_element);
+                thread_ret_monitor_element = pthread_create(&thread_monitor_element, NULL, thread_monitor_element_run, (void *)monitor_runner);
+                thread_detach_monitor_element = pthread_detach(thread_monitor_element);
+                if (thread_ret_monitor_element || thread_detach_monitor_element) {
+                  y_log_message(Y_LOG_LEVEL_ERROR, "Error creating or detaching monitor element thread, return code: %d, detach code: %d",
+                              thread_ret_monitor_element, thread_detach_monitor_element);
+                  json_decref(monitor_runner->j_element);
+                  o_free(monitor_runner);
                 }
               } else {
-                y_log_message(Y_LOG_LEVEL_ERROR, "thread_monitor_run - device %s not found", json_string_value(json_object_get(j_element, "bd_name")));
+                y_log_message(Y_LOG_LEVEL_ERROR, "thread_monitor_run - Error malloc for monitor_runner");
               }
-              json_decref(device);
             }
             json_decref(j_result);
           }
@@ -275,18 +309,18 @@ void * thread_monitor_run(void * args) {
  */
 void * get_device_ptr(struct _benoic_config * config, const char * device_name) {
   int i;
-  
+
   if (config == NULL || device_name == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "get_device_ptr - Error input parameters");
     return NULL;
   }
-  
+
   for (i=0; config->device_data_list != NULL && config->device_data_list[i].device_name != NULL; i++) {
     if (0 == o_strcmp(config->device_data_list[i].device_name, device_name)) {
       return config->device_data_list[i].device_ptr;
     }
   }
-  
+
   return NULL;
 }
 
@@ -297,11 +331,11 @@ void * get_device_ptr(struct _benoic_config * config, const char * device_name) 
 int set_device_data(struct _benoic_config * config, const char * device_name, void * device_ptr) {
   struct _benoic_device_data * tmp;
   size_t device_data_list_size;
-  
+
   if (config == NULL || device_name == NULL) {
     return B_ERROR_PARAM;
   }
-  
+
   // Append new device_ptr
   if (config->device_data_list == NULL) {
     config->device_data_list = o_malloc(2 * sizeof(struct _benoic_device_data));
@@ -347,7 +381,7 @@ int remove_device_data(struct _benoic_config * config, const char * device_name)
   if (config == NULL || device_name == NULL) {
     return B_ERROR_PARAM;
   }
-  
+
   if (config->device_data_list != NULL) {
     for (i=0; config->device_data_list[i].device_name != NULL; i++) {
       if (0 == o_strcmp(config->device_data_list[i].device_name, device_name)) {
@@ -379,7 +413,7 @@ int remove_device_data(struct _benoic_config * config, const char * device_name)
 int disconnect_all_devices(struct _benoic_config * config) {
   size_t index;
   json_t * device, * device_list;
-  
+
   if (config != NULL) {
     device_list = get_device(config, NULL);
     json_array_foreach(device_list, index, device) {
@@ -463,7 +497,7 @@ int callback_benoic_device_get (const struct _u_request * request, struct _u_res
 int callback_benoic_device_add (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * result, * device;
   json_t * json_body = ulfius_get_json_body_request(request, NULL);
-  
+
   if (json_body == NULL) {
     set_response_json_body_and_clean(response, 400, json_pack("{ss}", "error", "invalid input json format"));
     return U_CALLBACK_CONTINUE;
@@ -500,7 +534,7 @@ int callback_benoic_device_add (const struct _u_request * request, struct _u_res
 int callback_benoic_device_modify (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * result, * device;
   json_t * json_body = ulfius_get_json_body_request(request, NULL);
-  
+
   if (json_body == NULL) {
     set_response_json_body_and_clean(response, 400, json_pack("{ss}", "error", "invalid input json format"));
     return U_CALLBACK_CONTINUE;
@@ -538,7 +572,7 @@ int callback_benoic_device_modify (const struct _u_request * request, struct _u_
 int callback_benoic_device_delete (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * device;
   int res;
-  
+
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_benoic_device_delete - Error, callback_benoic_device_delete user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -565,7 +599,7 @@ int callback_benoic_device_delete (const struct _u_request * request, struct _u_
 int callback_benoic_device_connect (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * device;
   int res;
-  
+
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_benoic_device_get - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -591,7 +625,7 @@ int callback_benoic_device_connect (const struct _u_request * request, struct _u
 
 int callback_benoic_device_disconnect (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * device;
-  
+
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_benoic_device_get - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -609,7 +643,7 @@ int callback_benoic_device_disconnect (const struct _u_request * request, struct
 
 int callback_benoic_device_ping (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * device;
-  
+
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_benoic_device_get - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -637,7 +671,7 @@ int callback_benoic_device_ping (const struct _u_request * request, struct _u_re
 
 int callback_benoic_device_overview (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * device, * overview;
-  
+
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_benoic_device_get - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -667,7 +701,7 @@ int callback_benoic_device_overview (const struct _u_request * request, struct _
 
 int callback_benoic_device_element_get (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * device, * result = NULL;
-  
+
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_benoic_device_get - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -708,7 +742,7 @@ int callback_benoic_device_element_put (const struct _u_request * request, struc
   json_t * device, * element = NULL, * valid;
   int element_type = BENOIC_ELEMENT_TYPE_NONE;
   json_t * json_body = ulfius_get_json_body_request(request, NULL);
-  
+
   if (json_body == NULL) {
     set_response_json_body_and_clean(response, 400, json_pack("{ss}", "error", "invalid input json format"));
     return U_CALLBACK_CONTINUE;
@@ -771,7 +805,7 @@ int callback_benoic_device_element_set (const struct _u_request * request, struc
   int element_type = BENOIC_ELEMENT_TYPE_NONE, i_command, res = 0;
   float f_command;
   char * endptr;
-  
+
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_benoic_device_element_set - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -873,7 +907,7 @@ int callback_benoic_device_element_add_tag (const struct _u_request * request, s
   json_t * device, * element = NULL;
   int element_type = BENOIC_ELEMENT_TYPE_NONE;
   int res;
-  
+
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_benoic_device_element_set - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -927,7 +961,7 @@ int callback_benoic_device_element_add_tag (const struct _u_request * request, s
 int callback_benoic_device_element_remove_tag (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * device, * element = NULL;
   int element_type = BENOIC_ELEMENT_TYPE_NONE;
-  
+
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_benoic_device_element_set - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -975,7 +1009,7 @@ int callback_benoic_device_element_monitor(const struct _u_request * request, st
   json_t * device, * result, * params = json_object();
   int element_type = BENOIC_ELEMENT_TYPE_NONE, dt_param;
   char * endptr;
-  
+
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_benoic_device_element_monitor - Error, user_data is NULL");
     return U_CALLBACK_ERROR;

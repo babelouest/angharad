@@ -154,7 +154,7 @@ int set_heater(struct _benoic_config * config, json_t * device, const char * hea
 json_t * get_element_data(struct _benoic_config * config, json_t * device, const int element_type, const char * element_name, int create);
 int set_element_data(struct _benoic_config * config, json_t * device, const char * element_name, const int element_type, json_t * element_data, const int update);
 json_t * parse_element_from_db(json_t * element);
-json_t * parse_element_to_db(json_t * element, const char * device, const char * element_name, const int element_type, const int update);
+json_t * parse_element_to_db(json_t * element, const char * device, const char * element_name, const int element_type, const int update, int db_type);
 json_t * is_element_valid(json_t * element, const int element_type);
 json_t * is_option_valid(json_t * options, int element_type);
 int is_tag_list_valid(json_t * tags);

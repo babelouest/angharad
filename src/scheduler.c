@@ -30,6 +30,37 @@
 
 #include "angharad.h"
 
+struct _scheduler_runner {
+  struct config_elements * config;
+  json_t * scheduler;
+};
+
+static void * thread_scheduler_element_run(void * args) {
+  struct _scheduler_runner * scheduler_runner = (struct _scheduler_runner *)args;
+  time_t now;
+  struct tm ts;
+  size_t index = 0;
+  json_t * script = NULL;
+
+  time(&now);
+  localtime_r(&now, &ts);
+  // Execute scheduler scripts
+  y_log_message(Y_LOG_LEVEL_DEBUG, "run scheduler %s", json_string_value(json_object_get(scheduler_runner->scheduler, "name")));
+  if ((time_t)json_integer_value(json_object_get(scheduler_runner->scheduler, "next_time")) >= (now - 60)) {
+
+    json_array_foreach(json_object_get(scheduler_runner->scheduler, "scripts"), index, script) {
+      if (json_object_get(script, "enabled") == json_true() && json_is_string(json_object_get(script, "name"))) {
+        y_log_message(Y_LOG_LEVEL_INFO, "thread_scheduler_run - run script %s", json_string_value(json_object_get(script, "name")));
+        script_run(scheduler_runner->config, json_string_value(json_object_get(script, "name")));
+        y_log_message(Y_LOG_LEVEL_DEBUG, "scheduler %s runned", json_string_value(json_object_get(scheduler_runner->scheduler, "name")));
+      }
+    }
+  }
+  json_decref(scheduler_runner->scheduler);
+  o_free(scheduler_runner);
+  return NULL;
+}
+
 /**
  * thread that loop forever annd check every minute if there are schedulers to execute
  */
@@ -37,8 +68,11 @@ void * thread_scheduler_run(void * args) {
   struct config_elements * config = (struct config_elements *)args;
   time_t now, next_time;
   struct tm ts;
-  json_t * scheduler_list_names, * scheduler_name, * scheduler, * scheduler_result, * script;
-  size_t index, index_sc;
+  json_t * scheduler_list_names, * scheduler_name = NULL, * scheduler, * scheduler_result;
+  size_t index = 0;
+  struct _scheduler_runner * scheduler_runner;
+  pthread_t thread_scheduler_element;
+  int thread_ret_scheduler_element = 0, thread_detach_scheduler_element = 0;
 
   if (config != NULL) {
     while (config->angharad_status == ANGHARAD_STATUS_RUN) {
@@ -53,6 +87,20 @@ void * thread_scheduler_run(void * args) {
             scheduler_result = scheduler_get(config, json_string_value(json_object_get(scheduler_name, "name")), 1);
             if (scheduler_result != NULL && json_integer_value(json_object_get(scheduler_result, "result")) == A_OK) {
               scheduler = json_object_get(scheduler_result, "scheduler");
+              if ((scheduler_runner = o_malloc(sizeof(struct _scheduler_runner))) != NULL) {
+                scheduler_runner->config = config;
+                scheduler_runner->scheduler = json_incref(json_object_get(scheduler_result, "scheduler"));
+                thread_ret_scheduler_element = pthread_create(&thread_scheduler_element, NULL, thread_scheduler_element_run, (void *)scheduler_runner);
+                thread_detach_scheduler_element = pthread_detach(thread_scheduler_element);
+                if (thread_ret_scheduler_element || thread_detach_scheduler_element) {
+                  y_log_message(Y_LOG_LEVEL_ERROR, "Error creating or detaching scheduler element thread, return code: %d, detach code: %d",
+                              thread_ret_scheduler_element, thread_detach_scheduler_element);
+                  json_decref(scheduler_runner->scheduler);
+                  o_free(scheduler_runner);
+                }
+              } else {
+                y_log_message(Y_LOG_LEVEL_ERROR, "thread_scheduler_run - Error malloc for scheduler_runner");
+              }
               next_time = (time_t)json_integer_value(json_object_get(scheduler, "next_time"));
 
               // Calculate next time or remove scheduler if needed or disable it if it's in the past
@@ -62,7 +110,7 @@ void * thread_scheduler_run(void * args) {
                   y_log_message(Y_LOG_LEVEL_ERROR, "Error removing scheduler %s", json_string_value(json_object_get(scheduler, "name")));
                 }
               } else if (json_integer_value(json_object_get(scheduler, "repeat")) >= 0) {
-                y_log_message(Y_LOG_LEVEL_DEBUG, "Calculate nex_time for scheduler scheduler %s", json_string_value(json_object_get(scheduler, "name")));
+                y_log_message(Y_LOG_LEVEL_DEBUG, "Calculate next_time for scheduler scheduler %s", json_string_value(json_object_get(scheduler, "name")));
                 while (next_time <= now) {
                   next_time = scheduler_calculate_next_time(next_time, json_integer_value(json_object_get(scheduler, "repeat")), json_integer_value(json_object_get(scheduler, "repeat_value")));
                 }
@@ -77,17 +125,6 @@ void * thread_scheduler_run(void * args) {
                 json_object_set_new(scheduler, "enabled", json_false());
                 if (scheduler_modify(config, json_string_value(json_object_get(scheduler, "name")), scheduler) != A_OK) {
                   y_log_message(Y_LOG_LEVEL_ERROR, "Error updating scheduler %s", json_string_value(json_object_get(scheduler, "name")));
-                }
-              }
-
-              // Execute scheduler scripts
-              if ((time_t)json_integer_value(json_object_get(scheduler, "next_time")) >= (now - 60)) {
-
-                json_array_foreach(json_object_get(scheduler, "scripts"), index_sc, script) {
-                  if (json_object_get(script, "enabled") == json_true() && json_is_string(json_object_get(script, "name"))) {
-                    y_log_message(Y_LOG_LEVEL_INFO, "thread_scheduler_run - run script %s", json_string_value(json_object_get(script, "name")));
-                    script_run(config, json_string_value(json_object_get(script, "name")));
-                  }
                 }
               }
             } else {

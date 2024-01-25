@@ -280,9 +280,10 @@ ValueID * get_device_value_id_by_label(node * cur_node, uint8 command_class, con
  * return the ValueID of the node identified by the command_class value
  */
 ValueID * get_device_value_id_by_element_name(zwave_context * zcontext, const char * element_name) {
-  char * str_type, * str_node_id, * str_label, * save_ptr, * dup_name_save, * dup_name = dup_name_save = o_strdup(element_name);
+  char * str_type, * str_node_id, * str_label, * save_ptr, * dup_name_save, * dup_name = dup_name_save = o_strdup(element_name), * endptr = NULL;
   ValueID * value;
   node * cur_node;
+  long int l_node = 0;
   
   // first token is the type
   str_type = strtok_r(dup_name, "$", &save_ptr);
@@ -291,33 +292,43 @@ ValueID * get_device_value_id_by_element_name(zwave_context * zcontext, const ch
   str_node_id = strtok_r(NULL, "$", &save_ptr);
   str_label = strtok_r(NULL, "$", &save_ptr);
   
-  if (str_type == NULL || str_node_id == NULL) {
+  if (o_strnullempty(str_type) || o_strnullempty(str_node_id)) {
     o_free(dup_name_save);
     return NULL;
   } else {
-    cur_node = get_device_node(zcontext, (uint8)strtol(str_node_id, NULL, 10));
-    if (0 == o_strcmp(str_type, "se")) {
-      // This is a sensor
-      if (str_label == NULL) {
+    l_node = strtol(str_node_id, &endptr, 10);
+    if (*endptr == '\0' && l_node > 0 && l_node <= UINT8_MAX) {
+      if ((cur_node = get_device_node(zcontext, (uint8)l_node)) != NULL) {
+        if (0 == o_strcmp(str_type, "se")) {
+          // This is a sensor
+          if (str_label == NULL) {
+            o_free(dup_name_save);
+            return NULL;
+          } else {
+            value = get_device_value_id_by_label(cur_node, COMMAND_CLASS_SENSOR_BINARY, str_label);
+            if (value == NULL) {
+              value = get_device_value_id_by_label(cur_node, COMMAND_CLASS_SENSOR_MULTILEVEL, str_label);
+            }
+            o_free(dup_name_save);
+            return value;
+          }
+        } else if (0 == o_strcmp(str_type, "sw")) {
+          o_free(dup_name_save);
+          return get_device_value_id(cur_node, COMMAND_CLASS_SWITCH_BINARY);
+        } else if (0 == o_strcmp(str_type, "di")) {
+          o_free(dup_name_save);
+          return get_device_value_id(cur_node, COMMAND_CLASS_SWITCH_MULTILEVEL);
+        } else if (0 == o_strcmp(str_type, "he")) {
+          o_free(dup_name_save);
+          return get_device_value_id(cur_node, COMMAND_CLASS_THERMOSTAT_SETPOINT);
+        } else {
+          o_free(dup_name_save);
+          return NULL;
+        }
+      } else {
         o_free(dup_name_save);
         return NULL;
-      } else {
-        value = get_device_value_id_by_label(cur_node, COMMAND_CLASS_SENSOR_BINARY, str_label);
-        if (value == NULL) {
-          value = get_device_value_id_by_label(cur_node, COMMAND_CLASS_SENSOR_MULTILEVEL, str_label);
-        }
-        o_free(dup_name_save);
-        return value;
       }
-    } else if (0 == o_strcmp(str_type, "sw")) {
-      o_free(dup_name_save);
-      return get_device_value_id(cur_node, COMMAND_CLASS_SWITCH_BINARY);
-    } else if (0 == o_strcmp(str_type, "di")) {
-      o_free(dup_name_save);
-      return get_device_value_id(cur_node, COMMAND_CLASS_SWITCH_MULTILEVEL);
-    } else if (0 == o_strcmp(str_type, "he")) {
-      o_free(dup_name_save);
-      return get_device_value_id(cur_node, COMMAND_CLASS_THERMOSTAT_SETPOINT);
     } else {
       o_free(dup_name_save);
       return NULL;
@@ -894,7 +905,7 @@ extern "C" json_t * b_device_set_heater (json_t * device, const char * heater_na
  */
 extern "C" json_t * b_device_overview (json_t * device, void * device_ptr) {  
   json_t * overview = json_object(), * value;
-  char * name, * unit, * end_ptr_d;
+  char * name, unit[17] = {0}, * end_ptr_d;
 	const char * cur_node = NULL;
   string s_status;
   bool b_status;
@@ -913,13 +924,14 @@ extern "C" json_t * b_device_overview (json_t * device, void * device_ptr) {
         Manager::Get()->RefreshValue(v);
         name = msprintf("sw$%02d", node->node_id);
         cur_node = "switches";
-        unit = (char *)Manager::Get()->GetValueUnits(v).c_str();
+        
+        o_strncpy(unit, (char *)Manager::Get()->GetValueUnits(v).c_str(), 16);
         try {
           if (Manager::Get()->GetValueAsBool(v, &b_status)) {
             if (json_object_get(overview, cur_node) == NULL) {
               json_object_set_new(overview, cur_node, json_object());
             }
-            if (unit != NULL && strlen(unit) >0) {
+            if (!o_strnullempty(unit)) {
               json_object_set_new(json_object_get(overview, cur_node), name, json_pack("{sssi}", "unit", unit, "value", b_status?1:0));
             } else {
               json_object_set_new(json_object_get(overview, cur_node), name, json_integer(b_status?1:0));
@@ -936,7 +948,7 @@ extern "C" json_t * b_device_overview (json_t * device, void * device_ptr) {
         if (0 == strcasecmp(Manager::Get()->GetValueLabel(v).c_str(), "level")) {
           name = msprintf("di$%02d", node->node_id);
           cur_node = "dimmers";
-          unit = (char *)Manager::Get()->GetValueUnits(v).c_str();
+          o_strncpy(unit, (char *)Manager::Get()->GetValueUnits(v).c_str(), 16);
           try {
             if (Manager::Get()->GetValueAsString(v, &s_status)) {
               if (s_status.compare("0")) {
@@ -945,7 +957,7 @@ extern "C" json_t * b_device_overview (json_t * device, void * device_ptr) {
               if (json_object_get(overview, cur_node) == NULL) {
                 json_object_set_new(overview, cur_node, json_object());
               }
-              if (unit != NULL && strlen(unit) >0) {
+              if (!o_strnullempty(unit)) {
                 json_object_set_new(json_object_get(overview, cur_node), name, json_pack("{sssi}", "unit", unit, "value", strtol(s_status.c_str(), NULL, 10)));
               } else {
                 json_object_set_new(json_object_get(overview, cur_node), name, json_integer(strtol(s_status.c_str(), NULL, 10)));
@@ -963,13 +975,13 @@ extern "C" json_t * b_device_overview (json_t * device, void * device_ptr) {
         char * named_label = naming_label(Manager::Get()->GetValueLabel(v).c_str());
         name = msprintf("se$%02d$%s", node->node_id, named_label);
         cur_node = "sensors";
-        unit = (char *)Manager::Get()->GetValueUnits(v).c_str();
+        o_strncpy(unit, (char *)Manager::Get()->GetValueUnits(v).c_str(), 16);
         try {
           if (Manager::Get()->GetValueAsBool(v, &b_status)) {
             if (json_object_get(overview, cur_node) == NULL) {
               json_object_set_new(overview, cur_node, json_object());
             }
-            if (unit != NULL && strlen(unit) >0) {
+            if (!o_strnullempty(unit)) {
               json_object_set_new(json_object_get(overview, cur_node), name, json_pack("{sssi}", "unit", unit, "value", b_status?1:0));
             } else {
               json_object_set_new(json_object_get(overview, cur_node), name, b_status?json_true():json_false());
@@ -987,7 +999,7 @@ extern "C" json_t * b_device_overview (json_t * device, void * device_ptr) {
         char * named_label = naming_label(Manager::Get()->GetValueLabel(v).c_str());
         name = msprintf("se$%02d$%s", node->node_id, named_label);
         cur_node = "sensors";
-        unit = (char *)Manager::Get()->GetValueUnits(v).c_str();
+        o_strncpy(unit, (char *)Manager::Get()->GetValueUnits(v).c_str(), 16);
         try {
           if (Manager::Get()->GetValueAsString(v, &s_status)) {
             d_value = strtof(s_status.c_str(), &end_ptr_d);
@@ -999,7 +1011,7 @@ extern "C" json_t * b_device_overview (json_t * device, void * device_ptr) {
             if (json_object_get(overview, cur_node) == NULL) {
               json_object_set_new(overview, cur_node, json_object());
             }
-            if (unit != NULL && strlen(unit) >0) {
+            if (!o_strnullempty(unit)) {
               json_object_set_new(json_object_get(overview, cur_node), name, json_pack("{ssso}", "unit", unit, "value", json_copy(value)));
             } else {
               json_object_set_new(json_object_get(overview, cur_node), name, json_copy(value));

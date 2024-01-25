@@ -480,7 +480,7 @@ int set_element_data(struct _benoic_config * config, json_t * device, const char
     return B_ERROR_PARAM;
   }
   
-  db_data = parse_element_to_db(element_data, json_string_value(json_object_get(device, "name")), element_name, element_type, update);
+  db_data = parse_element_to_db(element_data, json_string_value(json_object_get(device, "name")), element_name, element_type, update, config->conn->type);
   
   if (db_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "set_element_data - Error generating db_data");
@@ -546,7 +546,7 @@ json_t * parse_element_from_db(json_t * element) {
  * return a json_t * containing the element data, NULL on error
  * returned value must be free'd after use
  */
-json_t * parse_element_to_db(json_t * element, const char * device, const char * element_name, const int element_type, const int update) {
+json_t * parse_element_to_db(json_t * element, const char * device, const char * element_name, const int element_type, const int update, int db_type) {
   json_t * to_return;
   char * dump;
   
@@ -573,7 +573,17 @@ json_t * parse_element_to_db(json_t * element, const char * device, const char *
   dump = json_dumps(json_object_get(element, "options"), JSON_COMPACT);
   json_object_set_new(to_return, "be_options", json_string(dump));
   o_free(dump);
-  json_object_set_new(to_return, "be_monitored", json_object_get(element, "monitored")==json_true()?json_integer(1):json_integer(0));
+  if (json_object_get(element, "monitored") == json_true()) {
+    json_object_set_new(to_return, "be_monitored", json_integer(1));
+    if (db_type == HOEL_DB_TYPE_MARIADB) {
+      json_object_set_new(to_return, "be_monitored_next", json_pack("{ss}", "raw", "CURRENT_TIMESTAMP"));
+    } else {
+      json_object_set_new(to_return, "be_monitored_next", json_pack("{ss}", "raw", "strftime('%%s','now')"));
+    }
+  } else {
+    json_object_set_new(to_return, "be_monitored", json_integer(0));
+    json_object_set_new(to_return, "be_monitored_next", json_null());
+  }
   json_object_set_new(to_return, "be_monitored_every", json_copy(json_object_get(element, "monitored_every")));
   
   return to_return;
@@ -779,9 +789,9 @@ json_t * element_get_monitor(struct _benoic_config * config, json_t * device, co
   
   if (json_object_get(params, "from") != NULL) {
     if (config->conn->type == HOEL_DB_TYPE_MARIADB) {
-      tmp = msprintf("> FROM_UNIXTIME(%" JSON_INTEGER_FORMAT ")", json_integer_value(json_object_get(params, "from")));
+      tmp = msprintf(">= FROM_UNIXTIME(%" JSON_INTEGER_FORMAT ")", json_integer_value(json_object_get(params, "from")));
     } else {
-      tmp = msprintf("> '%" JSON_INTEGER_FORMAT "'", json_integer_value(json_object_get(params, "from")));
+      tmp = msprintf(">= '%" JSON_INTEGER_FORMAT "'", json_integer_value(json_object_get(params, "from")));
     }
     json_object_set_new(j_where, "bm_date", json_pack("{ssss}", "operator", "raw", "value", tmp));
     o_free(tmp);
@@ -795,11 +805,11 @@ json_t * element_get_monitor(struct _benoic_config * config, json_t * device, co
   
   if (json_object_get(params, "to") != NULL) {
     if (config->conn->type == HOEL_DB_TYPE_MARIADB) {
-      tmp = msprintf("< FROM_UNIXTIME(%" JSON_INTEGER_FORMAT ")", json_integer_value(json_object_get(params, "to")));
+      tmp = msprintf("<= FROM_UNIXTIME(%" JSON_INTEGER_FORMAT ")", json_integer_value(json_object_get(params, "to")));
     } else {
-      tmp = msprintf("< '%" JSON_INTEGER_FORMAT "'", json_integer_value(json_object_get(params, "from")));
+      tmp = msprintf("<= '%" JSON_INTEGER_FORMAT "'", json_integer_value(json_object_get(params, "from")));
     }
-    json_object_set_new(j_where, "bm_date", json_pack("{ssss}", "operator", "raw", "value", tmp));
+    json_object_set_new(j_where, " bm_date", json_pack("{ssss}", "operator", "raw", "value", tmp));
     o_free(tmp);
   }
   
