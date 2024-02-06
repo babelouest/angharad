@@ -30,12 +30,12 @@ set(PROGRAM_VERSION_MINOR "3")
 set(PROGRAM_VERSION_PATCH "0")
 set(PROJECT_DESCRIPTION "Online password and secret locker")
 set(PROJECT_BUGREPORT_PATH "https://github.com/babelouest/angharad/issues")
-set(ORCANIA_VERSION_REQUIRED "2.3.3")
-set(YDER_VERSION_REQUIRED "1.4.20")
-set(ULFIUS_VERSION_REQUIRED "2.7.15")
-set(HOEL_VERSION_REQUIRED "1.4.29")
-set(RHONABWY_VERSION_REQUIRED "1.1.13")
-set(IDDAWC_VERSION_REQUIRED "1.1.9")
+set(ORCANIA_VERSION_REQUIRED "2.3.4")
+set(YDER_VERSION_REQUIRED "1.4.21")
+set(ULFIUS_VERSION_REQUIRED "2.7.16")
+set(HOEL_VERSION_REQUIRED "1.4.30")
+set(RHONABWY_VERSION_REQUIRED "1.1.14")
+set(IDDAWC_VERSION_REQUIRED "1.1.10")
 
 set(BENOIC_MODULES_SRC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/device-modules/")
 set(CARLEON_MODULES_SRC_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src/carleon/service-modules/")
@@ -86,25 +86,46 @@ list(APPEND AGRD_LIBS ZLIB::ZLIB)
 
 # build
 
-add_executable(angharad ${CMAKE_CURRENT_SOURCE_DIR}/src/angharad.h
-                        ${CMAKE_CURRENT_SOURCE_DIR}/src/iddawc_resource.h
-                        ${CMAKE_CURRENT_SOURCE_DIR}/src/static_compressed_inmemory_website_callback.h
-                        ${CMAKE_CURRENT_SOURCE_DIR}/src/http_compression_callback.h
-                        ${CMAKE_CURRENT_SOURCE_DIR}/src/iddawc_resource.c
-                        ${CMAKE_CURRENT_SOURCE_DIR}/src/static_compressed_inmemory_website_callback.c
-                        ${CMAKE_CURRENT_SOURCE_DIR}/src/http_compression_callback.c
-                        ${CMAKE_CURRENT_SOURCE_DIR}/src/profile.c
-                        ${CMAKE_CURRENT_SOURCE_DIR}/src/scheduler.c
-                        ${CMAKE_CURRENT_SOURCE_DIR}/src/script.c
-                        ${CMAKE_CURRENT_SOURCE_DIR}/src/webservice.c
-                        ${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/benoic.h
-                        ${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/benoic.c
-                        ${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/device.c
-                        ${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/device-element.c
-                        ${CMAKE_CURRENT_SOURCE_DIR}/src/carleon/carleon.h
-                        ${CMAKE_CURRENT_SOURCE_DIR}/src/carleon/carleon.c
-                        ${CMAKE_CURRENT_SOURCE_DIR}/src/carleon/service.c
-                        ${CMAKE_CURRENT_SOURCE_DIR}/src/angharad.c )
+option(DISABLE_OAUTH2 "Disable Oauth2 security callback" OFF)
+if (DISABLE_OAUTH2)
+    add_executable(angharad ${CMAKE_CURRENT_SOURCE_DIR}/src/angharad.h
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/static_compressed_inmemory_website_callback.h
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/http_compression_callback.h
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/static_compressed_inmemory_website_callback.c
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/http_compression_callback.c
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/profile.c
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/scheduler.c
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/script.c
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/webservice.c
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/benoic.h
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/benoic.c
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/device.c
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/device-element.c
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/carleon/carleon.h
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/carleon/carleon.c
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/carleon/service.c
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/angharad.c )
+else ()
+    add_executable(angharad ${CMAKE_CURRENT_SOURCE_DIR}/src/angharad.h
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/iddawc_resource.h
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/static_compressed_inmemory_website_callback.h
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/http_compression_callback.h
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/iddawc_resource.c
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/static_compressed_inmemory_website_callback.c
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/http_compression_callback.c
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/profile.c
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/scheduler.c
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/script.c
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/webservice.c
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/benoic.h
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/benoic.c
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/device.c
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/benoic/device-element.c
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/carleon/carleon.h
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/carleon/carleon.c
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/carleon/service.c
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/angharad.c )
+endif ()
 target_link_libraries(angharad ${AGRD_LIBS})
 set_target_properties(angharad PROPERTIES COMPILE_OPTIONS "-Wextra;-Wconversion;-Wpedantic")
 
@@ -284,6 +305,18 @@ if (WITH_MPD)
 						COMPILE_OPTIONS "-Wextra;-Wconversion;-Wpedantic")
 		target_link_libraries(servicempd ${LIBMPDCLIENT_LIBRARIES})
 		set(CARLEON_SERVICES ${CARLEON_SERVICES} servicempd)
+endif ()
+
+option(WITH_WEATHERMAP "Build Weathermap service" on)
+if (WITH_WEATHERMAP)
+		set(WEATHERMAP_LIB_SRC ${CARLEON_MODULES_SRC_PATH}/service-weathermap.c)
+    set(LIBWEATHERMAP_LIBRARIES )
+
+		add_library(serviceweathermap MODULE ${WEATHERMAP_LIB_SRC})
+		set_target_properties(serviceweathermap PROPERTIES
+						COMPILE_OPTIONS "-Wextra;-Wconversion;-Wpedantic")
+		target_link_libraries(serviceweathermap ${LIBWEATHERMAP_LIBRARIES})
+		set(CARLEON_SERVICES ${CARLEON_SERVICES} serviceweathermap)
 endif ()
 
 # tests
