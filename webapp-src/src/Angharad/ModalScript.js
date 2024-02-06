@@ -36,6 +36,7 @@ class ModalScript extends Component {
     this.changeMpdUri = this.changeMpdUri.bind(this);
     this.changeMpdVolume = this.changeMpdVolume.bind(this);
     this.changeMpdPlaylist = this.changeMpdPlaylist.bind(this);
+    this.selectWeathermap = this.selectWeathermap.bind(this);
   }
 
   static getDerivedStateFromProps(props, state) {
@@ -228,6 +229,22 @@ class ModalScript extends Component {
           });
         }
       });
+    } else if (type === "weathermap-refresh") {
+      addActionParams.submodule = "carleon";
+      addActionParams.command = "refresh";
+      addActionParams.parameters.service = "service-weathermap";
+      delete(addActionParams.element);
+      delete(addActionParams.parameters.device);
+      delete(addActionParams.parameters.element_type);
+      this.state.serviceList.forEach(service => {
+        if (service.name === "service-weathermap") {
+          service.element.forEach(element => {
+            if (!addActionParams.element) {
+              addActionParams.element = element.name;
+            }
+          });
+        }
+      });
     }
     this.setState({addActionParams: addActionParams, curActionType: type});
   }
@@ -255,6 +272,13 @@ class ModalScript extends Component {
   }
   
   selectMpdPlayer(e, name) {
+    e.preventDefault();
+    let addActionParams = this.state.addActionParams;
+    addActionParams.element = name;
+    this.setState({addActionParams: addActionParams});
+  }
+  
+  selectWeathermap(e, name) {
     e.preventDefault();
     let addActionParams = this.state.addActionParams;
     addActionParams.element = name;
@@ -315,6 +339,7 @@ class ModalScript extends Component {
 
     if (this.state.script.actions) {
       this.state.script.actions.forEach((action, index) => {
+        console.log(action.parameters);
         if (action.parameters.element_type === "switch") {
           let name = i18next.t("scripts.modal-action-name-not-found", {dev: action.parameters.device, name: action.element}), commandJsx = action.command===1?i18next.t("scripts.modal-action-switch-command-1"):i18next.t("scripts.modal-action-switch-command-0");
           Object.keys(this.state.deviceOverview).forEach(dev => {
@@ -523,6 +548,37 @@ class ModalScript extends Component {
               </div>
             );
           }
+        } else if (action.parameters.service === "service-weathermap") {
+          let name = i18next.t("scripts.modal-action-weathermap", {name: action.element});
+          Object.keys(this.state.deviceOverview).forEach(dev => {
+            if (this.state.deviceOverview[dev].blinds) {
+              Object.keys(this.state.deviceOverview[dev].blinds).forEach(bl => {
+                if (dev === action.parameters.device && bl === action.element) {
+                  name = this.state.deviceOverview[dev].blinds[bl].display;
+                }
+              });
+            }
+          });
+          actionListJsx.push(
+            <div key={index} className="mb-3">
+              <div className="row">
+                <div className="col-6">
+                  <label className="d-flex align-items-center">
+                    <i className="fa fa-window-maximize elt-left" aria-hidden="true">
+                    </i>
+                    {name}
+                  </label>
+                </div>
+                <div className="col-4">
+                </div>
+                <div className="col-2">
+                  <button type="button" className="btn btn-secondary btn-sm" onClick={(e) => this.removeActionAt(e, index)}>
+                    <i className="fa fa-trash" aria-hidden="true"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
         }
       });
     }
@@ -545,6 +601,7 @@ class ModalScript extends Component {
             <li><a className="dropdown-item" href="#" onClick={(e) => this.selectActionType(e, "mpd-action")}>{i18next.t("scripts.modal-action-list-mpd-prefix")+i18next.t("scripts.modal-action-list-mpd-action")}</a></li>
             <li><a className="dropdown-item" href="#" onClick={(e) => this.selectActionType(e, "mpd-set-playlist")}>{i18next.t("scripts.modal-action-list-mpd-prefix")+i18next.t("scripts.modal-action-list-mpd-set-playlist")}</a></li>
             <li><a className="dropdown-item" href="#" onClick={(e) => this.selectActionType(e, "mpd-set-volume")}>{i18next.t("scripts.modal-action-list-mpd-prefix")+i18next.t("scripts.modal-action-list-mpd-set-volume")}</a></li>
+            <li><a className="dropdown-item" href="#" onClick={(e) => this.selectActionType(e, "weathermap-refresh")}>{i18next.t("scripts.modal-action-list-weathermap-refresh")}</a></li>
           </ul>
         </div>
       </div>
@@ -765,6 +822,45 @@ class ModalScript extends Component {
         <div className="border rounded script-new-action">
           {playerDropdownJsx}
           {additionalParamsJsx}
+          <div className="mb-3">
+            <div className="btn-group" role="group">
+              <button type="button" className="btn btn-secondary" onClick={this.addNewAction}>
+                <i className="fa fa-save" aria-hidden="true"></i>
+              </button>
+              <button type="button" className="btn btn-secondary" onClick={this.removeNewAction}>
+                <i className="fa fa-trash" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      } else if (this.state.curActionType === "weathermap-refresh") {
+        let weathermapList = [], weathermapDropdownJsx;
+        this.state.serviceList.forEach(service => {
+          if (service.name === "service-weathermap") {
+            service.element.forEach((element, index) => {
+              weathermapList.push(
+                <li key={index}><a className="dropdown-item" href="#" onClick={(e) => this.selectWeathermap(e, element.name)}>{element.name}</a></li>
+              );
+            });
+          }
+        });
+        weathermapDropdownJsx =
+        <div className="mb-3">
+          <label className="form-label">
+            {i18next.t("scripts.modal-weathermap-player-list")}
+          </label>
+          <div className="dropdown">
+            <button className="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              {this.state.addActionParams.element}
+            </button>
+            <ul className="dropdown-menu">
+              {weathermapList}
+            </ul>
+          </div>
+        </div>
+        actionParamJsx =
+        <div className="border rounded script-new-action">
+          {weathermapDropdownJsx}
           <div className="mb-3">
             <div className="btn-group" role="group">
               <button type="button" className="btn btn-secondary" onClick={this.addNewAction}>

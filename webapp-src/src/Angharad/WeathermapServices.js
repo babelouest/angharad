@@ -1,18 +1,16 @@
 import React, { Component } from 'react';
 import i18next from 'i18next';
 
-import MpdService from './MpdService';
+import WeathermapService from './WeathermapService';
 import messageDispatcher from '../lib/MessageDispatcher';
 
-class MpdServices extends Component {
+class WeathermapServices extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
       config: props.config,
       service: props.service,
-      deviceOverview: props.deviceOverview,
-      streamList: props.streamList,
       adminMode: props.adminMode
     }
   }
@@ -22,15 +20,15 @@ class MpdServices extends Component {
   }
   
   addService() {
-    messageDispatcher.sendMessage("Service", {add: true, type: "service-mpd", element: {name: "", description: ""}});
+    messageDispatcher.sendMessage("Service", {add: true, type: "service-weathermap", element: {name: "", description: "", units: "metric", lang: i18next.language, uri: "https://api.openweathermap.org/data/2.5/weather"}});
   }
 
 	render() {
-    let mpdServiceList = [], addButtonJsx;
+    let weathermapServiceList = [], addButtonJsx;
     this.state.service.element.forEach((element, index) => {
-      mpdServiceList.push(
+      weathermapServiceList.push(
         <div className="col-sm-12 col-md-6 col-lg-4" key={index}>
-          <MpdService element={element} deviceOverview={this.state.deviceOverview} streamList={this.state.streamList} adminMode={this.state.adminMode} config={this.state.config}/>
+          <WeathermapService element={element} config={this.state.config} adminMode={this.state.adminMode} />
         </div>
       );
     });
@@ -45,7 +43,7 @@ class MpdServices extends Component {
         <div className="row">
           <div className="col-10">
             <h4>
-              {i18next.t("services.mpd-services")}
+              {i18next.t("services.weathermap-services")}
             </h4>
           </div>
           <div className="col-2 align-items-end">
@@ -53,7 +51,7 @@ class MpdServices extends Component {
           </div>
         </div>
         <div className="row">
-          {mpdServiceList}
+          {weathermapServiceList}
         </div>
         <hr/>
       </div>
@@ -61,4 +59,4 @@ class MpdServices extends Component {
 	}
 }
 
-export default MpdServices;
+export default WeathermapServices;

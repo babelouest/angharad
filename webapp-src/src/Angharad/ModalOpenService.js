@@ -4,6 +4,7 @@ import i18next from 'i18next';
 
 import MockService from './MockService';
 import MpdService from './MpdService';
+import WeathermapService from './WeathermapService';
 
 class ModalOpenService extends Component {
   constructor(props) {
@@ -33,6 +34,8 @@ class ModalOpenService extends Component {
       bodyJsx = <MockService element={this.state.element} deviceOverview={this.state.deviceOverview} adminMode={false} />
     } else if (this.state.type === "service-mpd") {
       bodyJsx = <MpdService element={this.state.element} deviceOverview={this.state.deviceOverview} adminMode={false} streamList={this.state.streamList} config={this.state.config} />
+    } else if (this.state.type === "service-weathermap") {
+      bodyJsx = <WeathermapService element={this.state.element} adminMode={false} config={this.state.config} />
     }
 		return (
       <div className="modal fade" tabIndex="-1" id="modalOpenService">

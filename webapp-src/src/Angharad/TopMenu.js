@@ -14,6 +14,7 @@ class TopMenu extends Component {
     this.state = {
       config: props.config,
       oidcStatus: props.oidcStatus,
+      oidc: props.oidc,
       deviceOverview: props.deviceOverview,
       serviceList: props.serviceList,
       adminMode: props.adminMode,
@@ -49,6 +50,7 @@ class TopMenu extends Component {
     e.preventDefault();
     messageDispatcher.sendMessage('Component', {status: "refresh"});
     messageDispatcher.sendMessage('MpdServiceButton', {status: "refresh"});
+    messageDispatcher.sendMessage('WeathermapServiceButton', {status: "refresh"});
   }
   
 	render() {
@@ -150,9 +152,9 @@ class TopMenu extends Component {
                     </li>
                   </ul>
                 </li>
-                <li className="nav-item">
+                {this.state.oidc? <li className="nav-item">
                   <ConnectButton status={this.state.oidcStatus}/>
-                </li>
+                </li> : null}
               </ul>
             </div>
           </div>

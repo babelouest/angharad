@@ -109,13 +109,11 @@ class MpdService extends Component {
     if (curPos !== this.state.status.song_pos || curPos === -1 || this.state.status.song_pos === -1) {
       if (this.state.status.uri) {
         let statusUri = this.state.status.uri.replace(/([^:]\/)\/+/g, "$1");
-        console.log("statusUri", statusUri);
         this.state.config.frontend.taliesinRootUrl.forEach(url => {
           if (statusUri.startsWith(url + "/" + this.state.config.taliesinConfig.api_prefix + "/stream/")) {
             taliesinRootUrl = url;
           }
         });
-        console.log(taliesinRootUrl);
         if (taliesinRootUrl) {
           isTaliesin = true;
           stream = statusUri.substring((taliesinRootUrl + "/" + this.state.config.taliesinConfig.api_prefix + "/stream/").length);
@@ -138,7 +136,6 @@ class MpdService extends Component {
             }
           }
         } else if (statusUri.startsWith(this.state.config.taliesinConfig.icecast_remote_address)) {
-          console.log("icecast");
           isTaliesin = true;
           isWebradio = true;
           stream = statusUri.substring(this.state.config.taliesinConfig.icecast_remote_address.length + 1);

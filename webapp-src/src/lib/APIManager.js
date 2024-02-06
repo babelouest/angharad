@@ -64,9 +64,11 @@ class APIManager {
 	
 	APIRequestExecute(url, method, data, accept, retry = true) {
     let headers = {
-      Authorization: "Bearer " + this.token,
       accept: accept
     };
+    if (this.token) {
+      headers.Authorization = "Bearer " + this.token;
+    }
     let contentType = null;
     let jsonData = !!data?JSON.stringify(data):null;
     if (data) {

@@ -25,7 +25,11 @@ class Blinds extends Component {
           if (this.state.adminMode || this.state.deviceOverview[device].blinds[name].enabled) {
             blindList.push(
               <div className="col-sm-12 col-md-6" key={device+"-"+name}>
-                <Blind device={device} name={name} element={this.state.deviceOverview[device].blinds[name]} adminMode={this.state.adminMode}/>
+                <Blind device={device}
+                        name={name}
+                        element={this.state.deviceOverview[device].blinds[name]}
+                        adminMode={this.state.adminMode}
+                        enabled={this.state.deviceOverview[device].blinds[name].enabled}/>
               </div>
             );
           }

@@ -25,7 +25,11 @@ class Sensors extends Component {
           if (this.state.adminMode || this.state.deviceOverview[device].sensors[name].enabled) {
             sensorList.push(
               <div className="col-sm-12 col-md-6" key={device+"-"+name}>
-                <Sensor device={device} name={name} element={this.state.deviceOverview[device].sensors[name]} adminMode={this.state.adminMode}/>
+                <Sensor device={device}
+                        name={name}
+                        element={this.state.deviceOverview[device].sensors[name]}
+                        adminMode={this.state.adminMode}
+                        enabled={this.state.deviceOverview[device].sensors[name].enabled}/>
               </div>
             );
           }

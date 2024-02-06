@@ -151,6 +151,62 @@ class ModalService extends Component {
           </div>
         </div>
       </div>
+    } else if (this.state.type === "service-weathermap") {
+      let errorAppidJsx;
+      optionsJsx =
+      <div>
+        <div className="form-floating mb-3">
+          <input type="text" className={"form-control" + errorClass} id="serviceUri" maxLength="128" value={this.state.element.uri||""} onChange={(e) => this.changeProperty(e, "uri")}/>
+          <label htmlFor="serviceUri">
+            {i18next.t("services.carleon-service-modal-weathermap-uri")}
+            <span className="text-danger"> *</span>
+          </label>
+          {errorAppidJsx}
+        </div>
+        <div className="form-floating mb-3">
+          <input type="text" className={"form-control" + errorClass} id="serviceAppid" maxLength="128" value={this.state.element.appid||""} onChange={(e) => this.changeProperty(e, "appid")}/>
+          <label htmlFor="serviceAppid">
+            {i18next.t("services.carleon-service-modal-weathermap-appid")}
+            <span className="text-danger"> *</span>
+          </label>
+          {errorAppidJsx}
+        </div>
+        <div className="form-floating mb-3">
+          <input type="text" className={"form-control" + errorClass} id="serviceLat" maxLength="128" value={this.state.element.lat||""} onChange={(e) => this.changeProperty(e, "lat")}/>
+          <label htmlFor="serviceLat">
+            {i18next.t("services.carleon-service-modal-weathermap-lat")}
+            <span className="text-danger"> *</span>
+          </label>
+          {errorAppidJsx}
+        </div>
+        <div className="form-floating mb-3">
+          <input type="text" className={"form-control" + errorClass} id="serviceLon" maxLength="16" value={this.state.element.lon||""} onChange={(e) => this.changeProperty(e, "lon")}/>
+          <label htmlFor="serviceLon">
+            {i18next.t("services.carleon-service-modal-weathermap-lon")}
+            <span className="text-danger"> *</span>
+          </label>
+          {errorAppidJsx}
+        </div>
+        <div className="form-floating mb-3">
+          <select className="form-select" id="serviceUnits" onChange={(e) => this.changeProperty(e, "units")} value={this.state.element.units}>
+            <option value="standard">{i18next.t("services.carleon-service-modal-weathermap-units-standard")}</option>
+            <option value="metric">{i18next.t("services.carleon-service-modal-weathermap-units-metric")}</option>
+            <option value="imperial">{i18next.t("services.carleon-service-modal-weathermap-units-imperial")}</option>
+          </select>
+          <label htmlFor="serviceUnits">
+            {i18next.t("services.carleon-service-modal-weathermap-units")}
+          </label>
+        </div>
+        <div className="form-floating mb-3">
+          <select className="form-select" id="serviceLang" onChange={(e) => this.changeProperty(e, "lang")} value={this.state.element.lang}>
+            <option value="fr">{i18next.t("services.carleon-service-modal-weathermap-lang-fr")}</option>
+            <option value="en">{i18next.t("services.carleon-service-modal-weathermap-lang-en")}</option>
+          </select>
+          <label htmlFor="serviceLang">
+            {i18next.t("services.carleon-service-modal-weathermap-lang")}
+          </label>
+        </div>
+      </div>
     }
     if (this.state.add) {
       requiredStar = <span className="text-danger"> *</span>;

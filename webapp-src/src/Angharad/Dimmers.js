@@ -25,7 +25,11 @@ class Dimmers extends Component {
           if (this.state.adminMode || this.state.deviceOverview[device].dimmers[name].enabled) {
             dimmerList.push(
               <div className="col-sm-12 col-md-6" key={device+"-"+name}>
-                <Dimmer device={device} name={name} element={this.state.deviceOverview[device].dimmers[name]} adminMode={this.state.adminMode}/>
+                <Dimmer device={device}
+                        name={name}
+                        element={this.state.deviceOverview[device].dimmers[name]}
+                        adminMode={this.state.adminMode}
+                        enabled={this.state.deviceOverview[device].dimmers[name].enabled}/>
               </div>
             );
           }

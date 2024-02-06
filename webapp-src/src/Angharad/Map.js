@@ -5,6 +5,7 @@ import messageDispatcher from '../lib/MessageDispatcher';
 import apiManager from '../lib/APIManager';
 import MapPlace from './MapPlace';
 import MapMpdServiceButton from './MapMpdServiceButton';
+import MapWeathermapServiceButton from './MapWeathermapServiceButton';
 
 class Map extends Component {
   constructor(props) {
@@ -43,6 +44,7 @@ class Map extends Component {
   }
   
   dragMoveElt(e, index) {
+    console.log(this.state.map.elements[index]);
     this.setState({curDrag: false, curIndex: index});
   }
 
@@ -63,7 +65,7 @@ class Map extends Component {
         map.elements.push(curDrag);
         apiManager.APIRequestAngharad("profile/" + encodeURIComponent(map.name), "PUT", map)
         .then(() => {
-          this.setState({map: map});
+          this.setState({map: map, curIndex: -1});
         })
         .catch((err) => {
           messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
@@ -76,7 +78,7 @@ class Map extends Component {
           map.elements[this.state.curIndex] = curDrag;
           apiManager.APIRequestAngharad("profile/" + encodeURIComponent(map.name), "PUT", map)
           .then(() => {
-            this.setState({map: map});
+            this.setState({map: map, curIndex: -1});
           })
           .catch((err) => {
             messageDispatcher.sendMessage('Notification', {type: "danger", message: i18next.t("message.api-error")});
@@ -121,6 +123,8 @@ class Map extends Component {
         messageDispatcher.sendMessage("Service", {status: "open", type: "mock-service", element: element});
       } else if (element.type === "mpdService") {
         messageDispatcher.sendMessage("Service", {status: "open", type: "service-mpd", element: element});
+      } else if (element.type === "weathermapService") {
+        messageDispatcher.sendMessage("Service", {status: "open", type: "service-weathermap", element: element});
       } else if (element.type === "script") {
         apiManager.APIRequestAngharad("script/"+element.name+"/run")
         .then(() => {
@@ -138,8 +142,8 @@ class Map extends Component {
   render() {
     let mapPlaceJsx;
     if (this.state.adminMode) {
-      let benoicSwitches = [], benoicDimmers = [], benoicBlinds = [], benoicSensors = [], mockServices = [], mpdServices = [];
-      let switchListJsx, dimmerListJsx, blindListJsx, sensorListJsx, mockServiceJsx, mpdServiceJsx, scriptJsx, schedulerJsx;
+      let benoicSwitches = [], benoicDimmers = [], benoicBlinds = [], benoicSensors = [], mockServices = [], mpdServices = [], weathermapServices = [];
+      let switchListJsx, dimmerListJsx, blindListJsx, sensorListJsx, mockServiceJsx, mpdServiceJsx, weathermapServiceJsx, scriptJsx, schedulerJsx;
       Object.keys(this.state.deviceOverview).forEach(dev => {
         if (this.state.deviceOverview[dev].switches) {
           Object.keys(this.state.deviceOverview[dev].switches).forEach(elt => {
@@ -197,6 +201,13 @@ class Map extends Component {
           if (mpdServices.length) {
             mpdServiceJsx = <MapPlace title={i18next.t("services.mpd-services")} eltList={mpdServices} serviceList={this.state.serviceList} deviceOverview={this.state.deviceOverview} type={"mpdService"} cbDrag={this.dragElt} adminMode={this.state.adminMode}/>
           }
+        } else if (service.name === "service-weathermap") {
+          service.element.forEach(elt => {
+            weathermapServices.push(elt);
+          });
+          if (weathermapServices.length) {
+            weathermapServiceJsx = <MapPlace title={i18next.t("services.weathermap-services")} eltList={weathermapServices} type={"weathermapService"} cbDrag={this.dragElt} adminMode={this.state.adminMode}/>
+          }
         }
       });
       if (this.state.script.length) {
@@ -215,6 +226,7 @@ class Map extends Component {
           {sensorListJsx}
           {mockServiceJsx}
           {mpdServiceJsx}
+          {weathermapServiceJsx}
           {scriptJsx}
           {schedulerJsx}
         </div>
@@ -334,7 +346,32 @@ class Map extends Component {
             service.element.forEach(elt => {
               if (elt.name === element.name) {
                 elementList.push(
-                  <MapMpdServiceButton key={index} element={element} adminMode={this.state.adminMode} style={style} selectCb={this.selectElement} draggable={true} onDragStart={(e) => this.dragMoveElt(e, index)} />
+                  <div key={index} draggable={true} onDragStart={(e) => this.dragMoveElt(e, index)}>
+                    <MapMpdServiceButton element={element}
+                                         adminMode={this.state.adminMode}
+                                         style={style}
+                                         selectCb={this.selectElement}
+                                         index={index} />
+                  </div>
+                );
+              }
+            });
+          }
+        });
+      } else if (element.type === "weathermapService") {
+        this.state.serviceList.forEach(service => {
+          if (service.name === "service-weathermap") {
+            service.element.forEach(elt => {
+              if (elt.name === element.name) {
+                elementList.push(
+                  <div key={index} draggable={true} onDragStart={(e) => this.dragMoveElt(e, index)}>
+                    <MapWeathermapServiceButton element={element}
+                                                service={elt}
+                                                adminMode={this.state.adminMode}
+                                                style={style}
+                                                selectCb={this.selectElement}
+                                                index={index} />
+                  </div>
                 );
               }
             });
@@ -348,7 +385,14 @@ class Map extends Component {
           className += " btn-secondary";
         }
         elementList.push(
-          <a key={index} href="#" className={className} title={element.name} style={style} onClick={(e) => this.selectElement(e, element, index)} draggable={true} onDragStart={(e) => this.dragMoveElt(e, index)}>
+          <a key={index}
+             href="#"
+             className={className}
+             title={element.name}
+             style={style}
+             onClick={(e) => this.selectElement(e, element, index)}
+             draggable={true}
+             onDragStart={(e) => this.dragMoveElt(e, index)}>
             <i className="fa fa-play-circle elt-left" aria-hidden="true"></i>
             {element.name}
           </a>

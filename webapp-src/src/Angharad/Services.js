@@ -3,6 +3,7 @@ import i18next from 'i18next';
 
 import MockServices from './MockServices';
 import MpdServices from './MpdServices';
+import WeathermapServices from './WeathermapServices';
 
 class Components extends Component {
   constructor(props) {
@@ -46,6 +47,18 @@ class Components extends Component {
                          adminMode={this.state.adminMode}
                          streamList={this.state.streamList}
                          config={this.state.config}/>
+          );
+        }
+      });
+    }
+    if (this.state.filterServices.indexOf("service-weathermap") > -1) {
+      this.state.serviceList.forEach(service => {
+        if (service.name === "service-weathermap" && service.enabled) {
+          serviceListJsx.push(
+            <WeathermapServices key={"service-weathermap"}
+                                service={service}
+                                config={this.state.config}
+                                adminMode={this.state.adminMode}/>
           );
         }
       });

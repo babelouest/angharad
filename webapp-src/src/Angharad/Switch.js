@@ -13,7 +13,8 @@ class Switch extends Component {
       device: props.device,
       name: props.name,
       element: props.element,
-      adminMode: props.adminMode
+      adminMode: props.adminMode,
+      enabled: props.enabled
     }
     
     this.handleSwitch = this.handleSwitch.bind(this);
@@ -57,8 +58,12 @@ class Switch extends Component {
           <i className="fa fa-line-chart elt-left" aria-hidden="true"></i>
         </a>
     }
+    let css = "row elt-top border rounded agrd-element";
+    if (!this.state.enabled) {
+      css += " text-bg-warning";
+    }
 		return (
-      <div className="row elt-top border rounded agrd-element">
+      <div className={css}>
         <div className="col-6">
           <label className="d-flex align-items-center" htmlFor={"switcher-"+this.state.device+"-"+this.state.name}>
             <i className="fa fa-power-off elt-left" aria-hidden="true"></i>

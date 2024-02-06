@@ -13,7 +13,8 @@ class Sensor extends Component {
       device: props.device,
       name: props.name,
       element: props.element,
-      adminMode: props.adminMode
+      adminMode: props.adminMode,
+      enabled: props.enabled
     }
     
     this.openMonitor = this.openMonitor.bind(this);
@@ -45,8 +46,12 @@ class Sensor extends Component {
     if (this.state.element.options && this.state.element.options.unit) {
       valueJsx += this.state.element.options.unit;
     }
+    let css = "row elt-top border rounded agrd-element";
+    if (!this.state.enabled) {
+      css += " text-bg-warning";
+    }
 		return (
-      <div className="row elt-top border rounded agrd-element">
+      <div className={css}>
         <div className="col-6">
           <label className="d-flex align-items-center">
             <i className="fa fa-area-chart elt-left" aria-hidden="true">

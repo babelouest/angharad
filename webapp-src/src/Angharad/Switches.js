@@ -25,7 +25,11 @@ class Switches extends Component {
           if (this.state.adminMode || this.state.deviceOverview[device].switches[name].enabled) {
             switchList.push(
               <div className="col-sm-12 col-md-6" key={device+"-"+name}>
-                <Switch device={device} name={name} element={this.state.deviceOverview[device].switches[name]} adminMode={this.state.adminMode}/>
+                <Switch device={device}
+                        name={name}
+                        element={this.state.deviceOverview[device].switches[name]}
+                        adminMode={this.state.adminMode}
+                        enabled={this.state.deviceOverview[device].switches[name].enabled} />
               </div>
             );
           }

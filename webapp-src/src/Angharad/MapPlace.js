@@ -94,6 +94,16 @@ class MapPlace extends Component {
           </div>
         );
       });
+    } else if (this.state.type === "weathermapService") {
+      this.state.eltList.forEach((elt, index) => {
+        eltListJsx.push(
+          <div key={"serWeathermap-"+elt.name} className="col-sm-3 border rounded elt-left" draggable={this.state.adminMode} onDragStart={(e) => this.dragElt(e, undefined, "weathermapService", elt.name)}>
+            <label className="d-flex align-items-center">
+              {elt.name}
+            </label>
+          </div>
+        );
+      });
     } else if (this.state.type === "script") {
       this.state.eltList.forEach((elt, index) => {
         eltListJsx.push(

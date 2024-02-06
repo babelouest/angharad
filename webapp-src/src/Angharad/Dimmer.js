@@ -14,7 +14,8 @@ class Dimmer extends Component {
       device: props.device,
       name: props.name,
       element: props.element,
-      adminMode: props.adminMode
+      adminMode: props.adminMode,
+      enabled: props.enabled
     }
     
     this.openDimmer = this.openDimmer.bind(this);
@@ -46,8 +47,12 @@ class Dimmer extends Component {
           <i className="fa fa-line-chart elt-left" aria-hidden="true"></i>
         </a>
     }
+    let css = "row elt-top border rounded agrd-element";
+    if (!this.state.enabled) {
+      css += " text-bg-warning";
+    }
 		return (
-      <div className="row elt-top border rounded agrd-element">
+      <div className={css}>
         <div className="col-2">
           <label className="d-flex align-items-center">
             <i className="fa fa-lightbulb-o elt-left" aria-hidden="true">

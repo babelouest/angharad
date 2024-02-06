@@ -109,6 +109,7 @@ class App extends Component {
           setTimeout(() => {
             this.refreshData();
             messageDispatcher.sendMessage('MpdServiceButton', {status: "refresh"});
+            messageDispatcher.sendMessage('WeathermapServiceButton', {status: "refresh"});
           }, 1000);
         }
         var tokenTimeout = false;
@@ -534,7 +535,7 @@ class App extends Component {
       } else if (route.startsWith("services")) {
         let path = route.split("/");
         if (path.length === 1) {
-          this.setState({nav: "services", services: ["mock-service", "service-liquidsoap", "service-motion", "service-mpd"]});
+          this.setState({nav: "services", services: ["mock-service", "service-liquidsoap", "service-motion", "service-mpd", "service-weathermap"]});
         } else {
           this.setState({nav: "services", services: path.splice(1)});
         }
@@ -860,6 +861,7 @@ class App extends Component {
         <TopMenu
           config={this.state.config}
           oidcStatus={this.state.oidcStatus}
+          oidc={!!this.state.config.oidc}
           deviceOverview={this.state.deviceOverview}
           serviceList={this.state.serviceList}
           adminMode={this.state.adminMode}
