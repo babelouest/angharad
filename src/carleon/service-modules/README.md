@@ -145,7 +145,7 @@ json_t * c_service_exec(struct _carleon_config * config, const char * command, c
 
 ## Services API
 
-Each service implement its own API. The current documentation can be fund here:
+Each service implement its own API. The current documentation can be found here:
 
 - [mock service API](API.mock.md)
 - [motion service API](API.motion.md)

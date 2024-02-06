@@ -960,7 +960,6 @@ json_t * c_service_init(struct _carleon_config * config) {
                       "result", WEBSERVICE_RESULT_OK,
                       "name", "service-motion",
                       "description", "Motion service for camera management");
-		//MagickCoreGenesis("service-motion", MagickTrue);
   } else {
     return json_pack("{si}", "result", WEBSERVICE_RESULT_ERROR);
   }
@@ -981,8 +980,6 @@ json_t * c_service_close(struct _carleon_config * config) {
     ulfius_remove_endpoint_by_val(config->instance, "GET", config->url_prefix, "/service-motion/@name/image/@image_list/@image_file");
     ulfius_remove_endpoint_by_val(config->instance, "PUT", config->url_prefix, "/service-motion/@name/stream/@stream_name/snapshot");
 
-		//MagickCoreTerminus();
-		
     return json_pack("{si}", "result", WEBSERVICE_RESULT_OK);
   } else {
     return json_pack("{si}", "result", WEBSERVICE_RESULT_ERROR);

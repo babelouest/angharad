@@ -45,7 +45,9 @@
 #include "carleon/carleon.h"
 #include "static_compressed_inmemory_website_callback.h"
 #include "http_compression_callback.h"
+#ifndef DISABLE_OAUTH2
 #include "iddawc_resource.h"
+#endif
 
 #define ANGHARAD_RUNNING  0
 #define ANGHARAD_STOP     1
@@ -113,6 +115,7 @@
 #define ANGHARAD_CALLBACK_PRIORITY_COMPRESSION    4
 
 #define ANGHARAD_NO_AUTHENTICATION_USERNAME "Myrddin"
+#define ANGHARAD_NO_AUTHENTICATION_SCOPE    "angharad"
 
 struct _auth_ldap {
   char * uri;
@@ -139,6 +142,7 @@ struct config_elements {
   struct _benoic_config                        * b_config;
   struct _carleon_config                       * c_config;
   unsigned int                                   angharad_status;
+#ifndef DISABLE_OAUTH2
   unsigned short                                 use_oidc_authentication;
   char                                         * oidc_server_remote_config;
   unsigned int                                   oidc_server_remote_config_verify_cert;
@@ -149,6 +153,7 @@ struct config_elements {
   char                                         * oidc_aud;
   time_t                                         oidc_dpop_max_iat;
   struct _iddawc_resource_config               * iddawc_resource_config;
+#endif
   struct _u_compressed_inmemory_website_config * static_file_config;
   char                                         * config_content;
 };

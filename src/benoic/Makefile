@@ -28,20 +28,8 @@ CFLAGS=-c -Wall -Werror -Wextra -Wconversion -Wpedantic -D_REENTRANT -I$(PREFIX)
 LIBS=-L$(PREFIX)/lib -lc -ldl -lpthread -ljansson -lulfius -lhoel -lyder -lorcania
 MODULES_LOCATION=device-modules
 
-benoic-standalone: benoic.o device.o device-element.o benoic-standalone.o
-	$(CC) -o benoic-standalone benoic-standalone.o benoic.o device.o device-element.o $(LIBS) -lconfig
-
-benoic-standalone.o: benoic-standalone.c benoic.h
-	$(CC) $(CFLAGS) benoic-standalone.c
-
-benoic.o: benoic.c benoic.h
-	$(CC) $(CFLAGS) benoic.c
-
-device.o: device.c benoic.h
-	$(CC) $(CFLAGS) device.c
-
-device-element.o: device-element.c benoic.h
-	$(CC) $(CFLAGS) device-element.c
+%.o: %.c benoic.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) $<
 
 modules:
 	cd $(MODULES_LOCATION) && $(MAKE) debug

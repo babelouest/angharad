@@ -24,11 +24,18 @@
 # License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+ifndef DISABLE_OAUTH2
+	OAUTH2_OBJECTS=iddawc_resource.o
+	INITIAL_LIBS=$(shell pkg-config --libs librhonabwy) $(shell pkg-config --libs libiddawc)
+else
+	INITIAL_FLAG=-DDISABLE_OAUTH2
+endif
+
 # Environment variables
 PREFIX=/usr/local
 CC=gcc
 CFLAGS=-c -Wall -Werror -Wextra -Wconversion -Wpedantic -D_REENTRANT -I$(PREFIX)/include $(ADDITIONALFLAGS)
-LIBS=-L$(PREFIX)/lib -lc -lm -lpthread -ldl -ljansson -lulfius -lhoel -lyder -lorcania -liddawc -lmicrohttpd -lz
+LIBS=-L$(PREFIX)/lib -lc -lm -lpthread -ldl -ljansson -lulfius -lhoel -lyder -lorcania -lmicrohttpd -lz $(INITIAL_LIBS)
 
 # subprojects locations
 BENOIC_LOCATION=benoic
@@ -36,7 +43,7 @@ CARLEON_LOCATION=carleon
 
 BENOIC_OBJECTS=$(BENOIC_LOCATION)/benoic.o $(BENOIC_LOCATION)/device.o $(BENOIC_LOCATION)/device-element.o
 CARLEON_OBJECTS=$(CARLEON_LOCATION)/carleon.o $(CARLEON_LOCATION)/service.o
-ANGHARAD_OBJECTS=angharad.o scheduler.o script.o profile.o webservice.o iddawc_resource.o static_compressed_inmemory_website_callback.o http_compression_callback.o
+ANGHARAD_OBJECTS=angharad.o scheduler.o script.o profile.o webservice.o static_compressed_inmemory_website_callback.o http_compression_callback.o
 
 %.o: %.c angharad.h glewlwyd-common.h static_compressed_inmemory_website_callback.h http_compression_callback.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) $<
@@ -45,10 +52,10 @@ all: release
 	cd $(BENOIC_LOCATION)/device-modules && $(MAKE)
 	cd $(CARLEON_LOCATION)/service-modules && $(MAKE)
 
-angharad: $(ANGHARAD_OBJECTS) $(BENOIC_OBJECTS) $(CARLEON_OBJECTS)
-	$(CC) -o angharad $(ANGHARAD_OBJECTS) $(BENOIC_OBJECTS) $(CARLEON_OBJECTS) $(LIBS) -lconfig
+angharad: $(ANGHARAD_OBJECTS) $(BENOIC_OBJECTS) $(CARLEON_OBJECTS) $(OAUTH2_OBJECTS)
+	$(CC) -o angharad $(ANGHARAD_OBJECTS) $(BENOIC_OBJECTS) $(CARLEON_OBJECTS) $(OAUTH2_OBJECTS) $(LIBS) -lconfig
 
-debug: ADDITIONALFLAGS=-DDEBUG -g -O0
+debug: ADDITIONALFLAGS=$(INITIAL_FLAG) -DDEBUG -g -O0
 
 debug: DEBUGFLAG=debug
 
@@ -56,7 +63,7 @@ debug: angharad
 	cd $(BENOIC_LOCATION)/device-modules && $(MAKE) debug
 	cd $(CARLEON_LOCATION)/service-modules && $(MAKE) debug
 
-release: ADDITIONALFLAGS=-O3
+release: ADDITIONALFLAGS=$(INITIAL_FLAG) -O3
 
 release: angharad
 	cd $(BENOIC_LOCATION)/device-modules && $(MAKE)

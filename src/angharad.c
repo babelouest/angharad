@@ -45,8 +45,10 @@ int main(int argc, char ** argv) {
   struct config_elements * config = o_malloc(sizeof(struct config_elements));
   int res;
   json_t * submodule, * j_tmp;
+#ifndef DISABLE_OAUTH2
   char * str_jwks;
   json_t * j_jwks;
+#endif
 
   if (config == NULL) {
     fprintf(stderr, "Memory error - config\n");
@@ -63,6 +65,11 @@ int main(int argc, char ** argv) {
   config->log_file = NULL;
   config->angharad_status = ANGHARAD_STATUS_STOP;
   config->alert_url = NULL;
+  config->config_content = NULL;
+  config->instance = o_malloc(sizeof(struct _u_instance));
+  config->c_config = o_malloc(sizeof(struct _carleon_config));
+  config->b_config = o_malloc(sizeof(struct _benoic_config));
+#ifndef DISABLE_OAUTH2
   config->use_oidc_authentication = 0;
   config->oidc_server_remote_config = NULL;
   config->oidc_server_remote_config_verify_cert = 1;
@@ -72,14 +79,15 @@ int main(int argc, char ** argv) {
   config->oidc_realm = NULL;
   config->oidc_aud = NULL;
   config->oidc_dpop_max_iat = 0;
-  config->config_content = NULL;
-  config->instance = o_malloc(sizeof(struct _u_instance));
-  config->c_config = o_malloc(sizeof(struct _carleon_config));
-  config->b_config = o_malloc(sizeof(struct _benoic_config));
   config->iddawc_resource_config = o_malloc(sizeof (struct _iddawc_resource_config));
+  if (config->iddawc_resource_config == NULL) {
+    fprintf(stderr, "Memory error - config->iddawc_resource_config == NULL\n");
+    return 1;
+  }
+#endif
   config->static_file_config = o_malloc(sizeof(struct _u_compressed_inmemory_website_config));
-  if (config->instance == NULL || config->c_config == NULL || config->b_config == NULL || config->iddawc_resource_config == NULL || config->static_file_config == NULL) {
-    fprintf(stderr, "Memory error - config->instance || config->c_config || config->b_config || config->iddawc_resource_config || config->static_file_config == NULL\n");
+  if (config->instance == NULL || config->c_config == NULL || config->b_config == NULL || config->static_file_config == NULL) {
+    fprintf(stderr, "Memory error - config->instance || config->c_config || config->b_config || config->static_file_config == NULL\n");
     return 1;
   }
   config->c_config->services_path = NULL;
@@ -97,7 +105,9 @@ int main(int argc, char ** argv) {
   }
   u_map_put(&config->static_file_config->mime_types, "*", "application/octet-stream");
 
+#ifndef DISABLE_OAUTH2
   i_global_init();
+#endif
   ulfius_init_instance(config->instance, ANGHARAD_DEFAULT_PORT, NULL, NULL);
 
   if (pthread_mutex_init(&global_handler_close_lock, NULL) ||
@@ -167,6 +177,7 @@ int main(int argc, char ** argv) {
   }
   json_decref(submodule);
 
+#ifndef DISABLE_OAUTH2
   if (config->use_oidc_authentication) {
     if (i_jwt_profile_access_token_init_config(config->iddawc_resource_config, I_METHOD_HEADER, NULL, NULL, config->oidc_scope, NULL, config->oidc_dpop_max_iat) == I_TOKEN_OK) {
       if (config->oidc_server_remote_config != NULL) {
@@ -218,6 +229,13 @@ int main(int argc, char ** argv) {
                       "carleon_endpoint", config->url_prefix_carleon,
                       "oidc", json_false());
   }
+#else
+  j_tmp = json_pack("{ss ss ss so}", 
+                    "angharad_endpoint", config->url_prefix_angharad,
+                    "benoic_endpoint", config->url_prefix_benoic,
+                    "carleon_endpoint", config->url_prefix_carleon,
+                    "oidc", json_false());
+#endif
 
   if ((config->config_content = json_dumps(j_tmp, JSON_COMPACT)) == NULL) {
     fprintf(stderr, "Error setting config content\n");
@@ -233,7 +251,11 @@ int main(int argc, char ** argv) {
   }
 
   // Start the webservice
-  y_log_message(Y_LOG_LEVEL_INFO, "Start Angharad on port %d, prefix: %s, scope %s", config->instance->port, config->url_prefix_angharad, config->oidc_scope);
+#ifndef DISABLE_OAUTH2
+  y_log_message(Y_LOG_LEVEL_INFO, "Start Angharad on port %d, scope %s", config->instance->port, config->oidc_scope);
+#else
+  y_log_message(Y_LOG_LEVEL_INFO, "Start Angharad on port %d", config->instance->port);
+#endif
   if (ulfius_start_framework(config->instance) == U_OK) {
     // Wait until stop signal is broadcasted
     pthread_mutex_lock(&global_handler_close_lock);
@@ -482,6 +504,7 @@ void exit_server(struct config_elements ** config, int exit_value) {
     o_free((*config)->url_prefix_benoic);
     o_free((*config)->url_prefix_carleon);
     o_free((*config)->alert_url);
+#ifndef DISABLE_OAUTH2
     o_free((*config)->oidc_server_remote_config);
     o_free((*config)->oidc_scope);
     o_free((*config)->config_content);
@@ -489,6 +512,7 @@ void exit_server(struct config_elements ** config, int exit_value) {
       i_jwt_profile_access_token_close_config((*config)->iddawc_resource_config);
     }
     o_free((*config)->iddawc_resource_config);
+#endif
     o_free((*config)->static_file_config->files_path);
     o_free((*config)->static_file_config->url_prefix);
     u_clean_compressed_inmemory_website_config((*config)->static_file_config);
@@ -503,7 +527,9 @@ void exit_server(struct config_elements ** config, int exit_value) {
       pthread_cond_destroy(&global_handler_close_cond)) {
     y_log_message(Y_LOG_LEVEL_ERROR, "Error destroying global_handler_close_lock or global_handler_close_cond");
   }
+#ifndef DISABLE_OAUTH2
   i_global_close();
+#endif
   y_close_logs();
   exit(exit_value);
 }
@@ -525,12 +551,15 @@ void exit_handler(int signal) {
 int build_config_from_file(struct config_elements * config) {
 
   config_t cfg;
-  config_setting_t * root, * database, * mime_type_list, * mime_type, * oidc_cfg;
+  config_setting_t * root, * database, * mime_type_list, * mime_type;
   const char * cur_prefix_angharad, * cur_prefix_benoic, * cur_prefix_carleon, * cur_log_mode, * cur_log_level, * cur_log_file = NULL, * one_log_mode, * carleon_services_path, * benoic_modules_path, * cur_allow_origin, * db_type, * db_sqlite_path, * db_mariadb_host = NULL, * db_mariadb_user = NULL, * db_mariadb_password = NULL, * db_mariadb_dbname = NULL, * cur_static_files_path = NULL, * extension = NULL, * mime_type_value = NULL;
   int db_mariadb_port = 0;
   unsigned int i;
+#ifndef DISABLE_OAUTH2
+  config_setting_t * oidc_cfg;
   const char * cur_oidc_server_remote_config = NULL, * cur_oidc_server_public_jwks = NULL, * cur_oidc_iss = NULL, * cur_oidc_realm = NULL, * cur_oidc_aud = NULL, * cur_oidc_scope = NULL;
   int cur_oidc_dpop_max_iat = 0, cur_oidc_server_remote_config_verify_cert = 0, cur_use_oidc_authentication = 0;
+#endif
 
   config_init(&cfg);
 
@@ -745,6 +774,7 @@ int build_config_from_file(struct config_elements * config) {
     }
   }
 
+#ifndef DISABLE_OAUTH2
   if (config_lookup_bool(&cfg, "use_oidc_authentication", &cur_use_oidc_authentication) == CONFIG_TRUE) {
     config->use_oidc_authentication = (short unsigned int)cur_use_oidc_authentication;
   }
@@ -802,6 +832,7 @@ int build_config_from_file(struct config_elements * config) {
       return 0;
     }
   }
+#endif
 
   config_destroy(&cfg);
   return 1;
@@ -977,6 +1008,7 @@ int init_angharad(struct config_elements * config) {
   int thread_scheduler_ret = 0, thread_scheduler_detach = 0;
 
   if (config != NULL && config->instance != NULL && config->url_prefix_angharad) {
+#ifndef DISABLE_OAUTH2
     if (config->use_oidc_authentication) {
       ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_angharad, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_check_jwt_profile_access_token, (void*)config->iddawc_resource_config);
       ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_benoic, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_check_jwt_profile_access_token, (void*)config->iddawc_resource_config);
@@ -986,6 +1018,7 @@ int init_angharad(struct config_elements * config) {
       ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_benoic, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_oauth2_disabled, (void*)config);
       ulfius_add_endpoint_by_val(config->instance, "*", config->url_prefix_carleon, "*", ANGHARAD_CALLBACK_PRIORITY_AUTHENTICATION, &callback_oauth2_disabled, (void*)config);
     }
+#endif
 
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_submodule_list, (void*)config);
     ulfius_add_endpoint_by_val(config->instance, "GET", config->url_prefix_angharad, "/submodule/@submodule_name", ANGHARAD_CALLBACK_PRIORITY_APPLICATION, &callback_angharad_submodule_get, (void*)config);

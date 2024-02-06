@@ -30,40 +30,34 @@ VERSION=0.1.0
 
 all: release
 
+%.o: %.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) $<
+
 libservicemock.so: service-mock.o
 	$(CC) -shared -Wl,-soname,libservicemock.so -o libservicemock.so service-mock.o $(LIBS)
-
-service-mock.o: service-mock.c
-	$(CC) $(CFLAGS) service-mock.c
 
 libservicemotion.so: service-motion.o
 	$(CC) -shared -Wl,-soname,libservicemotion.so -o libservicemotion.so service-motion.o $(LIBS) -lpthread
 
-service-motion.o: service-motion.c
-	$(CC) $(CFLAGS) service-motion.c
-
 libservicempd.so: service-mpd.o
 	$(CC) -shared -Wl,-soname,libservicempd.so -o libservicempd.so service-mpd.o $(LIBS) -lmpdclient -L/usr/local/lib
-
-service-mpd.o: service-mpd.c
-	$(CC) $(CFLAGS) service-mpd.c
 
 libserviceliquidsoap.so: service-liquidsoap.o
 	$(CC) -shared -Wl,-soname,libserviceliquidsoap.so -o libserviceliquidsoap.so service-liquidsoap.o $(LIBS) -L/usr/local/lib
 
-service-liquidsoap.o: service-liquidsoap.c
-	$(CC) $(CFLAGS) service-liquidsoap.c
+libserviceweathermat.so: service-weathermap.o
+	$(CC) -shared -Wl,-soname,libserviceweathermat.so -o libserviceweathermat.so service-weathermap.o $(LIBS) -L/usr/local/lib
 
 clean:
 	rm -f *.o *.so valgrind.txt unit-tests test-motion test-mpd test-liquidsoap valgrind.txt
 
 debug: ADDITIONALFLAGS=-DDEBUG -g -O0
 
-debug: libservicemotion.so libservicempd.so libserviceliquidsoap.so libservicemock.so
+debug: libservicemotion.so libservicempd.so libserviceliquidsoap.so libserviceweathermat.so libservicemock.so
 
 release: ADDITIONALFLAGS=-O3
 
-release: libservicemotion.so libservicempd.so libserviceliquidsoap.so
+release: libservicemotion.so libservicempd.so libserviceliquidsoap.so libserviceweathermat.so
 
 install:
 	mkdir -p $(MODULES_TARGET)

@@ -28,17 +28,11 @@ CFLAGS=-c -Wall -Werror -Wextra -Wconversion -Wpedantic -D_REENTRANT -I$(PREFIX)
 LIBS=-L$(PREFIX)/lib -lc -ldl -ljansson -lulfius -lhoel -lyder -lorcania
 MODULES_LOCATION=service-modules
 
+%.o: %.c carleon.h
+	$(CC) $(CFLAGS) $(CPPFLAGS) $<
+
 carleon-standalone: carleon.o service.o carleon-standalone.o
 	$(CC) -o carleon-standalone carleon-standalone.o carleon.o service.o $(LIBS) -lconfig
-
-carleon-standalone.o: carleon-standalone.c carleon.h
-	$(CC) $(CFLAGS) carleon-standalone.c
-
-carleon.o: carleon.c carleon.h
-	$(CC) $(CFLAGS) carleon.c
-
-service.o: service.c carleon.h
-	$(CC) $(CFLAGS) service.c
 
 modules:
 	cd $(MODULES_LOCATION) && $(MAKE) debug

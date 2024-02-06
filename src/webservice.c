@@ -321,7 +321,6 @@ int callback_angharad_scheduler_get (const struct _u_request * request, struct _
 int callback_angharad_scheduler_enable (const struct _u_request * request, struct _u_response * response, void * user_data) {
   json_t * j_scheduler;
   
-  y_log_message(Y_LOG_LEVEL_DEBUG, "enable sched %s: %s", u_map_get(request->map_url, "scheduler_name"), u_map_get(request->map_url, "enabled"));
   if (user_data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "callback_angharad_scheduler_enable - Error, user_data is NULL");
     return U_CALLBACK_ERROR;
@@ -567,8 +566,8 @@ int callback_angharad_options (const struct _u_request * request, struct _u_resp
 
 int callback_oauth2_disabled (const struct _u_request * request, struct _u_response * response, void * user_data) {
   UNUSED(request);
-  struct config_elements * config = (struct config_elements *)user_data;
+  UNUSED(user_data);
   
-  ulfius_set_response_shared_data(response, json_pack("{ss ss}", "sub", ANGHARAD_NO_AUTHENTICATION_USERNAME, "scope", config->oidc_scope), (void (*)(void *))&json_decref);
+  ulfius_set_response_shared_data(response, json_pack("{ss ss}", "sub", ANGHARAD_NO_AUTHENTICATION_USERNAME, "scope", ANGHARAD_NO_AUTHENTICATION_SCOPE), (void (*)(void *))&json_decref);
   return U_CALLBACK_CONTINUE;
 }
