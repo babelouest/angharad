@@ -204,3 +204,26 @@ CREATE TABLE c_mpd_websocket (
   CONSTRAINT service_mpd_ibfk_1 FOREIGN KEY (cmpd_id) REFERENCES c_service_mpd (cmpd_id) ON DELETE CASCADE
 );
 CREATE INDEX cmw_name_idx ON c_mpd_websocket (cmw_name);
+
+CREATE TABLE c_service_weathermap (
+  cw_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  cw_name TEXT NOT NULL UNIQUE,
+  cw_display TEXT,
+  cw_appid TEXT NOT NULL,
+  cw_uri TEXT NOT NULL,
+  cw_lat TEXT NOT NULL,
+  cw_lon TEXT NOT NULL,
+  cw_units TEXT,
+  cw_lang TEXT
+);
+CREATE INDEX cw_name_idx ON c_service_weathermap (cw_name);
+
+CREATE TABLE c_service_weathermap_data (
+  cwd_id INT(11) INTEGER PRIMARY KEY AUTOINCREMENT,
+  cw_id INT(11),
+  cwd_data TEXT,
+  cwd_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  cwd_status INTEGER, -- 0: ok, 1: remote error, 2: format error
+  CONSTRAINT service_weathermap_data_id_ibfk_1 FOREIGN KEY (cw_id) REFERENCES c_service_weathermap (cw_id) ON DELETE CASCADE
+);
+CREATE INDEX cwd_date_idx ON c_service_weathermap_data (cwd_date);

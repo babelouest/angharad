@@ -73,9 +73,9 @@ CREATE TABLE b_monitor (
 CREATE INDEX bm_date_idx ON b_monitor (bm_date);
 
 CREATE TABLE c_service (
-  cs_name varchar(64) PRIMARY KEY,
+  cs_name VARCHAR(64) PRIMARY KEY,
   cs_enabled tinyint(1) DEFAULT 0,
-  cs_description varchar(512)
+  cs_description VARCHAR(512)
 );
 
 CREATE TABLE c_element (
@@ -133,50 +133,50 @@ CREATE TABLE a_profile (
 );
 
 CREATE TABLE c_service_liquidsoap (
-  csl_name varchar(64) NOT NULL UNIQUE,
-  csl_description varchar(128),
-  csl_radio_url varchar(512) NOT NULL,
-  csl_radio_type varchar(64),
+  csl_name VARCHAR(64) NOT NULL UNIQUE,
+  csl_description VARCHAR(128),
+  csl_radio_url VARCHAR(512) NOT NULL,
+  csl_radio_type VARCHAR(64),
   csl_control_enabled tinyint(1) DEFAULT 0,
-  csl_control_host varchar(128),
+  csl_control_host VARCHAR(128),
   csl_control_port int(11),
-  csl_control_request_name varchar(64)
+  csl_control_request_name VARCHAR(64)
 );
 
 CREATE TABLE c_mock_service (
-  cms_name varchar(64) NOT NULL UNIQUE,
-  cms_description varchar(128)
+  cms_name VARCHAR(64) NOT NULL UNIQUE,
+  cms_description VARCHAR(128)
 );
 
 CREATE TABLE c_service_motion (
-  csm_name varchar(64) PRIMARY KEY,
-  csm_description varchar(128),
-  csm_config_uri varchar(512)
+  csm_name VARCHAR(64) PRIMARY KEY,
+  csm_description VARCHAR(128),
+  csm_config_uri VARCHAR(512)
 );
 
 CREATE TABLE c_service_motion_file_list (
-  csmfl_name varchar(64),
-  csm_name varchar(64) NOT NULL,
-  csmfl_path varchar(512) NOT NULL,
-  csmfl_thumbnail_path varchar(512) NOT NULL,
+  csmfl_name VARCHAR(64),
+  csm_name VARCHAR(64) NOT NULL,
+  csmfl_path VARCHAR(512) NOT NULL,
+  csmfl_thumbnail_path VARCHAR(512) NOT NULL,
   CONSTRAINT service_motion_ibfk_1 FOREIGN KEY (csm_name) REFERENCES c_service_motion (csm_name) ON DELETE CASCADE
 );
 
 CREATE TABLE c_service_motion_stream (
-  csms_name varchar(64),
-  csm_name varchar(64) NOT NULL,
-  csms_uri varchar(512) NOT NULL,
-  csms_snapshot_uri varchar(512),
+  csms_name VARCHAR(64),
+  csm_name VARCHAR(64) NOT NULL,
+  csms_uri VARCHAR(512) NOT NULL,
+  csms_snapshot_uri VARCHAR(512),
   CONSTRAINT service_motion_ibfk_2 FOREIGN KEY (csm_name) REFERENCES c_service_motion (csm_name) ON DELETE CASCADE
 );
 
 CREATE TABLE c_service_mpd (
   cmpd_id INT(11) PRIMARY KEY AUTO_INCREMENT,
-  cmpd_name varchar(64) NOT NULL UNIQUE,
-  cmpd_description varchar(128),
-  cmpd_host varchar(128) NOT NULL,
+  cmpd_name VARCHAR(64) NOT NULL UNIQUE,
+  cmpd_description VARCHAR(128),
+  cmpd_host VARCHAR(128) NOT NULL,
   cmpd_port INT(5),
-  cmpd_password varchar(128),
+  cmpd_password VARCHAR(128),
 	cmpd_device VARCHAR(64),
 	cmpd_switch VARCHAR(64)
 );
@@ -189,3 +189,26 @@ CREATE TABLE c_mpd_websocket (
   CONSTRAINT service_mpd_ibfk_1 FOREIGN KEY (cmpd_id) REFERENCES c_service_mpd (cmpd_id) ON DELETE CASCADE
 );
 CREATE INDEX cmw_name_idx ON c_mpd_websocket (cmw_name);
+
+CREATE TABLE c_service_weathermap (
+  cw_id INT(11) PRIMARY KEY AUTO_INCREMENT,
+  cw_name VARCHAR(64) NOT NULL UNIQUE,
+  cw_display VARCHAR(128),
+  cw_appid VARCHAR(128) NOT NULL,
+  cw_uri VARCHAR(128) NOT NULL,
+  cw_lat VARCHAR(16) NOT NULL,
+  cw_lon VARCHAR(16) NOT NULL,
+  cw_units VARCHAR(16),
+  cw_lang VARCHAR(16)
+);
+CREATE INDEX cw_name_idx ON c_service_weathermap (cw_name);
+
+CREATE TABLE c_service_weathermap_data (
+  cwd_id INT(11) PRIMARY KEY AUTO_INCREMENT,
+  cw_id INT(11),
+  cwd_data BLOB,
+  cwd_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  cwd_status INT(11), -- 0: ok, 1: remote error, 2: format error
+  CONSTRAINT service_weathermap_data_id_ibfk_1 FOREIGN KEY (cw_id) REFERENCES c_service_weathermap (cw_id) ON DELETE CASCADE
+);
+CREATE INDEX cwd_date_idx ON c_service_weathermap_data (cwd_date);
