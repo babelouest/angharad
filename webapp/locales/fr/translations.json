@@ -38,7 +38,8 @@
     "mock-service": "Service fictif",
     "service-liquidsoap": "Liquidsoap",
     "service-motion": "Caméra",
-    "service-mpd": "Lecteur de musique"
+    "service-mpd": "Lecteur de musique",
+    "service-weathermap": "Météo"
   },
   "config": {
     "select-lang": "Sélectionner la langue",
@@ -133,6 +134,7 @@
   "services": {
     "title": "Liste des services",
     "mock-services": "Service fictif",
+    "weathermap-services": "Météo weathermap",
     "mpd-services": "Lecteur de musique",
     "edit": "Modifier",
     "remove": "Suppression",
@@ -148,6 +150,7 @@
     "carleon-service-modal-type-service-mpd": "Lecteur MPD",
     "carleon-service-modal-type-service-motion": "Caméra",
     "carleon-service-modal-type-service-liquidsoap": "Webradio liquidsoap",
+    "carleon-service-modal-type-service-weathermap": "Météo weathermap",
     "save-ok": "Service sauvegardé",
     "remove-ok": "Service supprimé",
     "carleon-service-name-taken": "Le nom existe déjà pour un autre service",
@@ -164,7 +167,33 @@
     "carleon-service-modal-mpd-port": "Port",
     "carleon-service-modal-mpd-password": "Mot de passe",
     "carleon-service-modal-mpd-switch": "Interrupteur associé",
-    "carleon-service-modal-mpd-switch-none": "Aucun"
+    "carleon-service-modal-mpd-switch-none": "Aucun",
+    "carleon-service-modal-weathermap-uri": "URI du service",
+    "carleon-service-modal-weathermap-appid": "AppId",
+    "carleon-service-modal-weathermap-lat": "Lattitude",
+    "carleon-service-modal-weathermap-lon": "Longitude",
+    "carleon-service-modal-weathermap-units": "Unité",
+    "carleon-service-modal-weathermap-units-standard": "Stndard",
+    "carleon-service-modal-weathermap-units-metric": "Métrique",
+    "carleon-service-modal-weathermap-units-imperial": "Impérial",
+    "carleon-service-modal-weathermap-lang": "Langue",
+    "carleon-service-modal-weathermap-lang-fr": "Français",
+    "carleon-service-modal-weathermap-lang-en": "Anglais",
+    "carleon-service-weathermap-no-data": "Aucune donnée, veuillez rafraîchir",
+    "carleon-service-weathermap-temp": "Température",
+    "carleon-service-weathermap-temp-feels-like": "Ressenti",
+    "carleon-service-weathermap-temp-min": "Min",
+    "carleon-service-weathermap-temp-max": "Max",
+    "carleon-service-weathermap-pressure": "Pression",
+    "carleon-service-weathermap-humidity": "Humidité",
+    "carleon-service-weathermap-wind-speed": "Vent",
+    "carleon-service-weathermap-wind-gust": "Rafales",
+    "carleon-service-weathermap-wind-deg": "Direction",
+    "carleon-service-weathermap-clouds": "Nuages",
+    "carleon-service-weathermap-rain-1h": "Pluie (1h)",
+    "carleon-service-weathermap-rain-3h": "Pluie (3h)",
+    "carleon-service-weathermap-snow-1h": "Neige (1h)",
+    "carleon-service-weathermap-snow-3h": "Neige (3h)"
   },
   "scripts": {
     "title": "Tâches",
@@ -204,7 +233,10 @@
     "modal-mpd-action-list-stop": "Arrêter",
     "modal-mpd-action-list-pause": "Pause",
     "modal-mpd-volume": "Volume",
-    "modal-mpd-playlist": "Playlist"
+    "modal-mpd-playlist": "Playlist",
+    "modal-action-list-weathermap-refresh": "Reafraîchir la météo",
+    "modal-weathermap-player-list": "Liste des météos",
+    "modal-action-weathermap": "Rafraîchir {{name}}"
   },
   "schedulers": {
     "title": "Planification",

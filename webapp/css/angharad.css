@@ -103,3 +103,11 @@
   text-overflow: ellipsis;
   max-width: 200px;
 }
+.weathermap-element {
+  padding-right: 2px;
+  padding-left: 2px;
+  padding-bottom: 2px;
+  padding-top: 2px;
+  margin-bottom: 5px;
+  min-height:400px;
+}
