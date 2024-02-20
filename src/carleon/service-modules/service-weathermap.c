@@ -113,7 +113,7 @@ static int weathermap_refresh_data(struct _carleon_config * config, json_t * j_w
       }
       json_decref(j_values);
     } else {
-      y_log_message(Y_LOG_LEVEL_ERROR, "weathermap_refresh_data - Error http status %u for weathermap %s", resp.status, json_string_value(json_object_get(j_weathermap, "cw_name")));
+      y_log_message(Y_LOG_LEVEL_ERROR, "weathermap_refresh_data - Error http status %ld for weathermap %s", resp.status, json_string_value(json_object_get(j_weathermap, "cw_name")));
       j_query = json_pack("{sss{sOsi}}",
                           "table", WEATHERMAP_DATA_TABLE_NAME,
                           "values",

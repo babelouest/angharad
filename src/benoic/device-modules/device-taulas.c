@@ -265,7 +265,7 @@ json_t * b_device_overview (json_t * device, void * device_ptr) {
         }
       } else {
         char * str_body = json_dumps(json_body, JSON_ENCODE_ANY);
-        y_log_message(Y_LOG_LEVEL_ERROR, "Error getting device overview, url was %s, status code is %d, json body is %s", req.http_url, resp.status, json_body);
+        y_log_message(Y_LOG_LEVEL_ERROR, "Error getting device overview, url was %s, status code is %ld, json body is %s", req.http_url, resp.status, str_body);
         free(str_body);
         overview = json_pack("{si}", "result", WEBSERVICE_RESULT_ERROR);
       }

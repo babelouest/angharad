@@ -442,7 +442,7 @@ void on_notification_zwave ( Notification const * _notification, void * _context
     case Notification::Type_NodeEvent: {
       char * alarm_name;
       // Event received
-      y_log_message(Y_LOG_LEVEL_DEBUG, "Notification::Type_NodeEvent for NodeID %d, ValueID %x, type %x, send alert", 
+      y_log_message(Y_LOG_LEVEL_DEBUG, "Notification::Type_NodeEvent for NodeID %d, ValueID %llu, type %x, send alert",
                     _notification->GetNodeId(), 
                     _notification->GetValueID().GetId(),
                     _notification->GetValueID().GetCommandClassId());

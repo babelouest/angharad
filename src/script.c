@@ -644,7 +644,7 @@ int script_run(struct config_elements * config, const char * script_name) {
         if (j_action_list != NULL && json_is_array(j_action_list)) {
           json_array_foreach(j_action_list, index, j_action) {
             if (action_run(config, j_action) != A_OK) {
-              y_log_message(Y_LOG_LEVEL_ERROR, "script_run - Error executing action %d in script %s", index, script_name);
+              y_log_message(Y_LOG_LEVEL_ERROR, "script_run - Error executing action %zu in script %s", index, script_name);
             }
           }
         } else {
@@ -691,7 +691,7 @@ int action_run(struct config_elements * config, json_t * j_action) {
   is_valid = is_action_valid(config, j_action, 0);
   if (is_valid != NULL && json_is_array(is_valid) && json_array_size(is_valid) > 0) {
     error_description = json_dumps(is_valid, JSON_COMPACT);
-    y_log_message(Y_LOG_LEVEL_ERROR, "error in action is_valid: %s", is_valid);
+    y_log_message(Y_LOG_LEVEL_ERROR, "error in action is_valid: %s", error_description);
     o_free(error_description);
     res = A_ERROR;
   } else if (0 == o_strcmp(json_string_value(json_object_get(j_action, "submodule")), "benoic")) {

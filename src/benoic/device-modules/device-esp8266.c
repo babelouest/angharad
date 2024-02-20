@@ -92,7 +92,7 @@ json_t * b_device_connect (json_t * device, void ** device_ptr) {
     if (resp.status == 200) {
       j_param = json_pack("{si}", "result", WEBSERVICE_RESULT_OK);
     } else {
-      y_log_message(Y_LOG_LEVEL_ERROR, "b_device_connect - Error invalid status: %d", resp.status);
+      y_log_message(Y_LOG_LEVEL_ERROR, "b_device_connect - Error invalid status: %ld", resp.status);
       j_param = json_pack("{si}", "result", WEBSERVICE_RESULT_ERROR);
     }
   } else {
